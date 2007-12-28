@@ -1,0 +1,4 @@
+name = Import
+package = GCD
+dependencies = gcd
+description = Imports the current GCD database into the Drupal schema.

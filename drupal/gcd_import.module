@@ -1,0 +1,388 @@
+<?php
+
+/**
+ * @file
+ * Imports the current GCD database into the Drupal schema.
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function gcd_import_menu($may_cache) {
+  $items = array();
+
+  if ($may_cache) {
+    $items[] = array(
+      'access'             => user_access('administer nodes'),
+      'callback'           => 'gcd_import_analyze',
+      'description'        => t('Analyze the current GCD data for building lists and decisions.'),
+      'path'               => 'admin/gcd/import_analyze',
+      'title'              => t('Analyze import'),
+    );
+    $items[] = array(
+      'access'             => user_access('administer nodes'),
+      'callback'           => 'gcd_import_begin',
+      'description'        => t('Import the current GCD data into the Drupal schema.'),
+      'path'               => 'admin/gcd/import',
+      'title'              => t('Import GCD'),
+    );
+  }
+
+  return $items;
+}
+
+/**
+ * Menu callback; begins the importer.
+ *
+ * This function uses 'print' instead of returning the content as normal
+ * so that we have control over flushing and browser timeouts. This means
+ * that the output will NOT be themed to look like the rest of the site.
+ *
+ * @param $stage
+ *   Defaults to 0; which stage of the importer to start at.
+ * @param $refresh
+ *   Defaults to NULL; whether to start over (deletes existing content).
+ */
+function gcd_import_begin($stage = 0, $refresh = NULL) {
+  print t('<h1>GCD Importer: Stage @stage</h1>', array('@stage' => $stage));
+
+  if ($stage == 0) { // print an overview of what'd happen, and allow overrides.
+    print t('<p>This importer is a multi-step and manual process:</p>') .'<ol>';
+    print  '<li>'. t('Create supporting tables based off live data (!start_here / !start_over_here).', array('!start_here' => l(t('start here'), 'admin/content/gcd_import/1'), '!start_over_here' => l(t('start over here'), 'admin/content/gcd_import/1/refresh'))) .'</li>';
+    print '</ol>'. t('<p>The default is to start over at Stage 1 (which will delete existing content).</p>');
+    print '<p>'. l(t('Begin importing the current GCD database'), 'admin/content/gcd_import/1/refresh') .' &raquo;</p>';
+  }
+
+  // ======================================================================= //
+  // Stage 1: Supporting tables                                              //
+  // ======================================================================= //
+  if ($stage == 1) {
+
+    // --------------------------------------------------------------------- //
+    // Stage 1a: Countries                                                    //
+    // --------------------------------------------------------------------- //
+    print t('<h2>Importing supporting table gcdSupCountry</h2>');
+    if ($refresh) { db_query('DELETE FROM {gcdSupCountry}'); }
+    db_set_active('gcd_current'); // switch to the current GCD database.
+
+    // 245 is "Porn Nation", 246 is "Syrania" (whose code conflicts with existing "Syria")
+    // and 247 is "Test 2xy". none of these countries have recorded associations.
+    $results = db_query('SELECT code, country, ID FROM {countries} WHERE (ID < 245)');
+    db_set_active('default'); // switch back to the Drupal database.
+
+    while ($result = db_fetch_object($results)) {
+      db_query("INSERT INTO {gcdSupCountry} (CountryID, LegacyID, strCountry) VALUES ('%s', %d, '%s')", $result->code, $result->ID, $result->country);
+      print " . "; flush(); ob_flush(); // stop timeouts by sending data immediately.
+    }
+  }
+
+  // always back to Drupal.
+  db_set_active('default');
+  exit;
+}
+
+/**
+ * Menu callback; analyze the current database for building lists and decisions.
+ */
+function gcd_import_analyze($type = NULL) {
+  $output = t('<p>In which we wax poetic about SQL discoveries and normalization.</p>');
+
+  if (!$type) { // print a list of possibilities.
+    $output .= '<ul>'; // both imports and analysis take a bit of time, so we'll put up a list of possibilities.
+    $output .=  '<li>'. l(t('Analyze creators (stories.Pencils, etc.) and determine value lists.'), 'admin/gcd/import_analyze/creators') .'</li>';
+    $output .=  '<li>'. l(t('Analyze and normalize character appearance types (stories.Char_App).'), 'admin/gcd/import_analyze/char_app') .'</li>';
+    $output .= '</ul>';
+  }
+
+  // ======================================================================= //
+  // Creators                                                                //
+  // ======================================================================= //
+  if ($type == 'creators') {
+    $output .= t('<h3>Creator Value Lists</h3>');
+    db_set_active('gcd_current'); // switch to the current GCD database.
+
+    $all_types = array();
+    foreach (array('Pencils', 'Inks', 'Script', 'Colors', 'Letters', 'Editing') as $role) {
+      $results = db_query("SELECT $role FROM {stories} WHERE $role LIKE '%(%' ORDER BY ID");
+      while ($result = db_fetch_object($results)) { // still needs some processing...
+        preg_match_all('/\((.*?)\)/', $result->$role, $parentheses);
+        foreach ($parentheses[1] as $parenthesis) {
+          $all_types[$role][$parenthesis]++;
+        }
+      }
+    }
+
+    foreach ($all_types as $role => $values) {
+      arsort($all_types[$role]);                            // sort the normalized list.
+      $topresults = array();                                // prepare our list for output.
+      $toptypes = array_splice($all_types[$role], 0, 100);  // make it the top 1000 only.
+      foreach ($toptypes as $type => $count) {              // for each of the 1000 matches...
+        $topresults[] = "$type ($count)";                   // ... make it look all purdy.
+      }
+
+      $output .= t('<p><strong>Top @role types (normalized):</strong> @types.</p>', array('@role' => $role, '@types' => implode(', ', $topresults)));
+    }
+  }
+
+  // ======================================================================= //
+  // Character Appearance Types                                              //
+  // ======================================================================= //
+  if ($type == 'char_app') {
+    $output .= t('<h3>Character Appearance Types</h3>');
+    db_set_active('gcd_current'); // switch to the current GCD database.
+
+    $all_types = array(); // contains appearance type and count, unnormalized (save for lowercase)
+    $results = db_query("SELECT Char_App FROM {stories} WHERE Char_App LIKE '%(%' ORDER BY ID");
+    while ($result = db_fetch_object($results)) { // still needs some processing...
+      preg_match_all('/\((.*?)\)/', $result->Char_App, $parentheses);
+
+      foreach ($parentheses[1] as $parenthesis) { 
+        // sometimes it's "intro, villain; origin".
+        $types = preg_split('/[,;] ?/ ', $parenthesis);
+        foreach ($types as $type) {
+          $all_types[drupal_strtolower($type)]++;
+        }
+      }
+    }
+
+    // normalize the list based on our map.
+    foreach ($all_types as $type => $count) {
+      if ($normalized_type = gcd_appearance_type_normalize($type)) {
+        $all_types[$normalized_type] += $count;
+        unset($all_types[$type]);
+      }
+    }
+
+    // print our the normalized list.
+    arsort($all_types);                            // sort the normalized list.
+    $topresults = array();                         // prepare our list for output.
+    $toptypes = array_splice($all_types, 0, 1000); // make it the top 1000 only.
+    foreach ($toptypes as $type => $count) {       // for each of the 1000 matches...
+      $topresults[] = "$type ($count)";            // ... make it look all purdy.
+    }
+
+    $output .= t('<p><strong>Top types (normalized):</strong> @types.</p>', array('@types' => implode(', ', $topresults)));
+  }
+
+  // always back to Drupal.
+  db_set_active('default');
+  return $output;
+}
+
+/**
+ * Normalizes, if necessary, an appearance type passed into it.
+ *
+ * @param $type
+ *   The appearance type to attempt normalization on.
+ * @param $type or NULL
+ *   A new $type if normalization occurred, NULL otherwise.
+ */
+function gcd_appearance_type_normalize($type) {
+  $map = array(
+    'c'                  => 'cameo',
+    'cameo in prologue'  => 'cameo',
+    'cameos'             => 'cameo',
+    'in background'      => 'cameo',
+    'last page cameo'    => 'cameo',
+    'd'                  => 'death',
+    'd--twice'           => 'death',
+    'd?'                 => 'death',
+    'dead'               => 'death',
+    'death?'             => 'death',
+    'death of'           => 'death',
+    'death of in this issue' => 'death',
+    'destroyed'          => 'death',
+    'die'                => 'death',
+    'dies'               => 'death',
+    'dies again'         => 'death',
+    'dies?'              => 'death',
+    'dies in this issue' => 'death',
+    'dies in this story' => 'death',
+    'killed'             => 'death',
+    'killed in this story' => 'death',
+    'as a balloon'       => 'false appearance',
+    'as a robot'         => 'false appearance',
+    'clone'              => 'false appearance',
+    'clone of peter parker' => 'false appearance',
+    'doppleganger'       => 'false appearance',
+    'false'              => 'false appearance',
+    'fake'               => 'false appearance',
+    'imposter'           => 'false appearance',
+    'in puppet form'     => 'false appearance',
+    "peter parker's clone" => 'false appearance',
+    'superboy clone'     => 'false appearance',
+    'robot version'      => 'false appearance',
+    'cameo flashback'    => 'flashback',
+    'cameo-flashback'    => 'flashback',
+    'cameo- flashback'   => 'flashback',
+    'cameo in flashback' => 'flashback',
+    'fb'                 => 'flashback',
+    'f/b'                => 'flashback',
+    'flashback only'     => 'flashback',
+    'flashback cameo'    => 'flashback',
+    'flashbacks'         => 'flashback',
+    'in a flashback'     => 'flashback',
+    'in fb'              => 'flashback',
+    'in flashback'       => 'flashback',
+    'in flashback story' => 'flashback',
+    'guest'              => 'guest appearance',
+    'guest-star'         => 'guest appearance',
+    'guest star'         => 'guest appearance',
+    'guest stars'        => 'guest appearance',
+    'host - inserted'    => 'host',
+    'story host'         => 'host',
+    'character in movie' => 'image only',
+    'film'               => 'image only',
+    'foto'               => 'image only',
+    'image'              => 'image only',
+    'in photo'           => 'image only',
+    'on a poster'        => 'image only',
+    'on poster'          => 'image only',
+    'on tv'              => 'image only',
+    'on video'           => 'image only',
+    'on watch face'      => 'image only',
+    'photo'              => 'image only',
+    'picture'            => 'image only',
+    'poster'             => 'image only',
+    'tv image'           => 'image only',
+    'in background picture' => 'image only',
+    'on a comic book cover' => 'image only',
+    'picture in foreground' => 'image only',
+    'a ghost'            => 'incorporeal',
+    'as a ghost'         => 'incorporeal',
+    'as ghost'           => 'incorporeal',
+    'as a spirit'        => 'incorporeal',
+    'dream'              => 'incorporeal',
+    'dream appearance'   => 'incorporeal',
+    'dream cameo'        => 'incorporeal',
+    'dream sequence'     => 'incorporeal',
+    'ghost'              => 'incorporeal',
+    'hallucination'      => 'incorporeal',
+    'illusion'           => 'incorporeal',
+    'in dream'           => 'incorporeal',
+    'in a dream'         => 'incorporeal',
+    'spirit'             => 'incorporeal',
+    '1st'                => 'introduction',
+    '1st and intro'      => 'introduction',
+    '1st and intro.'     => 'introduction',
+    '1st app.'           => 'introduction',
+    '1st appearance'     => 'introduction',
+    '1st full'           => 'introduction',
+    'debut'              => 'introduction',
+    'first'              => 'introduction',
+    'first appearance'   => 'introduction',
+    'intro'              => 'introduction',
+    'only app.'          => 'introduction',
+    'only appearance'    => 'introduction',
+    'first full appearance' => 'introduction',
+    'first and only known appearance to date' => 'introduction',
+    'introduction and only appearance' => 'introduction',
+    'as an adult'        => 'timeshifted',
+    'as a baby'          => 'timeshifted',
+    'as a boy'           => 'timeshifted',
+    'as a child'         => 'timeshifted',
+    'baby'               => 'timeshifted',
+    'disguised'          => 'obscured',
+    'face unseen'        => 'obscured',
+    'in disguise'        => 'obscured',
+    'in shadow'          =>' obscured',
+    'in shadows'         => 'obscured',
+    'in silhouette only' => 'obscured',
+    'in the shadows'     => 'obscured',
+    ' obscured'          => 'obscured',
+    'shadow'             => 'obscured',
+    'silhouette'         => 'obscured',
+    'silhouette only'    => 'obscured',
+    'brief origin'       => 'origin',
+    'full origin'        => 'origin',
+    'o'                  => 'origin',
+    'o details'          => 'origin',
+    'origin recap'       => 'origin',
+    'origin retold'      => 'origin',
+    'origin retold in detail' => 'origin',
+    'origin revealed'    => 'origin',
+    'partial origin'     => 'origin',
+    'retold'             => 'origin',
+    'retold w/ details'  => 'origin',
+    'retold in detail'   => 'origin',
+    'retold in fb'       => 'origin',
+    'text origin'        => 'origin',
+
+    // these require extra consideration during importing, but
+    // get normalized down to a known value for the importer.
+    'all i'              => 'intro for all',
+    'all illusion'       => 'all illusions',
+    'all intro'          => 'intro for all',
+    'all d'              => 'death for all',
+    'all death'          => 'death for all',
+    'all die'            => 'death for all',
+    'all die in this story' => 'death for all',
+    'all fb'             => 'flashback for all',
+    'all flashback'      => 'flashback for all',
+    'all in flashback'   => 'flashback for all',
+    'all in flashbacks'  => 'flashback for all',
+    'both d'             => 'death for both',
+    'both die'           => 'death for both',
+    'both i'             => 'intro for both',
+    'both intro'         => 'intro for both',
+    'both fb'            => 'flashback for both',
+    'd for all'          => 'death for all',
+    'd for both'         => 'death for both',
+    'd in fb'            => 'death in flashback',
+    'dies for all'       => 'death for all',
+    'i for all'          => 'intro for all',
+    'i for both'         => 'intro for both',
+    'introduction for all' => 'intro for all',
+    'introduction for both' => 'intro for both',
+
+    // potpourri of lists. these don't necessarily match up to
+    // programmatic logic or to our controlled list, but still
+    // can be normalized in some form or another.
+    'all as the justice league of america'     => 'all as the justice league of america/jla',
+    'as the justice league of america'         => 'all as the justice league of america/jla',
+    'teamed as the justice league of america'  => 'all as the justice league of america/jla',
+    'all as the justice society of america'    => 'all as the justice society of america/jsa',
+    "cont'd"                                   => 'continued',
+    'as a corpse'                              => 'corpse',
+    'earth 2'                                  => 'earth two',
+    'earth-2'                                  => 'earth two',
+    'earth ii'                                 => 'earth two',
+    'mention'                                  => 'mentioned',
+    'mentioned only'                           => 'mentioned',
+    'named'                                    => 'mentioned',
+    'does not appear in costume in this issue' => 'out of costume',
+    'does not appear in costume'               => 'out of costume',
+    'not in costume'                           => 'out of costume',
+    'not seen in costume in this issue'        => 'out of costume',
+    'as a statue'                              => 'statue',
+    'statuette'                                => 'statue',
+    'trophy bust'                              => 'trophy bust',
+    'not named'                                => 'unnamed',
+    'identity unrevealed'                      => 'unnamed',
+    'unnamed in this issue'                    => 'unnamed',
+    'unidentified'                             => 'unnamed',
+    'all in title header'                      => 'vignette',
+    'in masthead'                              => 'vignette',
+    'in title header'                          => 'vignette',
+    'inset'                                    => 'vignette',
+    'inset first page'                         => 'vignette',
+    'inset last page'                          => 'vignette',
+    'inset on first page'                      => 'vignette',
+    'vignette only'                            => 'vignette',
+    'v'                                        => 'villain',
+    'villains'                                 => 'villain',
+    'villian'                                  => 'villain',
+    'villians'                                 => 'villain',
+    'villan'                                   => 'villain',
+
+    // possibilities. need more info.
+    // 'also in flashback'  => 'flashback',
+    // 'changeling'         => 'false appearance',
+    // 'deceased'           => 'death',
+    // 'new'                => 'introduction',
+    // 'not in story'       => '???',
+    // 'voice only'         => '???',
+  );
+
+  return isset($map[$type]) ? $map[$type] : NULL;
+}

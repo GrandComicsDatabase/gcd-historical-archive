@@ -1,0 +1,391 @@
+<?php
+
+/**
+ * @file
+ * Enables functionality related to GCD creators.
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function gcd_creator_menu($may_cache) {
+  $items = array();
+
+  if ($may_cache) {
+    $items[] = array(
+      'access'             => TRUE,
+      'callback'           => 'gcd_creator_autocomplete',
+      'path'               => 'creators/autocomplete',
+      'title'              => t('Creators autocomplete'),
+      'type'               => MENU_CALLBACK,
+    );
+  }
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_access() - wraps around gcd_access().
+ */
+function gcd_creator_access($op, $node) {
+  return gcd_access($op, $node);
+}
+
+/**
+ * Implementation of hook_form().
+ */
+function gcd_creator_form(&$node) {
+  drupal_add_css(drupal_get_path('module', 'gcd') .'/gcd.css');
+  $form = array(); // unnecessary, but I pre-declare EVERYTHINTNGG<!
+
+  $form['biographical'] = array(
+    '#collapsible'     => TRUE,
+    '#title'           => t('Biographical information'),
+    '#type'            => 'fieldset',
+  );
+  $form['biographical']['NamePrefixID'] = array(
+    '#default_value'   => $node->NamePrefixID,
+    '#options'         => array_merge(array(0 => ''), gcd_sup_name_prefixes()),
+    '#prefix'          => '<div class="container-inline-stacked">',
+    '#title'           => t('Prefix'),
+    '#type'            => 'select',
+  );
+  $form['biographical']['strNameGiven'] = array(
+    '#default_value'   => $node->strNameGiven,
+    '#maxlength'       => 50,
+    '#required'        => TRUE,
+    '#size'            => 30,
+    '#title'           => t('Given name'),
+    '#type'            => 'textfield',
+  );
+  $form['biographical']['strNameFamily'] = array(
+    '#default_value'   => $node->strNameFamily,
+    '#maxlength'       => 50,
+    '#required'        => TRUE,
+    '#size'            => 30,
+    '#title'           => t('Family name'),
+    '#type'            => 'textfield',
+  );
+  $form['biographical']['NameSuffixID'] = array(
+    '#default_value'   => $node->NameSuffixID,
+    '#options'         => array_merge(array(0 => ''), gcd_sup_name_suffixes()),
+    '#suffix'          => '</div>',
+    '#title'           => t('Suffix'),
+    '#type'            => 'select',
+  );
+  $form['biographical']['birthdate'] = array(
+    '#prefix'          => '<div class="container-inline-stacked"><div class="form-item"><label for="edit-intBirthCombined">'. t('Date of birth:') .'</label><div class="container-inline">',
+    '#suffix'          => '</div></div>', // we go through contrivances to replicate Drupal's default "date" element, which can't be made optional.
+    '#tree'            => TRUE, // it also can't be made optional through the FormAPI, which is a bit odd; think this is better in Drupal 6.
+    '#type'            => 'markup',
+    '#validate'        => array('gcd_creator_validate_birthdate' => array()),
+  );
+  $form['biographical']['birthdate']['intBirthMonth'] = array(
+    '#default_value'   => $node->intBirthMonth,
+    '#options'         => array_merge(array(0 => ''), drupal_map_assoc(range(1, 12), 'map_month')),
+    '#type'            => 'select',
+  );
+  $form['biographical']['birthdate']['intBirthDay'] = array(
+    '#default_value'   => $node->intBirthDay,
+    '#options'         => drupal_map_assoc(array_merge(array('' => ''), range(1, 31))),
+    '#type'            => 'select',
+  );
+  $form['biographical']['birthdate']['intBirthYear'] = array(
+    '#default_value'   => $node->intBirthYear,
+    '#options'         => drupal_map_assoc(array_merge(array('' => ''), range(1880, date('Y')))),
+    '#type'            => 'select',
+  );
+  $form['biographical']['boolNameStyle'] = array(
+    '#default_value'   => $node->boolNameStyle,
+    '#suffix'          => '</div>',
+    '#title'           => t('Eastern-style name ("Doe John" not "John Doe")'),
+    '#type'            => 'checkbox',
+  );
+
+  $form['additional'] = array(
+    '#collapsible'     => TRUE,
+    '#title'           => t('Additional information'),
+    '#type'            => 'fieldset',
+  );
+  $form['additional']['txtNotes'] = array(
+    '#default_value'   => $node->txtNotes,
+    '#title'           => t('Notes'),
+    '#type'            => 'textarea',
+  );
+
+  $form['relationships'] = array(
+    '#collapsed'       => TRUE,
+    '#collapsible'     => TRUE,
+    '#description'     => t('If you need more fields, submit as many as you can, then re-edit this creator for more fields.'),
+    '#title'           => t('Relationships'),
+    '#type'            => 'fieldset',
+    '#validate'        => array('gcd_creator_validate_relationships' => array()),
+  );
+  $form['relationships']['current_creator_nid'] = array(
+    '#type'            => 'value',
+    '#value'           => $node->nid,
+  );
+
+  // we have to do some crazy FormAPI tweaking to get our data sent to us
+  // in the way we like, and our display looking the way we want. ugh.
+  $form['relationships']['relationship_types']['#tree'] = TRUE;
+  $form['relationships']['relationship_tos']['#tree']   = TRUE;
+  for ($i = 1; $i <= 5; $i++) {
+    $form['relationships']['relationship_types_'. $i] = array(
+      '#attributes'      => $i == 1 ? '' : array('class' => 'no-title'),
+      '#default_value'   => $node->relationship_types[$i],
+      '#options'         => array_merge(array(0 => ''), gcd_sup_creator_relationships()),
+      '#prefix'          => '<div class="container-inline-stacked">',
+      '#parents'         => array('relationships_types', $i),
+      '#tree'            => TRUE,
+      '#title'           => $i == 1 ? t('Type') : '',
+      '#type'            => 'select',
+    );
+    $form['relationships']['relationship_tos_'. $i] = array(
+      '#attributes'        => $i == 1 ? '' : array('class' => 'no-title'),
+      '#autocomplete_path' => 'creators/autocomplete',
+      '#default_value'     => $node->relationship_tos[$i],
+      '#parents'           => array('relationships_tos', $i),
+      '#size'              => 71,
+      '#suffix'            => '</div>',
+      '#title'             => $i == 1 ? t('Creator') : '',
+      '#tree'              => TRUE,
+      '#type'              => 'textfield',
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Implementation of hook_insert().
+ */
+function gcd_creator_insert($node) {
+  db_query("INSERT INTO {gcdCreator} (nid, vid, NamePrefixID, NameSuffixID, boolNameStyle, intBirthDay, intBirthMonth, intBirthYear, strNameFamily, strNameGiven, txtNotes) VALUES (%d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s')",
+    $node->nid, $node->vid, $node->NamePrefixID, $node->NameSuffixID, $node->boolNameStyle, $node->birthdate['intBirthDay'], $node->birthdate['intBirthMonth'], $node->birthdate['intBirthYear'], $node->strNameFamily, $node->strNameGiven, $node->txtNotes);
+}
+
+/**
+ * Implementation of hook_update().
+ */
+function gcd_creator_update($node) {
+  if ($node->revision) {
+    gcd_creator_insert($node);
+  }
+  else {
+    db_query("UPDATE {gcdCreator} SET NamePrefixID = %d, NameSuffixID = %d, boolNameStyle = %d, intBirthDay = %d, intBirthMonth = %d, intBirthYear = %d, strNameFamily = '%s', strNameGiven = '%s', txtNotes = '%s' WHERE vid = %d",
+      $node->NamePrefixID, $node->NameSuffixID, $node->boolNameStyle, $node->birthdate['intBirthDay'], $node->birthdate['intBirthMonth'], $node->birthdate['intBirthYear'], $node->strNameFamily, $node->strNameGiven, $node->txtNotes, $node->vid);
+  }
+}
+
+/**
+ * Implementation of hook_delete().
+ */
+function gcd_creator_delete($node) {
+  db_query('DELETE FROM {gcdCreator} WHERE nid = %d', $node->nid);
+}
+
+/**
+ * Implementation of hook_load().
+ */
+function gcd_creator_load($node) {
+  $additions = db_fetch_object(db_query('SELECT * FROM {gcdCreator} WHERE vid = %d', $node->vid));
+  return $additions;
+}
+
+/**
+ * Implementation of hook_view().
+ */
+function gcd_creator_view($node, $teaser = FALSE, $page = FALSE) {
+  $node = node_prepare($node, $teaser);
+
+  if ($node->intBirthYear) {
+    $node->content['birthdate'] = array(
+      '#value'  => t('<strong>Birthday:</strong> @birthdate.', array('@birthdate' =>
+        sprintf("%04d-%02d-%02d", $node->intBirthYear, $node->intBirthMonth, $node->intBirthDay))),
+      '#weight' => 0,
+    );
+  }
+
+  if ($node->txtNotes) {
+    $node->content['txtNotes'] = array(
+      '#value' => check_markup($node->txtNotes),
+      '#weight' => 1,
+    );
+  }
+
+  return $node;
+}
+
+/*
+ * Implementation of hook_submit().
+ */
+function gcd_creator_submit(&$node) {
+  $node->title = gcd_creator_node_title($node);
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function gcd_creator_nodeapi(&$node, $op, $teaser, $page) {
+  // revisions can only be deleted inside a nodeapi.
+  if ($node->type == 'gcdCreator' && $op == 'delete revision') {
+    db_query('DELETE FROM {gcdCreator} WHERE vid = %d', $node->vid);
+  }
+}
+
+/**
+ * Form/menu callback; autocompletes creator names.
+ *
+ * @todo This will fail if there are more than one creators with the same name.
+ */
+function gcd_creator_autocomplete($string = '') {
+  $matches = array();
+  if ($string) {
+    $results = db_query_range("SELECT title FROM {node} WHERE LOWER(title) LIKE LOWER('%%%s%%') AND type = 'gcdCreator'", $string, 0, 10);
+    while ($result = db_fetch_object($results)) {
+      $matches[$result->title] = check_plain($result->title);
+   }
+  }
+  print drupal_to_js($matches);
+  exit();
+}
+
+/**
+ * Create a node title based off creator name information.
+ *
+ * @param $node
+ *   The node object to create a title for.
+ * @return $title
+ *   The generated title based on this creator info.
+ */
+function gcd_creator_node_title($node) {
+  $prefix = gcd_sup_name_prefixes($node->NamePrefixID);
+  $suffix = gcd_sup_name_suffixes($node->NameSuffixID);
+  $prefix = $prefix ? $prefix .' ' : '';
+  $suffix = $suffix ? ' '. $suffix : '';
+  $title = $node->boolNameStyle
+    ? "$prefix$node->strNameFamily $node->strNameGiven$suffix"
+    : "$prefix$node->strNameGiven $node->strNameFamily$suffix";
+  return $title;
+}
+
+/**
+ * FormAPI #validate callback; make sure birthdates are valid.
+ */
+function gcd_creator_validate_birthdate($form_element) {
+  $submitted = 0; // if one value is submitted, all three must be.
+  if ($form_element['#post']['birthdate']['intBirthMonth']) { $submitted++; }
+  if ($form_element['#post']['birthdate']['intBirthDay']) { $submitted++; }
+  if ($form_element['#post']['birthdate']['intBirthYear']) { $submitted++; }
+
+  if ($submitted > 0 && $submitted < 3) {
+    form_set_error('birthdate', t('The specified date is incomplete.'));
+  }
+
+  // if we've got all three values, check to make sure that the date makes sense (includes leap years).
+  if ($submitted == 3 && !checkdate($form_element['#post']['birthdate']['intBirthMonth'], $form_element['#post']['birthdate']['intBirthDay'], $form_element['#post']['birthdate']['intBirthYear'])) {
+    form_set_error('birthdate', t('The specified date is invalid.'));
+  }
+}
+
+/**
+ * FormAPI #validate callback; make sure relationships are valid.
+ *
+ * @todo This will fail if there are more than one creators with the same name.
+ */
+function gcd_creator_validate_relationships($form_element) {
+//  foreach ($form_element['#post']['relationship_types'] as $key => $value) {
+//    if ($value && $form_element['#post']['relationship_tos'][$key]) {
+//      $creator_name = $form_element['#post']['relationship_tos'][$key];
+//      $creator_nid = db_result(db_query("SELECT nid FROM {node} WHERE title = '%s'", $creator_name));
+//
+//      if ($creator_nid == $form_element['current_creator_nid']['#value']) {
+//        form_set_error("relationship_tos_". $key, t('You cannot create a relationship to yourself.'));
+//      }
+//    }
+//  }
+}
+
+/**
+ * Implementation of hook_diff() for all node types.
+ */
+function gcd_creator_diff(&$old_node, &$new_node) {
+  $results = array();
+
+  // diff fields for our gcdCreator type.
+  if ($old_node->type == 'gcdCreator') {
+    foreach (array('boolNameStyle', 'intBirthDay', 'intBirthMonth', 'intBirthYear', 'strNameFamily', 'strNameGiven', 'txtNotes') as $field) {
+      $results[] = array(
+        'name' => $field,
+        'old' => array($old_node->$field),
+        'new' => array($new_node->$field),
+        'format' => array(
+          'show_header' => FALSE,
+        )
+      );
+    }
+    $results[] = array(
+      'name' => 'NamePrefixID',
+      'old' => array(gcd_sup_name_prefixes($old_node->NamePrefixID)),
+      'new' => array(gcd_sup_name_prefixes($new_node->NamePrefixID)),
+      'format' => array(
+        'show_header' => FALSE,
+      )
+    );
+    $results[] = array(
+      'name' => 'NameSuffixID',
+      'old' => array(gcd_sup_name_suffixes($old_node->NameSuffixID)),
+      'new' => array(gcd_sup_name_suffixes($new_node->NameSuffixID)),
+      'format' => array(
+        'show_header' => FALSE,
+      )
+    );
+  }
+
+  return $results;
+}
+
+/**
+ * Load and cache gcdSupCreatorRelationship(s).
+ *
+ * @param $crid
+ *   The character relationship ID to return the string of.
+ * @param $descriptions
+ *   Defaults to FALSE; whether to provide descriptions of the relationships.
+ *   This parameter only applies if $crid is NULL (ie., you're getting all data).
+ * @return $name or $relationships
+ *   If $crid is passed, we'll return the string that matches the ID. If
+ *   it's not passed, we'll return an array of all creator relationships.
+ *   If $descriptions is TRUE, we'll instead return an array of relationship
+ *   type objects that contain the ID, name, and description.
+ */
+function gcd_sup_creator_relationships($crid = NULL, $descriptions = FALSE) {
+  static $relationships;
+
+  if (count($relationships) == 0) {
+    $results = db_query('SELECT CreatorRelationshipID, strCreatorRelationship, txtDescription FROM {gcdSupCreatorRelationship} ORDER BY strCreatorRelationship');
+    while ($result = db_fetch_object($results)) {
+      $relationships[$result->CreatorRelationshipID] = $result;
+    }
+  }
+
+  // the name only.
+  if ($crid && !$descriptions) {
+    return $relationships[$crid]->strCreatorRelationship;
+  }
+
+  // an array of relationship objects.
+  if (!$crid && $descriptions) {
+    return $relationships;
+  }
+
+  // an array of ID => Names.
+  if (!$crid && !$descriptions) {
+    $form_relationships = array();
+    foreach ($relationships as $relationship) {
+      $form_relationships[$relationship->CreatorRelationshipID] = $relationship->strCreatorRelationship;
+    } return $form_relationships; // this format is most often used with Form API constructs.
+  }
+}
+

@@ -1,0 +1,192 @@
+<?php
+
+/**
+ * @file
+ * The Grand Comic Database's primary operational module.
+ *
+ * @todo relationships for creators
+ * @todo handling two editors editing one content, and merging? one possible fix
+ *   could just be as simple as NOT checking for the latest uid-owned revision...
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function gcd_menu($may_cache) {
+  $items = array();
+
+  if ($may_cache) {
+    $items[] = array(
+      'access'             => user_access('administer gcd'),
+      'callback'           => 'system_admin_menu_block_page',
+      'description'        => t('For all your GCD configuration, views, and data needs.'),
+      'path'               => 'admin/gcd',
+      'title'              => t('Grand Comic Book DB'),
+      'weight'             => -20,
+    );
+    $items[] = array(
+      'access'             => user_access('access gcd logs'),
+      'callback'           => 'gcd_log_overview',
+      'description'        => t('View log of relevant GCD changes.'),
+      'path'               => 'admin/gcd/logs',
+      'title'              => t('Log entries'),
+    );
+  }
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_perm().
+ *
+ * We keep these all in one place, here, so as to provide a generic overview
+ * and to illustrate holes in our workflow, or badly named permissions.
+ */
+function gcd_perm() {
+  return array(
+    'create gcdCreator',
+    'edit gcdCreator',
+    'delete gcdCreator',
+
+    'access gcd logs',
+    'administer gcd',
+    'moderate gcd data',
+  );
+}
+
+/**
+ * Implementation of hook_node_info().
+ *
+ * We keep these all in one place so that we can use gcd_node_info()
+ * ourselves to get a list of all the nodes types we're producing.
+ */
+function gcd_node_info() {
+  return array(
+    'gcdCreator' => array(
+      'name'        => t('Creator'),
+      'module'      => 'gcd_creator',
+      'help'        => t('Define a new creator for use with the GCD.'),
+      'description' => t('Define a new creator for use with the GCD.'),
+      'has_title'   => FALSE,
+      'has_body'    => FALSE,
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_access() for all our node types.
+ *
+ * We save a healthy bit of duplicate code by sending all our node
+ * types to this single function, and do a test off the content type.
+ * To prevent the need for a type to perm map, our permissions are
+ * based off the names of the content types.
+ */
+function gcd_access($op, $node) {
+  $node_type = is_object($node) ? $node->type : $node;
+  // $node is either the content type or the full node itself.
+
+  if ($op == 'create') {
+    return user_access("create $node_type");
+  }
+
+  if ($op == 'update') {
+    return user_access("edit $node_type");
+  }
+
+  if ($op == 'delete') {
+    return user_access("delete $node_type");
+  }
+}
+
+/**
+ * View log of relevant GCD changes.
+ */
+function gcd_log_overview() {
+  $output = NULL; $rows = array(); // nothing too exciting up here.
+  $headers = array(t('Type'), t('Date'), t('Message'), t('User'), t('Operations'));
+
+  // load up our specific moderation nodes, as well as any regular Drupal content type messages.
+  $results = pager_query("SELECT w.wid, w.uid, w.type, w.timestamp, w.message, w.link, u.name FROM {watchdog} w
+    INNER JOIN {users} u ON (w.uid = u.uid) WHERE (type = 'gcd moderation' OR type = 'content') ORDER BY w.timestamp DESC", 50);
+
+  while ($result = db_fetch_object($results)) {
+    $rows[] = array(
+      $result->type,
+      format_date($result->timestamp, 'small'),
+      l(truncate_utf8($result->message, 96, TRUE, TRUE), 'admin/logs/event/'. $result->wid, array(), NULL, NULL, FALSE, TRUE),
+      theme('username', $result),
+      $result->link,
+    );
+  }
+
+  if (count($rows) == 0) { // this should never really happen once the site is public.
+    $rows[] = array(array('colspan' => 5, 'data' => t('No log messages available.')));
+  }
+
+  $output .= theme('table', $headers, $rows);
+  $output .= theme('pager', NULL, 50, 0);
+  return $output;
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function gcd_form_alter($form_id, &$form) {
+  $node = isset($form['#node']) ? $form['#node'] : NULL;
+  $node_types = gcd_node_info(); // all the GCD node types.
+
+  // tweaks for all our node types.
+  switch ($form_id) {
+    case isset($node_types[str_replace('_node_form', '', $form_id)]):
+
+      // hide the preview buttons.
+      $form['preview']['#type'] = 'value';
+      $form['preview_changes']['#type'] = 'value';
+
+      break;
+  }
+}
+
+/**
+ * Load and cache gcdSupNamePrefix(es).
+ *
+ * @param $pid
+ *   The name prefix ID to return the string of.
+ * @return $name or $prefixes
+ *   If $pid is passed, we'll return the string that matches the
+ *   ID. If it's not passed, we'll return an array of all prefixes.
+ */
+function gcd_sup_name_prefixes($pid = NULL) {
+  static $prefixes;
+
+  if (count($prefixes) == 0) {
+    $results = db_query('SELECT NamePrefixID, strNamePrefix FROM {gcdSupNamePrefix} ORDER BY strNamePrefix');
+    while ($result = db_fetch_object($results)) {
+      $prefixes[$result->NamePrefixID] = $result->strNamePrefix;
+    }
+  }
+
+  return isset($pid) ? $prefixes[$pid] : $prefixes;
+}
+
+/**
+ * Load and cache gcdSupNameSuffix(es).
+ *
+ * @param $sid
+ *   The name suffix ID to return the string of.
+ * @return $name or $suffixes
+ *   If $sid is passed, we'll return the string that matches the
+ *   ID. If it's not passed, we'll return an array of all suffixes.
+ */
+function gcd_sup_name_suffixes($sid = NULL) {
+  static $suffixes;
+
+  if (count($suffixes) == 0) {
+    $results = db_query('SELECT NameSuffixID, strNameSuffix FROM {gcdSupNameSuffix} ORDER BY strNameSuffix');
+    while ($result = db_fetch_object($results)) {
+      $suffixes[$result->NameSuffixID] = $result->strNameSuffix;
+    }
+  }
+
+  return isset($sid) ? $suffixes[$sid] : $suffixes;
+}

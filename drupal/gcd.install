@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * Implementation of hook_install().
+ */
+function gcd_install() {
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+
+      // nid - unique node ID for this Creator.
+      // vid - unique revision ID for this Creator's node.
+      // NamePrefixID - ID representing a name prefix (like "Mr.", "Dr.", etc.).
+      // NameSuffixID - ID representing a name suffix (like "Jr.", "III", etc.).
+      // boolNameStyle - 0 if this is a Western name ("Given Family"); 1 if Eastern.
+      // intBirthDay - the day this Creator was born.
+      // intBirthMonth - the month this Creator was born.
+      // intBirthYear - the year this Creator was born.
+      // strNameFamily - the Family (Western: "last") name of the Creator.
+      // strNameGiven - the Given (Western: "first") name of the Creator.
+      // txtNotes - extra information about this Creator.
+      db_query("CREATE TABLE {gcdCreator} (
+        nid int(11) unsigned NOT NULL default '0',
+        vid int(11) unsigned NOT NULL default '0',
+        NamePrefixID int(11) default NULL,
+        NameSuffixID int(11) default NULL,
+        boolNameStyle tinyint(1) NOT NULL default '0',
+        intBirthDay int(11) default NULL,
+        intBirthMonth int(11) default NULL,
+        intBirthYear int(11) default NULL,
+        strNameFamily varchar(50) NOT NULL default '',
+        strNameGiven varchar(50) default NULL,
+        txtNotes text,
+        PRIMARY KEY (vid),
+        KEY gcdCreator_nid (nid)
+      ) ENGINE=InnoDB /*!40100 DEFAULT CHARACTER SET UTF8 */");
+
+      // creator_nid - unique node ID of the referring Creator.
+      // creator_vid - unique revision ID of the referring Creator.
+      // creation_to_nid - unique node ID of the referred Creator.
+      // CreatorRelationshipID - unique identifier of a Creator Relationship type.
+      db_query("CREATE TABLE {gcdCreatortoCreator} (
+        creator_nid int(11) NOT NULL default '0',
+        creator_vid int(11) NOT NULL default '0',
+        creator_to_nid int(11) NOT NULL default '0',
+        CreatorRelationshipID int(11) NOT NULL default '0',
+        PRIMARY KEY  (creator_nid, creator_vid, creator_to_nid, CreatorRelationshipID)
+      ) ENGINE=InnoDB /*!40100 DEFAULT CHARACTER SET UTF8 */");
+
+      // CharacterAppearanceID - unique identifier for this Character Appearance type.
+      // strCharacterAppearance - the name of this Character Appearance type ("cameo", etc.).
+      // txtDescription - a description of the Character Appearance type ("Cameo is used when...").
+      db_query("CREATE TABLE {gcdSupCharacterAppearance} (
+        CharacterAppearanceID int(11) NOT NULL auto_increment,
+        strCharacterAppearance varchar(50) NOT NULL default '',
+        txtDescription text,
+        PRIMARY KEY (CharacterAppearanceID)
+      ) ENGINE=InnoDB /*!40100 DEFAULT CHARACTER SET UTF8 */");
+
+      // CountryID - the 2 or 3 letter country code of the Country ("US").
+      // LegacyID - the previous database's identifier for the Country.
+      // strCountry - the name of the Country being represented ("United States").
+      db_query("CREATE TABLE {gcdSupCountry} (
+        CountryID varchar(6) NOT NULL default '',
+        LegacyID int(11) NOT NULL default '0',
+        strCountry varchar(50) NOT NULL default '',
+        PRIMARY KEY (CountryID)
+      ) ENGINE=InnoDB /*!40100 DEFAULT CHARACTER SET UTF8 */");
+
+      // CreatorRelationshipID - unique identifier for this Creator Relationship type.
+      // strCreatorRelationship - the name of this Creation Relationship type ("member", "alias", etc.)
+      // txtDescription - a description of the Creator Relationship type ("Member is used when...").
+      db_query("CREATE TABLE {gcdSupCreatorRelationship} (
+        CreatorRelationshipID int(11) NOT NULL auto_increment,
+        strCreatorRelationship varchar(50) NOT NULL default '',
+        txtDescription text,
+        PRIMARY KEY (CreatorRelationshipID)
+      ) ENGINE=InnoDB /*!40100 DEFAULT CHARACTER SET UTF8 */");
+      db_query("INSERT INTO {gcdSupCreatorRelationship} (CreatorRelationshipID, strCreatorRelationship, txtDescription) VALUES (1, 'alias', 'Aliases are used to associate a creator\'s real name with an assumed one.')");
+      db_query("INSERT INTO {gcdSupCreatorRelationship} (CreatorRelationshipID, strCreatorRelationship, txtDescription) VALUES (2, 'member', 'If your creator is part of a group or organization, use a member relationship.')");
+
+      // NamePrefixID - unique identifier for this Name Prefix.
+      // strNamePrefix - the name prefix itself ("Mr.", "Dr.", etc.).
+      db_query("CREATE TABLE {gcdSupNamePrefix} (
+        NamePrefixID int(11) NOT NULL auto_increment,
+        strNamePrefix varchar(50) NOT NULL default '',
+        PRIMARY KEY  (NamePrefixID)
+      ) ENGINE=InnoDB /*!40100 DEFAULT CHARACTER SET UTF8 */");
+      db_query("INSERT INTO {gcdSupNamePrefix} (NamePrefixID, strNamePrefix) VALUES (1, 'Mr.')");
+      db_query("INSERT INTO {gcdSupNamePrefix} (NamePrefixID, strNamePrefix) VALUES (2, 'Mrs.')");
+
+      // NameSuffixID - unique identifier for this Name Suffix.
+      // strNameSuffix - the name suffix itself ("Jr.", "III", etc.).
+      db_query("CREATE TABLE {gcdSupNameSuffix} (
+        NameSuffixID int(11) NOT NULL auto_increment,
+        strNameSuffix varchar(50) NOT NULL default '',
+        PRIMARY KEY  (NameSuffixID)
+      ) ENGINE=InnoDB /*!40100 DEFAULT CHARACTER SET UTF8 */");
+      db_query("INSERT INTO {gcdSupNameSuffix} (NameSuffixID, strNameSuffix) VALUES (1, 'Jr.')");
+      db_query("INSERT INTO {gcdSupNameSuffix} (NameSuffixID, strNameSuffix) VALUES (2, 'Sr.')");
+
+      // always run GCD last in the execution chain.
+      db_query("UPDATE {system} SET weight = 10 WHERE name = 'gcd'");
+      db_query("UPDATE {system} SET weight = 10 WHERE name = 'gcd_creator'");
+      db_query("UPDATE {system} SET weight = 10 WHERE name = 'gcd_moderation'");
+  }
+}
