@@ -188,7 +188,7 @@ CREATE TRIGGER post_insert_sequence AFTER INSERT ON core_sequence
 
 -- Moving sequences currently not allowed, so no pre_update_sequence.
 -- Likewise, no check to change i.sequence_count in post_update_sequence.
--- This also removes numerous headaches tha would arise with core_cover.
+-- This also removes numerous headaches that would arise with core_cover.
 CREATE TRIGGER post_update_sequence AFTER UPDATE ON core_sequence
     FOR EACH ROW
     IF new.`number` != old.`number` THEN
