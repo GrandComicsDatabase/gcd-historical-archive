@@ -13,7 +13,6 @@ CREATE TABLE core_reprint (
     id int(11) NOT NULL auto_increment,
     source_id int(11) NOT NULL,
     target_id int(11) NOT NULL,
-    confirmed tinyint(1) default 0,
     notes mediumtext,
     PRIMARY KEY (id),
     KEY reprint_from (`source_id`),
@@ -23,22 +22,20 @@ CREATE TABLE core_reprint (
 CREATE TABLE core_reprint_to_issue (
     id int(11) NOT NULL auto_increment,
     source_id int(11) NOT NULL,
-    target_id int(11) NOT NULL,
-    confirmed tinyint(1) default 0,
+    target_issue_id int(11) NOT NULL,
     notes mediumtext,
     PRIMARY KEY (id),
     KEY reprint_to_issue_from (`source_id`),
-    KEY reprint_to_issue_to (`target_id`)
+    KEY reprint_to_issue_to (`target_issue_id`)
 );
 
 CREATE TABLE core_reprint_from_issue (
     id int(11) NOT NULL auto_increment,
-    source_id int(11) NOT NULL,
+    source_issue_id int(11) NOT NULL,
     target_id int(11) NOT NULL,
-    confirmed tinyint(1) default 0,
     notes mediumtext,
     PRIMARY KEY (id),
-    KEY reprint_to_issue_from (`source_id`),
+    KEY reprint_to_issue_from (`source_issue_id`),
     KEY reprint_to_issue_to (`target_id`)
 );
 
