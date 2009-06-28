@@ -42,3 +42,20 @@ CREATE TABLE core_reprint_from_issue (
 ALTER TABLE core_sequence CHANGE COLUMN reprints reprint_notes mediumtext
     ADD INDEX reprint_notes (reprint_notes);
 
+-- Add the first Migration data table, and populate it so we can use
+-- a proper OneToOne field in Django.
+
+CREATE TABLE migration_sequence_status (
+    id int(11) NOT NULL auto_increment,
+    sequence_id int(11) NOT NULL,
+    reprint_needs_inspection tinyint(1) default NULL,
+    reprint_confirmed tinyint(1) default NULL,
+    reprint_original_notes mediumtext,
+    PRIMARY KEY (id),
+    KEY key_reprint_needs_inspection (`reprint_needs_inspection`),
+    KEY key_reprint_confirmed (`reprint_confirmed`),
+    KEY key_reprint_notes (`reprint_original_notes`(255))
+);
+
+INSERT INTO migration_sequence_status (sequence_id) SELECT id FROM core_sequence;
+
