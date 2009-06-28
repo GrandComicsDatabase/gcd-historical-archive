@@ -552,7 +552,7 @@ UPDATE core_issue INNER JOIN core_sequence
         core_issue.editing=core_sequence.editing,
         core_issue.notes=core_sequence.notes
     WHERE core_sequence.`number`=0;
-UPDATE core_sequence SET page_count=1, editing=NULL, notes=NULL
+UPDATE core_sequence SET page_count=1, editing=NULL
     WHERE `number`=0;
 
 
