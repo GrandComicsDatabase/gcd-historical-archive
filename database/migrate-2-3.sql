@@ -57,5 +57,12 @@ CREATE TABLE migration_sequence_status (
     KEY key_reprint_notes (`reprint_original_notes`(255))
 );
 
-INSERT INTO migration_sequence_status (sequence_id) SELECT id FROM core_sequence;
+INSERT INTO migration_sequence_status (sequence_id)
+    SELECT id FROM core_sequence;
+
+-- imprint_count can't be maintained by a trigger, and is relatively
+-- inexpensive to calculate given the size of the publisher table,
+-- so drop it rather than try to maintain it in code.
+
+ALTER TABLE core_publisher DROP COLUMN imprint_count;
 

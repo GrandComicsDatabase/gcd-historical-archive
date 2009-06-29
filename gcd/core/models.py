@@ -111,7 +111,6 @@ class Publisher(models.Model):
       help_text='Used to group related publishers.  Or something.')
 
     # Cached counts.
-    imprint_count = models.IntegerField(default=0, editable=False)
     series_count = models.IntegerField(default=0, editable=False)
     issue_count = models.IntegerField(default=0, editable=False)
 
@@ -136,7 +135,7 @@ class Publisher(models.Model):
             return u'%s (%s)' % (self.name, self.year_began)
 
     def has_imprints(self):
-        return self.imprint_set.count() > 0
+        return self.imprints.count() > 0
 
     def is_imprint(self):
         if self.parent:
