@@ -75,6 +75,7 @@ class Publisher(models.Model):
                   '<a href="%s">(help)</a> the legal name or names.') %
                   (doc_urls['name'], doc_urls['imprint'])))
     country = models.ForeignKey('Country', null=True,
+      related_name='publishers',
       help_text=('Country of the publisher\'s primary office. ' +
                  doc % doc_urls['country']))
     year_began = models.IntegerField(db_index=True,
@@ -137,17 +138,8 @@ class Publisher(models.Model):
     def has_imprints(self):
         return self.imprints.count() > 0
 
-    def is_imprint(self):
-        if self.parent:
-            return True
-        else:
-            return False
-
     def get_absolute_url(self):
-        if self.is_imprint():
-            return "/imprint/%i/" % self.id
-        else:
-            return "/publisher/%i/" % self.id
+        return "/publisher/%i/" % self.id
 
     def get_official_url(self):
         try:
@@ -196,6 +188,9 @@ class Imprint(Publisher):
 
     objects = ImprintManager()
 
+    def get_absolute_url(self):
+        return "/imprint/%i/" % self.id
+
 class Series(models.Model):
     """
     The represnatation of a comic book series.
@@ -241,14 +236,13 @@ class Series(models.Model):
       help_text=(doc % doc_urls['language']))
 
     # Fields related to the publishers table.
-    publisher = models.ForeignKey(Publisher, db_index=True,
-      limit_choices_to={ 'master': 1 },
+    publisher = models.ForeignKey(MasterPublisher, db_index=True,
+      related_name='series',
       help_text=('Click the magnifying glass to search for the correct ' +
                  'publisher ID number.  The text next to the box will not ' +
                  'change until after you save this page. '))
-    imprint = models.ForeignKey(Publisher, related_name='imprint_%s_set',
-      null=True, blank=True, db_index=True,
-      limit_choices_to={ 'parent__isnull': False },
+    imprint = models.ForeignKey(Imprint, null=True, blank=True, db_index=True,
+      related_name='series',
       help_text=(('Click the magnifying glass to search for the correct ' +
                   'imprint %s ID number.  The text next to the box will not ' +
                   'change until after you save this page. ') %
@@ -328,7 +322,7 @@ class Issue(models.Model):
     volume = models.IntegerField(null=True, blank=True,
       help_text=('Leave blank if no volume number is printed. ' +
                  doc % doc_urls['volume']))
-    series = models.ForeignKey(Series, db_index=True)
+    series = models.ForeignKey(Series, db_index=True, related_name='issues')
 
     key_date = models.CharField(max_length=10, null=True, blank=True,
       db_index=True,
@@ -360,6 +354,9 @@ class Issue(models.Model):
                  'to the entire issue.  Also any additional information ' +
                  'such as the indicia.  Please, no opinions or similar ' +
                  'commentary. ' + doc % doc_urls['notes']))
+
+    target_issuess = models.ManyToManyField('self', through='IssueReprint',
+      symmetrical=False, related_name='source_issues')
 
     # Fields related to indexing activities.
     index_status = models.IntegerField(default=0, editable=False, db_index=True)
@@ -516,13 +513,14 @@ class Sequence(models.Model):
                  doc % doc_urls['notes']))
 
     # Fields from issue.
-    issue = models.ForeignKey(Issue, db_index=True)
+    issue = models.ForeignKey(Issue, db_index=True, related_name='sequences')
     issue_number = models.CharField(max_length=50, editable=False)
 
     # Fields from series.
     # Some strange defaults here so that the initial INSERT statement
     # will be accepted.  The defaults are fixed by a pre-INSERT trigger.
-    series = models.ForeignKey(Series, default=0, db_index=True)
+    series = models.ForeignKey(Series, default=0, db_index=True,
+                                       related_name='sequences')
     series_name = models.CharField(max_length=255, editable=False)
     year_began = models.IntegerField(db_index=True, null=False, default=0,
                                      editable=False)
@@ -610,6 +608,17 @@ class ReprintFromIssue(models.Model):
     source_issue = models.ForeignKey('Issue', related_name='target_reprints')
     notes = models.TextField()
 
+class IssueReprint(models.Model):
+    class Meta:
+        app_label = 'core'
+        db_table = 'core_issue_reprint'
+
+    target_issue = models.ForeignKey('Issue', to_field=id,
+                                     related_name='source_issue_reprints')
+    source_issue = models.ForeignKey('Issue', to_field=id,
+                                     related_name='target_issue_reprints')
+    notes = models.TextField()
+
 #########################################################################
 # Images
 #########################################################################
@@ -625,12 +634,13 @@ class Cover(models.Model):
 
     # Issues can have multiple covers, and may also link to other
     # sorts of images such as splash page scans.
-    issue = models.ForeignKey(Issue, db_index=True)
+    issue = models.ForeignKey(Issue, db_index=True, related_name='images')
 
     # The number field from the related issue.  May or may not agree with
     # the issue field in practice when combined with the series field.
     issue_number = models.CharField(max_length=50)
-    series = models.ForeignKey(Series, db_index=True, default=0)
+    series = models.ForeignKey(Series, db_index=True, default=0,
+                                       related_name='images')
 
     sequence_number = models.IntegerField(null=True, blank=True,
       help_text=('The sequence with which this image is associated.'))
@@ -777,9 +787,9 @@ class SeriesCredit(models.Model):
         app_label = 'core'
         ordering = ['series', 'indexer']
 
-    indexer = models.ForeignKey(Indexer, related_name='series_credit_set',
+    indexer = models.ForeignKey(Indexer, related_name='series_credits',
       db_index=True, editable=False)
-    series = models.ForeignKey(Series, related_name='series_credit_set',
+    series = models.ForeignKey(Series, related_name='series_credits',
       db_index=True, editable=False)
     run = models.CharField(max_length=255, null=True, blank=True)
     notes = models.TextField(null=True, blank=True)

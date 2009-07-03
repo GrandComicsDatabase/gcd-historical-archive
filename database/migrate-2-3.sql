@@ -39,6 +39,16 @@ CREATE TABLE core_reprint_from_issue (
     KEY reprint_to_issue_to (`target_id`)
 );
 
+CREATE TABLE core_issue_reprint (
+    id int(11) NOT NULL auto_increment,
+    source_issue_id int(11) NOT NULL,
+    target_issue_id int(11) NOT NULL,
+    notes mediumtext,
+    PRIMARY KEY (id),
+    KEY issue_from (`source_issue_id`),
+    KEY issue_to (`target_issue_id`)
+);
+
 ALTER TABLE core_sequence CHANGE COLUMN reprints reprint_notes mediumtext
     ADD INDEX reprint_notes (reprint_notes);
 
