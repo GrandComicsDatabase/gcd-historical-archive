@@ -302,7 +302,6 @@ class Issue(models.Model):
     doc_urls = {
         'number': 'http://docs.comics.org/wiki/Issue_Numbers',
         'volume': 'http://docs.comics.org/wiki/Volume',
-        'sort_code': 'http://docs.comics.org/wiki/Cover_SortCode',
         'key_date': 'http://docs.comics.org/wiki/Keydate',
         'publication_date': 'http://docs.comics.org/wiki/Published_Date',
         'price': 'http://docs.comics.org/wiki/Price',
@@ -328,10 +327,9 @@ class Issue(models.Model):
       db_index=True,
       help_text=('Format is YYYY.MM.DD, used as an alternative sort code. ' +
                  doc % doc_urls['key_date']))
-    sort_code = models.CharField(max_length=50, db_index=True,
-      help_text=('Zero-padded numeric code, i.e. 001, that orders the ' +
-                 'issues within their series even when dates are absent. ' +
-                 doc % doc_urls['sort_code']))
+
+    # This field is not directly visible to the user.
+    sort_code = models.IntegerField(db_index=True)
 
     # Note that in stories, publication_date is limited to 50 chars.
     publication_date = models.CharField(max_length=255, null=True, blank=True,
@@ -645,8 +643,13 @@ class Cover(models.Model):
     sequence_number = models.IntegerField(null=True, blank=True,
       help_text=('The sequence with which this image is associated.'))
 
-    issue_sort_code = models.CharField(max_length=50, db_index=True,
-                                       default='000', editable=False)
+    # Location code is the old sort code, now used only to locate
+    # the image in the file system.  issue_sort_code caches the new
+    # sort code from the issue table, and is not directly visible
+    # to the end user.
+    location_code = models.CharField(max_length=50, db_index=True,
+                                     default='000', editable=False)
+    issue_sort_code = models.IntegerField(editable=False)
 
     # Fields directly related to images
     has_image = models.BooleanField(db_index=True)

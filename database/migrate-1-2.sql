@@ -39,10 +39,11 @@ ALTER TABLE core_cover
         COMMENT 'Will be NULL for issues with no sequences indexed.',
     MODIFY COLUMN has_image tinyint(1) NOT NULL default 0
         COMMENT 'May be dropped if has_* fields are sufficient.',
-    CHANGE COLUMN sort_code issue_sort_code varchar(50) NOT NULL;
+    CHANGE COLUMN sort_code location_code varchar(50) NOT NULL,
+    ADD COLUMN issue_sort_code int(11) NOT NULL default 0 AFTER location_code;
 
 ALTER TABLE core_issue
-    ADD COLUMN sort_code varchar(50) NOT NULL default '000' AFTER key_date,
+    ADD COLUMN sort_code int(11) NOT NULL default 0 AFTER key_date,
     ADD INDEX issue_sort (sort_code),
     ADD INDEX issue_number (`number`);
 
@@ -57,10 +58,25 @@ SET @vanished_issue_covers_issue=
 SET @vanished_issues_issue=
     (SELECT id FROM core_issue WHERE number='*GCD VANISHED ISSUES');
 
-UPDATE core_issue i INNER JOIN core_cover c ON i.id=c.issue_id
-    SET i.sort_code=c.issue_sort_code
-    WHERE i.id NOT IN (@doubled_covers_issue, @null_issue, @orphan_covers_issue,
-                       @vanished_issue_covers_issue, @vanished_issues_issue);
+CREATE TEMPORARY TABLE sort_helper (
+    id int(11) NOT NULL auto_increment,
+    cover_id int(11),
+    issue_id int(11),
+    PRIMARY KEY (id) 
+);
+
+INSERT INTO sort_helper (cover_id, issue_id)
+    SELECT c.id, i.id FROM core_cover c LEFT OUTER JOIN core_issue i
+                                  ON c.issue_id = i.id
+                ORDER BY c.series_id, c.location_code, i.key_date;
+
+UPDATE core_issue i INNER JOIN sort_helper h ON i.id = h.issue_id
+    SET i.sort_code=h.id
+        WHERE i.id NOT IN (@doubled_covers_issue);
+
+UPDATE core_cover c INNER JOIN core_issue i ON i.id = c.issue_id
+    SET c.issue_sort_code=i.sort_code,
+        c.issue_number=i.number;
 
 ALTER TABLE core_sequence
     ADD INDEX sequence_type (`type`),

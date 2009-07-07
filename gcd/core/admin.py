@@ -88,7 +88,7 @@ class IssueAdmin(admin.ModelAdmin):
     search_fields = ['series_name', '=number']
     raw_id_fields = ('series',)
     fieldsets = (
-      (None, { 'fields': ('series', 'number', 'volume', 'sort_code', 'key_date',
+      (None, { 'fields': ('series', 'number', 'volume', 'key_date',
                           'publication_date',
                           'price', 'page_count', 'editing', 'notes') }
       ),
