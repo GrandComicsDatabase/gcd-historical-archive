@@ -19,7 +19,7 @@ UPDATE core_series SET language_code='da'
 
 -- Fix language code for Swedish.
 UPDATE core_series SET language_code='sv'
-    WHERE country_code = 'se' AND language_code IN ('se', 'ev');
+    WHERE country_code = 'se' AND language_code = 'ev';
 
 -- Fix language code for English.
 UPDATE core_series SET language_code='en'
