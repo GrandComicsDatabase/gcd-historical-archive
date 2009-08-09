@@ -25,6 +25,7 @@ ALTER TABLE publishers RENAME data_publisher,
                        DROP COLUMN Updated,
                        DROP COLUMN AlphaSortCode,
                        DROP COLUMN ImprintCount,
+                       DROP COLUMN IssueCount,
     CHANGE COLUMN ID id int(11) NOT NULL auto_increment FIRST,
     CHANGE COLUMN PubName name varchar(255) NOT NULL AFTER id,
     CHANGE COLUMN CountryID country_id int(11) default NULL AFTER name,
@@ -39,10 +40,8 @@ ALTER TABLE publishers RENAME data_publisher,
     ADD COLUMN is_distributor tinyint(1) NOT NULL AFTER is_brand,
     CHANGE COLUMN BookCount series_count int(11) NOT NULL default 0
         AFTER is_distributor,
-    CHANGE COLUMN IssueCount item_count int(11) NOT NULL default 0
-        AFTER series_count,
     CHANGE COLUMN Created created datetime NOT NULL
-        default '1901-01-01 00:00:00' AFTER item_count,
+        default '1901-01-01 00:00:00' AFTER series_count,
     CHANGE COLUMN Modified modified datetime NOT NULL
         default '1901-01-01 00:00:00' AFTER created,
     -- This last column  will be dropped after further migration.
@@ -67,8 +66,7 @@ ALTER TABLE series RENAME data_series,
                    DROP COLUMN PubDates,
                    DROP COLUMN Pub_Name,
     CHANGE COLUMN ID id int(11) NOT NULL auto_increment FIRST,
-    CHANGE COLUMN Bk_Name name varchar(255) NOT NULL AFTER id,
-    CHANGE COLUMN Format format varchar(255) default NULL AFTER name,
+    CHANGE COLUMN Format format varchar(255) default NULL AFTER id,
     CHANGE COLUMN Yr_Began year_began int(11) NOT NULL AFTER format,
     CHANGE COLUMN Yr_Ended year_ended int(11) default NULL AFTER year_began,
     ADD COLUMN classification_id int(11) NOT NULL default 1 AFTER year_ended,
@@ -91,12 +89,10 @@ ALTER TABLE series RENAME data_series,
         default '1901-01-01 00:00:00' AFTER created,
     -- These last few columns will be dropped after some migration.
     CHANGE COLUMN ModTime modification_time time NOT NULL AFTER modified,
-    CHANGE COLUMN PubID publisher_id int(11) NOT NULL
-        AFTER modification_time,
-    MODIFY COLUMN imprint_id int(11) default NULL
-        AFTER publisher_id,
-    CHANGE COLUMN Pub_Note publication_notes mediumtext
-        AFTER imprint_id,
+    CHANGE COLUMN Bk_Name name varchar(255) NOT NULL AFTER modification_time,
+    CHANGE COLUMN PubID publisher_id int(11) NOT NULL AFTER name,
+    MODIFY COLUMN imprint_id int(11) default NULL AFTER publisher_id,
+    CHANGE COLUMN Pub_Note publication_notes mediumtext AFTER imprint_id,
     CONVERT TO CHARACTER SET utf8,
     ADD INDEX classification (classification_id),
     ADD INDEX series_language (language_id);

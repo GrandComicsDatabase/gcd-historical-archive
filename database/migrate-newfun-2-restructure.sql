@@ -152,6 +152,30 @@ CREATE TABLE migration_sequence_status (
 INSERT INTO migration_sequence_status (sequence_id)
     SELECT id FROM data_sequence;
 
+-- Along similar lines, support co-printed sequences, using a notion of
+-- a "shared sequence" identifier to avoid having to add a row for every
+-- possible pair within a set of co-printings, or worry about maintaining
+-- an exact spanning tree in code.  The shared sequence concept may have
+-- applications in other areas as well.  For now, it's just a source of
+-- unique IDs, to which we may add more columns in the future.
+-- No migration table for these, as it's not currently expected that
+-- we can migrate them via script.
+
+CREATE TABLE data_shared_sequence (
+    id int(11) auto_increment NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE data_coprint (
+    id int(11) auto_increment NOT NULL,
+    shared_sequence_id int(11) NOT NULL,
+    sequence_id int(11) NOT NULL,
+    notes mediumtext,
+    PRIMARY KEY (id),
+    KEY key_shared (shared_sequence_id),
+    KEY key_sequence (sequence_id)
+);
+
 -- ----------------------------------------------------------------------------
 -- Better publisher/brand/etc. organization.
 -- ----------------------------------------------------------------------------
@@ -341,10 +365,20 @@ CREATE TABLE data_series_item (
     series_id int(11) NOT NULL,
     sort_code int(11) NOT NULL,
     PRIMARY KEY (id),
-    KEY key_sort_code(sort_code),
-    KEY key_item_id(item_id),
-    KEY key_series_id(series_id)
+    KEY key_sort_code (sort_code),
+    KEY key_item_id (item_id),
+    KEY key_series_id (series_id),
+    UNIQUE sort_constraint (series_id, sort_code)
 );
+
+-- We will run an update on sort_code further down, for now just ensure
+-- the NOT NULL and UNIQUE constraints are satisfied.  Initialize the
+-- sort code to a high number to avoid temporarily violating the uniqueness
+-- constraint when we reset the column based on actual ordering.
+SET @sort=1000000000;
+INSERT INTO data_series_item (item_id, series_id, sort_code)
+    SELECT i.id, s.id, @sort:=@sort + 1
+        FROM data_item i INNER JOIN data_series s ON i.series_id = s.id;
 
 -- Descriptors are so generic that we need a flexible set of names for them.
 -- The group flags may not be needed given that they are so
@@ -408,6 +442,7 @@ SET @source_indicia=(SELECT id FROM data_source WHERE name = 'indicia');
 CREATE TABLE data_series_name (
     id int(11) auto_increment NOT NULL,
     series_id int(11) NOT NULL,
+    prefix varchar(20) NOT NULL default '',
     value varchar(255) NOT NULL,
     source_id int(11) NOT NULL,
     is_primary tinyint(1) NOT NULL default 1,
@@ -463,11 +498,17 @@ CREATE TABLE data_item_descriptor (
 -- into [nn] or whatever is appropriate.
 UPDATE data_item SET descriptor=NULL WHERE descriptor IN ('nn', '[nn]');
 
+-- Note that while NULL issue numbers are useful, NULL volume numbers should
+-- not appear in migrated data as nothing currently uses that field as its
+-- primary descriptor.
 INSERT INTO data_item_descriptor
     (series_item_id, scope, label_id, source_id, value)
-    SELECT id, 'item', @label_issue, @source_indicia, descriptor FROM data_item
+    SELECT si.id, 'item', @label_issue, @source_indicia, i.descriptor
+        FROM data_series_item si INNER JOIN data_item i ON si.item_id = i.id
     UNION   
-    SELECT id, 'group', @label_volume, @source_indicia, volume FROM data_item;
+    SELECT si.id, 'group', @label_volume, @source_indicia, i.volume
+        FROM data_series_item si INNER JOIN data_item i ON si.item_id = i.id
+        WHERE i.volume IS NOT NULL;
 
 -- Most of the confirm flags will be cleared by python scripts, leaving the
 -- rest for human processing.
@@ -678,6 +719,22 @@ CREATE TABLE migration_series_status (
 INSERT INTO migration_series_status (series_id, open_reserve)
     SELECT id, open_reserve FROM data_series;
 
+CREATE TABLE migration_series_name_status (
+    id int(11) NOT NULL auto_increment,
+    series_name_id int(11) NOT NULL,
+    may_have_article tinyint(1) NOT NULL default 0,
+    PRIMARY KEY (id),
+    KEY key_series_name (series_name_id),
+    KEY key_article (may_have_article)
+);
+
+INSERT INTO migration_series_name_status (series_name_id, may_have_article)
+    SELECT id, IF(value REGEXP
+                  ',"?[[:space:]]*\'?[[:alnum:]]+\'?[[:space:]]*([[.left-square-bracket.][.left-parenthesis.][.slash.]].*)?$',
+                  1,
+                  0)
+        FROM data_series_name;
+
 -- Use a real language code.
 UPDATE data_series s INNER JOIN data_language l ON s.language_code = l.code
     SET s.language_id = l.id;
@@ -715,6 +772,7 @@ ALTER TABLE data_publisher
     DROP COLUMN parent_id;
 
 ALTER TABLE data_series
+    DROP COLUMN name,
     DROP COLUMN language_code,
     DROP COLUMN publication_notes,
     DROP COLUMN publisher_id,

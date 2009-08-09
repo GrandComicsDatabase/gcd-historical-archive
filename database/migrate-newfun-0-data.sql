@@ -227,6 +227,11 @@ UPDATE covers SET IssueID=
 -- Cached counts will still be useful, except imprint count.
 -- Imprint is a legacy concept and self-join counts can't be maintained
 -- with triggers.  So leave that alone and we'll drop it later.
+-- Also ignore publishers' issue count, as the many-to-many series/item
+-- relationship will make that difficult to keep correct, and it's not really
+-- needed anyway (we can generate it for reports, and the cached counts for
+-- publishers are mostly used to help visually distinguish publishers with
+-- similar names).
 -- ----------------------------------------------------------------------------
 
 -- Many of the cached counts and names are invalid, so fix all.
@@ -237,11 +242,6 @@ UPDATE series SET series.Issuecount=
     (SELECT COUNT(*) FROM issues WHERE issues.SeriesID = series.ID);
 UPDATE publishers SET BookCount=
     (SELECT COUNT(*) FROM series WHERE series.PubID = publishers.ID);
-UPDATE publishers SET IssueCount=
-    (SELECT SUM(series.Issuecount) FROM series
-        WHERE series.PubID = publishers.ID);
--- Some publishers have no series and therefore the issue count ends up NULL
-UPDATE publishers SET IssueCount=0 where BookCount=0;
 
 -- ----------------------------------------------------------------------------
 -- Clean up timestamps and a few other fields table by table.

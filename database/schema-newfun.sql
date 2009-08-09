@@ -1,6 +1,6 @@
 -- MySQL dump 10.11
 --
--- Host: localhost    Database: gcd_scratch_25
+-- Host: localhost    Database: gcd_scratch
 -- ------------------------------------------------------
 -- Server version	5.0.45-log
 
@@ -40,7 +40,7 @@ CREATE TABLE `accounts_indexer` (
   KEY `eMail` (`email`),
   KEY `username` (`username`),
   KEY `password` (`password`)
-) ENGINE=MyISAM AUTO_INCREMENT=546 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=547 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `data_address`
@@ -81,6 +81,21 @@ CREATE TABLE `data_classification` (
   PRIMARY KEY  (`id`),
   KEY `key_name` (`name`)
 ) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `data_coprint`
+--
+
+DROP TABLE IF EXISTS `data_coprint`;
+CREATE TABLE `data_coprint` (
+  `id` int(11) NOT NULL auto_increment,
+  `shared_sequence_id` int(11) NOT NULL,
+  `sequence_id` int(11) NOT NULL,
+  `notes` mediumtext,
+  PRIMARY KEY  (`id`),
+  KEY `key_shared` (`shared_sequence_id`),
+  KEY `key_sequence` (`sequence_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `data_country`
@@ -166,7 +181,7 @@ CREATE TABLE `data_item` (
   KEY `item_pub_day` (`publication_day`),
   KEY `item_indicia_freq` (`indicia_frequency`),
   KEY `item_size` (`size_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=669195 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=669818 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `data_item_brand`
@@ -203,7 +218,7 @@ CREATE TABLE `data_item_descriptor` (
   KEY `key_label` (`label_id`),
   KEY `key_source` (`source_id`),
   KEY `key_value` (`value`)
-) ENGINE=MyISAM AUTO_INCREMENT=921099 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=528709 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `data_item_distributor`
@@ -304,7 +319,7 @@ CREATE TABLE `data_item_sequence` (
   PRIMARY KEY  (`id`),
   KEY `key_item` (`item_id`),
   KEY `key_sequence` (`sequence_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=714243 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=738030 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `data_language`
@@ -352,7 +367,6 @@ CREATE TABLE `data_publisher` (
   `is_brand` tinyint(1) NOT NULL,
   `is_distributor` tinyint(1) NOT NULL,
   `series_count` int(11) NOT NULL default '0',
-  `item_count` int(11) NOT NULL default '0',
   `created` datetime NOT NULL default '1901-01-01 00:00:00',
   `modified` datetime NOT NULL default '1901-01-01 00:00:00',
   PRIMARY KEY  (`id`),
@@ -362,7 +376,7 @@ CREATE TABLE `data_publisher` (
   KEY `country` (`country_id`),
   KEY `is_company` (`is_company`),
   KEY `is_brand` (`is_brand`)
-) ENGINE=MyISAM AUTO_INCREMENT=5329 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=5349 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `data_publisher_address`
@@ -407,7 +421,7 @@ CREATE TABLE `data_publisher_relationship` (
   PRIMARY KEY  (`id`),
   KEY `key_relating` (`relating_id`),
   KEY `key_related` (`related_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1045 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=1063 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `data_publisher_relationship_type`
@@ -509,7 +523,7 @@ CREATE TABLE `data_sequence` (
   KEY `sequence_type` (`type_id`),
   KEY `key_title_inferred` (`title_inferred`),
   KEY `sequence_genre` (`genre`)
-) ENGINE=MyISAM AUTO_INCREMENT=786145 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=787999 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `data_sequence_type`
@@ -522,7 +536,7 @@ CREATE TABLE `data_sequence_type` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`),
   KEY `type_name` (`name`)
-) ENGINE=MyISAM AUTO_INCREMENT=26 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=22 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `data_series`
@@ -531,7 +545,6 @@ CREATE TABLE `data_sequence_type` (
 DROP TABLE IF EXISTS `data_series`;
 CREATE TABLE `data_series` (
   `id` int(11) NOT NULL auto_increment,
-  `name` varchar(255) NOT NULL,
   `format` varchar(255) default NULL,
   `year_began` int(11) NOT NULL,
   `year_ended` int(11) default NULL,
@@ -546,12 +559,11 @@ CREATE TABLE `data_series` (
   `imprint_id` int(11) default NULL,
   PRIMARY KEY  (`id`),
   KEY `imprint_id` (`imprint_id`),
-  KEY `Bk_Name` (`name`(150)),
   KEY `Yr_Began` (`year_began`),
   KEY `HasGallery` (`has_gallery`),
   KEY `classification` (`classification_id`),
   KEY `series_language` (`language_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=38781 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=38907 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `data_series_item`
@@ -564,10 +576,11 @@ CREATE TABLE `data_series_item` (
   `series_id` int(11) NOT NULL,
   `sort_code` int(11) NOT NULL,
   PRIMARY KEY  (`id`),
+  UNIQUE KEY `sort_constraint` (`series_id`,`sort_code`),
   KEY `key_sort_code` (`sort_code`),
   KEY `key_item_id` (`item_id`),
   KEY `key_series_id` (`series_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=501596 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `data_series_item_name`
@@ -593,6 +606,7 @@ DROP TABLE IF EXISTS `data_series_name`;
 CREATE TABLE `data_series_name` (
   `id` int(11) NOT NULL auto_increment,
   `series_id` int(11) NOT NULL,
+  `prefix` varchar(20) NOT NULL default '',
   `value` varchar(255) NOT NULL,
   `source_id` int(11) NOT NULL,
   `is_primary` tinyint(1) NOT NULL default '1',
@@ -600,7 +614,7 @@ CREATE TABLE `data_series_name` (
   KEY `key_value` (`value`),
   KEY `key_source` (`source_id`),
   KEY `key_primary` (`is_primary`)
-) ENGINE=MyISAM AUTO_INCREMENT=34606 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=37226 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `data_series_publisher`
@@ -617,7 +631,7 @@ CREATE TABLE `data_series_publisher` (
   PRIMARY KEY  (`id`),
   KEY `key_series_id` (`series_id`),
   KEY `key_publisher_id` (`publisher_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=34606 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=37226 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `data_series_relationship`
@@ -653,6 +667,16 @@ CREATE TABLE `data_series_relationship_type` (
 ) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 --
+-- Table structure for table `data_shared_sequence`
+--
+
+DROP TABLE IF EXISTS `data_shared_sequence`;
+CREATE TABLE `data_shared_sequence` (
+  `id` int(11) NOT NULL auto_increment,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
 -- Table structure for table `data_source`
 --
 
@@ -680,7 +704,7 @@ CREATE TABLE `migration_item_status` (
   KEY `index_status` (`index_status`),
   KEY `reservation_status` (`reservation_status`),
   KEY `key_date` (`key_date`)
-) ENGINE=MyISAM AUTO_INCREMENT=460550 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=501596 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `migration_sequence_status`
@@ -697,7 +721,7 @@ CREATE TABLE `migration_sequence_status` (
   KEY `key_reprint_needs_inspection` (`reprint_needs_inspection`),
   KEY `key_reprint_confirmed` (`reprint_confirmed`),
   KEY `key_reprint_notes` (`reprint_original_notes`(255))
-) ENGINE=MyISAM AUTO_INCREMENT=714243 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=738030 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `migration_series_item_status`
@@ -713,7 +737,21 @@ CREATE TABLE `migration_series_item_status` (
   KEY `key_series_item` (`series_item_id`),
   KEY `key_issue_descriptor` (`issue_descriptor_confirmed`),
   KEY `key_volume_descriptor` (`volume_descriptor_confirmed`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=501596 DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `migration_series_name_status`
+--
+
+DROP TABLE IF EXISTS `migration_series_name_status`;
+CREATE TABLE `migration_series_name_status` (
+  `id` int(11) NOT NULL auto_increment,
+  `series_name_id` int(11) NOT NULL,
+  `may_have_article` tinyint(1) NOT NULL default '0',
+  PRIMARY KEY  (`id`),
+  KEY `key_series_name` (`series_name_id`),
+  KEY `key_article` (`may_have_article`)
+) ENGINE=MyISAM AUTO_INCREMENT=37226 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `migration_series_status`
@@ -728,7 +766,7 @@ CREATE TABLE `migration_series_status` (
   PRIMARY KEY  (`id`),
   KEY `key_series` (`series_id`),
   KEY `key_name_source` (`name_source_confirmed`)
-) ENGINE=MyISAM AUTO_INCREMENT=34606 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=37226 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `oi_reservation`
@@ -747,7 +785,7 @@ CREATE TABLE `oi_reservation` (
   KEY `IndexerID` (`indexer_id`),
   KEY `IssueID` (`item_id`),
   KEY `Status` (`status`)
-) ENGINE=MyISAM AUTO_INCREMENT=89638 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=89904 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `oi_series_credit`
@@ -765,7 +803,7 @@ CREATE TABLE `oi_series_credit` (
   PRIMARY KEY  (`id`),
   KEY `IndexerID` (`indexer_id`),
   KEY `SeriesID` (`series_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=25850 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=25893 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `resource_cover`
@@ -790,7 +828,7 @@ CREATE TABLE `resource_cover` (
   KEY `SeriesID` (`series_id`),
   KEY `Modified` (`modified`),
   KEY `HasImage` (`has_image`)
-) ENGINE=MyISAM AUTO_INCREMENT=653183 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=653806 DEFAULT CHARSET=utf8;
 
 --
 -- Table structure for table `resource_file`
@@ -802,7 +840,7 @@ CREATE TABLE `resource_file` (
   `server` varchar(100) NOT NULL,
   `path` varchar(512) NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=663819 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=722832 DEFAULT CHARSET=utf8;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -813,4 +851,4 @@ CREATE TABLE `resource_file` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2009-08-03  7:14:23
+-- Dump completed on 2009-08-08  5:12:22
