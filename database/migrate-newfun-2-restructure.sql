@@ -72,6 +72,22 @@ INSERT INTO data_sequence_type (name) SELECT DISTINCT `type` FROM data_sequence;
 
 UPDATE data_sequence_type t INNER JOIN data_sequence q ON t.name=q.`type`
     SET q.type_id=t.id;
+UPDATE data_sequence_type SET name='advertisement' WHERE name='ad';
+UPDATE data_sequence_type SET name='biography (nonfictional)' WHERE name='bio';
+UPDATE data_sequence_type SET name='character profile' WHERE name='profile';
+UPDATE data_sequence_type SET name='cover reprint (on interior page)'
+    WHERE name='cover reprint';
+UPDATE data_sequence_type SET name='foreword, introduction, preface, afterword'
+    WHERE name='foreword';
+UPDATE data_sequence_type SET name='illustration' WHERE name='pinup';
+UPDATE data_sequence_type SET name='insert or dust jacket' WHERE name='insert';
+UPDATE data_sequence_type SET name='letters page' WHERE name='letters';
+UPDATE data_sequence_type SET name='promo (by the publisher)'
+    WHERE name='promo';
+UPDATE data_sequence_type SET name='public service announcement'
+    WHERE name='psa';
+UPDATE data_sequence_type SET name='(backcovers) *do not use* / *please fix*'
+    WHERE name='backcovers';
 
 UPDATE data_sequence SET title_inferred = 1,
     title=TRIM(LEADING '[' FROM (SELECT TRIM(TRAILING ']' FROM title)))
@@ -419,7 +435,7 @@ SET @label_volume=(SELECT id FROM data_descriptor_label WHERE name='volume');
 CREATE TABLE data_source (
     id int(11) auto_increment NOT NULL,
     name varchar(255) NOT NULL,
-    is_inferred tinyint(1) NOT NULL default 0,
+    inferred tinyint(1) NOT NULL default 0,
     PRIMARY KEY (id),
     KEY key_name (name)
 );
@@ -526,6 +542,103 @@ CREATE TABLE migration_series_item_status (
 INSERT INTO migration_series_item_status
     (series_item_id, issue_descriptor_confirmed, volume_descriptor_confirmed)
     SELECT id, 0, 0 FROM data_series_item;
+
+-- ----------------------------------------------------------------------------
+-- Format and date tables
+-- ----------------------------------------------------------------------------
+
+CREATE TABLE data_paper (
+    id int(11) auto_increment NOT NULL,
+    name varchar(255) NOT NULL,
+    description mediumtext,
+    PRIMARY KEY (id),
+    KEY key_name (name)
+);
+
+CREATE TABLE data_binding (
+    id int(11) auto_increment NOT NULL,
+    name varchar(255) NOT NULL,
+    description mediumtext,
+    PRIMARY KEY (id),
+    KEY key_name (name)
+);
+
+CREATE TABLE data_cover_type (
+    id int(11) auto_increment NOT NULL,
+    name varchar(255) NOT NULL,
+    description mediumtext,
+    PRIMARY KEY (id),
+    KEY key_name (name)
+);
+
+CREATE TABLE data_sequence_cover_type (
+    id int(11) auto_increment NOT NULL,
+    sequence_id int(11) NOT NULL,
+    cover_type_id int(11) NOT NULL,
+    PRIMARY KEY (id),
+    KEY key_sequence (sequence_id),
+    KEY key_cover_type (cover_type_id)
+);
+
+CREATE TABLE data_color (
+    id int(11) auto_increment NOT NULL,
+    name varchar(255) NOT NULL,
+    description mediumtext,
+    PRIMARY KEY (id),
+    KEY key_name (name)
+);
+
+CREATE TABLE data_size (
+    id int(11) auto_increment NOT NULL,
+    name varchar(255) NOT NULL,
+    height decimal(10,3) NOT NULL,
+    width decimal(10,3) NOT NULL,
+    in_metric tinyint(1) NOT NULL default 1,
+    PRIMARY KEY (id),
+    KEY key_name (name)
+);
+
+CREATE TABLE data_publication_month (
+    id int(11) auto_increment NOT NULL,
+    name varchar(100) NOT NULL,
+    sort_code int(11) NOT NULL,
+    display_code int(11) NOT NULL,
+    PRIMARY KEY (id),
+    KEY key_name (name),
+    UNIQUE sort_constraint (sort_code),
+    UNIQUE display_constraint (display_code)
+);
+
+INSERT INTO data_publication_month (name, sort_code, display_code) VALUES
+    ('January', 1, 1),
+    ('Feburary', 4, 2),
+    ('March', 6, 3),
+    ('April', 8, 4),
+    ('May', 11, 5),
+    ('June', 13, 6),
+    ('July', 15, 7),
+    ('August', 18, 8),
+    ('September', 20, 9),
+    ('October', 22, 10),
+    ('November', 25, 11),
+    ('December', 27, 12),
+    ('January-February', 2, 13),
+    ('February-March', 5, 14),
+    ('March-April', 7, 15),
+    ('April-May', 9, 16),
+    ('May-June', 12, 17),
+    ('June-July', 14, 18),
+    ('July-August', 16, 19),
+    ('August-Septeber', 19, 20),
+    ('September-October', 21, 21),
+    ('October-November', 23, 22),
+    ('November-December', 26, 23),
+    ('December-January', 29, 24),
+    ('Winter', 3, 25),
+    ('Spring', 10, 26),
+    ('Summer', 17, 27),
+    ('Fall (Autumn)', 24, 28),
+    ('Holiday', 28, 29);
 
 -- ----------------------------------------------------------------------------
 -- Set up the image table, and fix the cover table.
@@ -640,6 +753,22 @@ UPDATE resource_cover c INNER JOIN resource_file f ON c.id = f.temp_cover_id
 UPDATE resource_cover c INNER JOIN resource_file f ON c.id = f.temp_cover_id
     SET c.large_image_id=f.id WHERE c.has_large = 1 AND f.temp_cover_type = 4;
 
+-- Keep track of series linkage in case we need it to resolve some of the
+-- weird orphaned covers, but get it out of our covers table proper,
+-- because items being in many series makes this field impossible.
+
+CREATE TABLE migration_cover_status (
+    id int(11) NOT NULL auto_increment,
+    cover_id int(11) NOT NULL,
+    series_id int(11) NOT NULL,
+    PRIMARY KEY (id),
+    KEY key_cover (cover_id),
+    KEY key_series (series_id)
+);
+
+INSERT INTO migration_cover_status (cover_id, series_id)
+    SELECT id, series_id FROM resource_cover;
+
 -- ----------------------------------------------------------------------------
 -- Set up the Price tables.  Migration for this is best done in Python.
 -- Must handle both decimal and non-decimal currency.
@@ -649,8 +778,10 @@ CREATE TABLE data_currency (
     id int(11) NOT NULL auto_increment,
     code char(3) NOT NULL,
     name varchar(255) NOT NULL,
+    country_id int(11) NOT NULL,
     PRIMARY KEY (id),
-    KEY key_code (code)
+    KEY key_code (code),
+    KEY key_country (country_id)
 );
 
 CREATE TABLE data_price_type (
@@ -799,6 +930,7 @@ ALTER TABLE resource_file
     DROP COLUMN temp_cover_type;
 
 ALTER TABLE resource_cover
+    DROP COLUMN series_id,
     DROP COLUMN has_small,
     DROP COLUMN has_medium,
     DROP COLUMN has_large,
