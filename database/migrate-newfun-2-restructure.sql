@@ -320,6 +320,14 @@ CREATE TABLE data_publisher_relationship (
     relating_id int(11) NOT NULL,
     related_id int(11) NOT NULL,
     link_type_id int(11) NOT NULL,
+    year_began int(4) default NULL,
+    month_began int(2) default NULL,
+    day_began int(2) default NULL,
+    date_began_uncertain tinyint(1) NOT NULL default 0,
+    year_ended int(4) default NULL,
+    month_ended int(2) default NULL,
+    day_ended int(2) default NULL,
+    date_ended_uncertain tinyint(1) NOT NULL default 0,
     notes mediumtext,
     PRIMARY KEY (id),
     KEY key_relating (relating_id),
@@ -440,7 +448,7 @@ CREATE TABLE data_source (
     KEY key_name (name)
 );
 
-INSERT INTO data_source (name, is_inferred) VALUES
+INSERT INTO data_source (name, inferred) VALUES
     ('indicia', 0),
     ('cover', 0),
     ('gcd assigned', 1),
@@ -498,12 +506,14 @@ CREATE TABLE data_item_descriptor (
     label_id int(11) NOT NULL,
     source_id int(11) NOT NULL,
     value varchar(255) default NULL,
+    is_primary tinyint(1) NOT NULL default 1,
     PRIMARY KEY (id),
     KEY key_series_item (series_item_id),
     KEY key_scope (scope),
     KEY key_label (label_id),
     KEY key_source (source_id),
-    KEY key_value (value)
+    KEY key_value (value),
+    KEY key_primary (is_primary)
 );
 
 -- It would be great to handle the v1#1 style numbers here, but it's just

@@ -154,7 +154,7 @@ ALTER TABLE issues RENAME data_item,
     ADD COLUMN width decimal(10, 3) default NULL AFTER height,
     ADD COLUMN size_in_metric tinyint(1) default 1 AFTER width,
     ADD COLUMN interior_paper_id int(11) default NULL AFTER size_in_metric,
-    ADD COLUMN binding_id int(11) default NULL AFTER cover_paper_id,
+    ADD COLUMN binding_id int(11) default NULL AFTER interior_paper_id,
     CHANGE COLUMN Price price varchar(255) default NULL
         AFTER binding_id,
     CHANGE COLUMN Pg_Cnt page_count varchar(10) default NULL AFTER price,
