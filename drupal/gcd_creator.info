@@ -1,4 +1,0 @@
-name = Creators
-package = GCD
-dependencies = gcd
-description = Enables functionality related to GCD creators.

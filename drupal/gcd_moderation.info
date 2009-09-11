@@ -1,4 +1,0 @@
-name = Moderation
-package = GCD
-dependencies = gcd
-description = Enables the moderation interface and functionality.
