@@ -90,7 +90,22 @@ ALTER TABLE covers DROP COLUMN ModTime,
 
 -- NULL out imprint parents that don't exist.
 -- Should have been done before, but apparently wasn't.
-UPDATE publishers i LEFT OUTER JOIN publishers p ON i.parent_id = p.id
-    SET i.parent_id = NULL WHERE p.id IS NULL;
+UPDATE publishers i LEFT OUTER JOIN publishers p ON i.ParentID = p.ID
+    SET i.ParentID = NULL WHERE p.ID IS NULL;
 
+-- Set up permissions
+SET @indexers=(SELECT id FROM auth_group WHERE name = 'indexer');
+SET @editors=(SELECT id FROM auth_group WHERE name = 'editor');
+SET @admins=(SELECT id FROM auth_group WHERE name = 'admin');
+
+INSERT INTO auth_group_permissions (group_id, permission_id)
+    SELECT @indexers, id FROM auth_permission WHERE codename = 'can_reserve';
+
+INSERT INTO auth_group_permissions (group_id, permission_id)
+    SELECT @editors, id FROM auth_permission
+        WHERE codename IN ('can_reserve', 'can_approve', 'can_cancel',
+                           'can_mark');
+
+INSERT INTO auth_group_permissions (group_id, permission_id)
+    SELECT @admins, id from auth_permission;
 
