@@ -1,0 +1,60 @@
+{% extends "gcd/base_view.html" %}
+
+{% load i18n %}
+{% load credits %}
+
+{% block title %} GCD :: Covers :: {{ series.name }} {% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}/css/gcd/{{ style }}.css"/>
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}/css/gcd/{{ style }}/covers.css"/>
+{% endblock %}
+
+{% block view_body %}
+
+{% include "gcd/bits/series_issue_header.html" %}
+
+<div id="info_links">
+  <a href="{{series.get_absolute_url}}scans/?style={{ style }}">Cover Scan Status</a> ({{ series.scan_count }} of {{ series.issue_count }} covers available)
+  <br/>
+  <a href="{{ series.get_absolute_url }}status/?style={{ style}}">Index Status</a>
+</div>
+
+<table id="covers">
+  <tr>
+  {% for cover, issue, tag in tags %}
+    <td class="cover_grid{% if cover.marked %} marked{% endif %}">
+      <a href="{{ issue.get_absolute_url }}">{{ tag }}</a>
+      <br/>
+      <span class="cover_links">Zoom:
+        <a href="{{ issue.get_absolute_url }}cover/2/?style={{ style }}">Medium</a>
+        <a href="{{ issue.get_absolute_url }}cover/4/?style={{ style }}">Large</a></span>
+      <div class="cover_caption">
+        {% if can_mark and not cover.marked %}
+        <a href="{% url apps.gcd.views.covers.mark_cover issue_id=issue.id %}">mark for replacement</a><br>
+        {% endif %}
+        <span class="cover_number">Issue {{ issue.number }}</span> <br/>
+        {% if issue.publication_date %}
+        <span class="cover_date">{{ issue.publication_date }}</span>
+        {% endif %}
+      </div>
+    </td>
+    {% if forloop.counter|divisibleby:table_width %}
+  </tr>
+  <tr>
+    {% endif %}
+  {% endfor %}
+  </tr>
+</table>
+
+{% with 1 as paginate_only %}
+{% with issue.series as series %}
+{% with issue.number as issue_number %}
+  {% include "gcd/bits/series_issue_header.html" %}
+{% endwith %}
+{% endwith %}
+{% endwith %}
+
+{% endblock %}

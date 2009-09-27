@@ -1,0 +1,180 @@
+/* ***************************************
+ * issue.css
+ * CSS specific to the issue details page.
+ * ***************************************/
+
+/*
+ * Common elements
+ */
+
+dl {
+    float: left;
+    width: 100%;
+    margin-top: 0;
+}
+
+dt {
+    float: left;
+    padding-right: 0.25em;
+}
+
+dd {
+    float: left;
+    margin: 0 0.5em 0 0;
+}
+
+hr.divider {
+    clear: left;
+    visibility: hidden;
+}
+
+div#format {
+    margin-top: 0;
+    margin-bottom: 1em;
+    float: left;
+}
+
+#format_tag {
+    font-weight: bold;
+    float: left;
+}
+
+#format_data {
+    float: left;
+}
+
+
+/*
+ * Issue layout elements
+ */
+
+#issue_data {
+    float: left;
+    width: 100%;
+}
+
+#issue_data p {
+    margin-top: 0.4em;
+}
+
+#issue_data_list {
+    margin-top: 1em;
+    margin-bottom: 0;
+}
+
+#series_date {
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+#story_sidebar { /* right */
+    float: right;
+    width: 14em;
+}
+
+#story_toc {
+    border: solid 1px;
+    margin-bottom: 1em;
+    font-size: 0.85em;
+}
+
+.toc_story_title {
+    /* font-style: italic; */
+}
+
+#story_toc ol {
+    margin: 0;
+    padding: 0;
+    list-style-position: inside;
+}
+
+#story_toc ol li {
+    padding: 0.4em;
+}
+
+#story_toc ol li.odd {
+    background-color: #FFF;
+}
+#story_toc ol li.even {
+    background-color: #DDD;
+}
+
+#toc_header {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: .4em;
+    background-color: #444;
+    color: white;
+}
+
+
+/*
+ * Cover layout elements
+ */
+
+.issue_cover_links {
+    float: left;
+    clear: left;
+    font-size: 0.75em;
+    width: 100%;
+}
+
+#cover_disclaimer {
+    margin-bottom: 0.4em;
+}
+
+#cover_credits { /* center */
+    /* width: 250px; */
+    min-width: 20em;
+    margin-left: 118px;
+    margin-right: 15.5em;
+    margin-bottom: 1em;
+    /* max-width: 600px; */
+}
+
+.cover_header {
+    margin-top: 0;
+}
+
+#cover_data {
+    float: left;
+}
+
+#cover {
+    float: left;
+    width: 118px;
+    margin-bottom: 1em;
+}
+
+#cover img {
+    /* float: left; */
+    border: solid 1px;
+}
+
+#cover dt {
+    clear: left;
+}
+
+#cover_disclaimer {
+    font-size: 0.75em;
+    color: #CCC;
+}
+
+#index_credits {
+    clear: both;
+    border: 1px solid;
+    padding: 0;
+    font-size: 0.85em;
+}
+
+#indexers_header {
+    font-weight: bold;
+    background-color: #DDD;
+    margin: 0;
+    padding: 0.4em;
+}
+
+#index_credits ul {
+    margin: 0.4em;
+}
+

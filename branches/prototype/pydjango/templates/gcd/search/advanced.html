@@ -1,0 +1,161 @@
+{% extends "gcd/base.html" %}
+
+{% load credits %}
+
+{% block title %} GCD :: Advanced Search {% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}/css/gcd/{{ style }}.css"/>
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}/css/gcd/{{ style }}/advanced_search.css"/>
+{% endblock %}
+
+{% block body %}
+
+{% with "Advanced Search" as bar_heading %}
+{% include "gcd/bits/plain_bar.html" %}
+{% endwith %}
+
+<div id="blithering">
+<p>
+<strong>Please Pardon the Rough Edges!</strong>
+</p>
+<p>
+We're still working on this form in order to make it more usable and
+support the most options that we can and still deliver good performance.
+</p>
+</div>
+<form action="{% url apps.gcd.views.search.process_advanced %}" method="get">
+<fieldset class="control">
+<!-- TODO: why did I put this style attr here? -->
+<legend style="visibility:hidden">Search Control</legend>
+<ol>
+  {{ form.target|show_form }}
+  {{ form.method|show_form }}
+  {{ form.logic|show_form }}
+</ol>
+</fieldset>
+<fieldset class="ordering">
+<legend>Ordering</legend>
+<ol>
+  {{ form.order1|show_form }}
+  {{ form.order2|show_form }}
+  {{ form.order3|show_form }}
+</ol>
+</fieldset>
+
+{% comment %}
+<fieldset class="universal">
+<legend>Universal Fields</legend>
+<ol>
+  {{ form.start_date|show_form }}
+  {{ form.end_date|show_form }}
+  {{ form.country|show_form }}
+  {{ form.language|show_form }}
+</ol>
+</fieldset>
+{% endcomment %}
+
+<fieldset class="publisher" id="publisher_fieldset">
+  <legend>
+    Publisher Fields
+  </legend>
+  <ol>
+    {{ form.pub_name|show_form }}
+    {{ form.imprints|show_form }}
+    {{ form.country|show_form }}
+{% comment %}
+    {{ form.pub_notes|show_form }}
+{% endcomment %}
+  </ol>
+</fieldset>
+
+<fieldset class="series" id="series_fieldset">
+  <legend>
+    Series Fields
+  </legend>
+
+  <ol id="series_list">
+    {{ form.series|show_form }}
+{% comment %}
+    {{ form.series_notes|show_form }}
+    {{ form.tracking_notes|show_form }}
+    {{ form.publication_notes|show_form }}
+    {{ form.indexer|show_form }}
+{% endcomment %}
+    {{ form.language|show_form }}
+  </ol>
+</fieldset>
+
+<fieldset class="issue" id="issue_fieldset">
+  <legend>
+    Issue Fields
+  </legend>
+  <ol>
+{% comment %}
+    {{ form.issues|show_form }}
+    {{ form.issue_date|show_form }}
+    {{ form.price|show_form }}
+    {{ form.issue_pages|show_form }}
+    {{ form.format|show_form }}
+{% endcomment %}
+    {{ form.issue_editor|show_form }}
+{% comment %}
+    {{ form.issue_notes|show_form }}
+    {{ form.issue_reprints|show_form }}
+{% endcomment %}
+  </ol>
+</fieldset>
+
+<fieldset class="sequence">
+  <legend> Story Fields </legend>
+  <ol>
+    {{ form.title|show_form }}
+    {{ form.feature|show_form }}
+    {{ form.job_number|show_form }}
+{% comment %}
+    {{ form.type|show_form }}
+    {{ form.pages|show_form }}
+{% endcomment %}
+  </ol>
+
+  <fieldset class="credits">
+    <legend> Credits </legend>
+    <ol>
+      {{ form.script|show_form }}
+      {{ form.pencils|show_form }}
+      {{ form.inks|show_form }}
+      {{ form.colors|show_form }}
+      {{ form.letters|show_form }}
+      {{ form.story_editor|show_form }}
+    </ol>
+  </fieldset>
+
+{% comment %}
+  <fieldset class="contents">
+    <legend> Contents </legend>
+    <ol>
+      {{ form.genre|show_form }}
+      {{ form.characters|show_form }}
+      {{ form.synopsis|show_form }}
+      {{ form.reprints|show_form }}
+    </ol>
+  </fieldset>
+  <fieldset class="notes">
+    <legend> Indexer Notes </legend>
+    <ol>
+      {{ form.notes|show_form }}
+    </ol>
+  </fieldset>
+{% endcomment %}
+</fieldset>
+
+<fieldset class="submit">
+  <input type="submit" value="Search">
+</fieldset>
+</form>
+{% endblock %}
+
+{% include "gcd/fine_print.html" %}
+

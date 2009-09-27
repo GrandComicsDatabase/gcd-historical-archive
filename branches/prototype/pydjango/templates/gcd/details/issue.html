@@ -1,0 +1,168 @@
+{% extends "gcd/base_view.html" %}
+
+{% load i18n %}
+{% load credits %}
+
+{% block title %}
+  GCD :: Issue :: {{ issue.series.name }} #{{ issue.number }}
+{% endblock %}
+
+{% block css %}
+  <link rel="stylesheet" type="text/css"
+        href="{{ MEDIA_URL }}/css/gcd/{{ style }}.css"/>
+  <link rel="stylesheet" type="text/css"
+        href="{{ MEDIA_URL }}/css/gcd/{{ style }}/issue.css"/>
+  <link rel="stylesheet" type="text/css"
+        href="{{ MEDIA_URL }}/css/gcd/{{ style }}/single_story.css"/>
+{% endblock %}
+
+{% block view_body %}
+
+<div id="issue_data">
+{% comment %}
+  Can withs be condensed?  To tired to look it up right now.
+{% endcomment %}
+
+{% with issue.series as series %}
+{% with issue.number as issue_number %}
+  {% include "gcd/bits/series_issue_header.html" %}
+{% endwith %}
+{% endwith %}
+
+{% ifnotequal issue.index_status 3 %}
+<div id="index_status" class="index_status_{{ issue.index_status }}">
+<!-- Not trying to display the reservation holder now until we figure out
+     what to do with all the null and multiple reservations.
+  -->
+<span>
+{% ifequal issue.index_status 0 %}
+   This issue has not been indexed yet.  Please sign in and index it if you can!
+{% endifequal %}
+{% ifequal issue.index_status 1 %}
+   This issue is currently being edited by
+   {{ issue.reserver|default:"[no one, please contact the editors to fix this reservation]" }}
+   (since {{ issue.reservation_set.all.0.created }}, last edit {{ issue.reservation_set.all.0.modified|default:"[not recorded]" }})
+{% endifequal %}
+{% ifequal issue.index_status 2 %}
+   The index for this issue is awaiting editorial approval.
+{% endifequal %}
+</span>
+</div>
+{% endifnotequal %}
+
+<dl id="issue_data_list">
+  <dt> {% trans "Price" %}:
+  <dd id="issue_price"> {{ issue.price|default:"" }}
+  <dt> {% trans "Pages" %}:
+  <dd id="issue_pages"> {{ cover_story.page_count }}
+    {% if cover_story.page_count_uncertain %}?{% endif %}
+  {{ cover_story|show_credit:"editor" }}
+</dl>
+<!-- IE6 didn't like various attempts to get the sometimes very long
+     "Format" field to lay out nicely.  And even in Firefox it was
+     problematic to get it to act ideally.  So it's a specially styled
+     'div' instead of part of the 'dl'.
+  -->
+<div id="format">
+  <div id="format_tag">Format:&nbsp;</div>
+  <div id="format_data">{{ issue.series.format }}</div>
+</div>
+
+</div> <!-- issue_data -->
+
+<div id="main"> <!-- extra -->
+
+  <div id="story_sidebar">
+    <div id="story_toc">
+      <a name="toc"></a>
+      <h2 id="toc_header">Table of Contents</h2>
+      <ol>
+        {% for story in stories %}
+        <li class="{% cycle 'odd' 'even' %}">
+          <span class="toc_story_title">
+          <a href="#{{ story.id }}">{% if story.title %}
+            {{ story.title }}
+          {% else %}
+            <span class="toc_story_title">[ no title ]</span>
+          {% endif %}</a></span> <br/>
+          {% if story.feature %}
+          <span class="toc_story_feature">
+          {{ story.feature}}</span>
+          {% endif %}
+          {% endfor %}
+      </ol>
+    </div> <!-- story_toc, a.k.a "right" -->
+
+    {% if issue.series.index_credit_set.all.select_related %}
+    <div id="index_credits">
+      {% if oi_indexers %}
+      <div id="indexers_header">{% trans "This issue was most recently indexed by:" %}</div>
+      <ul>
+        {% for credit in oi_indexers %}
+          <li> {{ credit.name }}
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <div id="indexers_header">{% trans "Issues in this series have been indexed by:" %}</div>
+      <ul>
+        {% for credit in issue.series.index_credit_set.all.select_related %}
+          <li> {{ credit.indexer.name }}
+        {% endfor %}
+      </ul>
+    </div> <!-- index_credits -->
+    {% endif %}
+  </div> <!-- story_sidebar -->
+
+  <div id="cover">
+    {% if issue.cover.has_image %}
+      {{ image_tag }}
+    {% else %}
+      <a href="{{ issue.cover.get_status_url }}">{{ image_tag }}</a>
+    {% endif %}
+    <div class="issue_cover_links">
+      {% if issue.cover.has_large %}
+        View: <a href="{{ issue.get_absolute_url }}cover/2/?style={{ style }}">Medium</a>
+        <a href="{{ issue.get_absolute_url }}cover/4/?style={{ style }}">Large</a>
+      {% endif %}
+      <br>
+      <a href="{% url apps.gcd.views.covers.variant_upload issue_id=issue.id%}?style={{ style }}">Add Variant Cover</a>
+      <br>
+      <a href="{{ issue.series.get_absolute_url }}covers/?style={{ style }}">Cover Gallery</a>
+    </div>
+    <div class="disclaimer">
+    Cover thumbnails are used for identification purposes only. All rights to 
+    cover images reserved by the respective copyright holders. 
+    </div>
+  </div> <!-- cover -->
+
+  <div id="cover_credits">
+    <div id="cover_float_fixer">
+
+    {% with cover_story as story %}
+    {% with 1 as is_cover %}
+      {% include "gcd/details/single_story.html" %}
+    {% endwith %}
+    {% endwith %}
+    </div> <!-- cover_float_fixer -->
+  </div> <!-- cover_credits -->
+
+</div> <!-- main -->
+
+
+<div id="story_data">
+  {% for story in stories %}
+    <hr class="divider">
+    {% include "gcd/details/single_story.html" %}
+  {% endfor %}
+  <hr class="divider">
+</div>
+
+{% with 1 as paginate_only %}
+{% with issue.series as series %}
+{% with issue.number as issue_number %}
+  {% include "gcd/bits/series_issue_header.html" %}
+{% endwith %}
+{% endwith %}
+{% endwith %}
+
+{% endblock %}

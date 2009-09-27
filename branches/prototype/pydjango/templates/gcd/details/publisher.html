@@ -1,0 +1,111 @@
+{% extends "gcd/base_view.html" %}
+
+{% load i18n %}
+
+{% block title %}
+  {% if publisher.is_imprint %}
+    GCD :: Publisher :: {{ publisher.parent.name }} :: Imprint :: {{ publisher.name }}
+  {% else %}
+    GCD :: Publisher :: {{ publisher.name }}
+  {% endif %}
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}/css/gcd/{{ style }}.css"/>
+{% endblock %}
+
+{% block view_body %}
+
+{% include "gcd/bits/publisher_header.html" %}
+
+{% if publisher.reserved %}
+  {% with publisher.revisions.all.0 as revision %}
+    <div id="index_status" class="index_status_{{ revision.state }}">
+    <span>
+    {% ifequal revision.state 1 %}
+       This {% if publisher.is_imprint %}imprint{% else %}publisher{% endif %}
+        is currently being edited by
+       {{ revision.indexer.indexer|default:"[no one, please contact the editors to fix this reservation]" }}
+       (since {{ revision.created }}, last edit {{ revision.modified }})
+    {% endifequal %}
+    {% ifequal revision.state 2 %}
+       Edits to this
+       {% if publisher.is_imprint %}imprint{% else %}publisher{% endif %}
+        are currently awaiting approval.
+    {% endifequal %}
+    </span>
+    </div>
+  {% endwith %}
+{% else %}
+  <div id="control_panel">
+  <form method="POST"
+        action="{% url reserve_publisher id=publisher.id %}">
+    <input id="edit" name="edit" type="submit" value="Edit" />
+  </form>
+  </div>
+{% endif %}
+
+<dl class="pub_data">
+{% if publisher.country %}
+  <dt> Country:
+  <dd> {{ publisher.country.name }}
+{% endif %}
+
+{% if publisher.has_imprints %}
+  <dt> Imprints:
+  <dd> <a href="{{ publisher.get_absolute_url }}imprints/">{{ publisher.imprint_set.count }}</a>
+{% endif %}
+
+{% if publisher.notes %}
+  <dt> Notes:
+  <dd> {{ publisher.notes|linebreaksbr }}
+{% endif %}
+
+{% if publisher.url %}
+  <dt> Web Site:
+  <dd> <a href="{{ publisher.get_official_url }}">{{ publisher.url }}</a>
+{% endif %}
+
+{% ifequal page.object_list.count 0 %}
+  <dt> Titles:
+  <dd> None
+</dl>
+{% else %}
+</dl>
+<table id="publisher_detail_listing" class="listing">
+  <tr>
+    <th> Title </th>
+    <th> Year </th>
+    <th> #&nbsp;Issues </th>
+    <th> Covers </th>
+    <th> Published </th>
+  </tr>
+{% for series in page.object_list %}
+  <tr class="{% cycle 'listing_even' 'listing_odd' %}">
+    <td> <a href="{{ series.get_absolute_url }}">{{ series.name }}</a> </td>
+    <td> {{ series.year_began }}
+    <td> {{ series.issue_set.count }} issue{{ series.issue_count|pluralize }} </td>
+    {% if not series.scan_needed %}
+    <td> <a href="{% url apps.gcd.views.details.covers series_id=series.id %}">Gallery</a>
+    {% else %}
+      {% if series.scan_count %}
+        <td> <a href="{% url apps.gcd.views.details.covers series_id=series.id %}">Have 
+        {{ series.scan_count}}</a>
+        (<a href="{% url apps.gcd.views.details.scans series_id=series.id %}">Need 
+        {{ series.scan_needed }}</a>)
+      {% else %}
+        <td> <a href="{% url apps.gcd.views.details.scans series_id=series.id %}">Add</a>
+      {% endif %}
+    {% endif %}
+    <td> {{ series.publication_dates }} </td>
+  </tr>
+{% endfor %}
+</table>
+{% endifequal %}
+
+{% with 1 as paginate_only %}
+{% include "gcd/bits/publisher_header.html" %}
+{% endwith %}
+
+{% endblock %}

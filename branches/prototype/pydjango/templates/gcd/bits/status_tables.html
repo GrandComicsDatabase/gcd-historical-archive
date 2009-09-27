@@ -1,0 +1,35 @@
+{% load gcdtable %}
+
+<table border="1" class="status" id="key">
+  <tr>
+    <td class="status_3"> Indexed </td>
+    <td class="status_2"> Pending Approval </td>
+    <td class="status_1"> Reserved </td>
+    <td class="status_0"> Skeleton Data Only </td>
+  </tr>
+</table>
+<p class="spacer"/>
+<table border="1" class="status">
+  <tr>
+  <!-- Iterate over covers rather than issues because cover sort codes
+       are more reliable than key dates, and if both cover and issue
+       records are needed the queries are more optimal done from the
+       covers side. -->
+  {% for cover in covers %}
+  {% with cover.issue as issue %}
+    <td class="status_{% if issue.reserve_status %}{{ issue.index_status }}{% else %}0{% endif %}">
+      <a href="{{ issue.get_absolute_url }}">{{ issue.number }}</a> </td>
+    {% if forloop.counter|divisibleby:table_width %}
+  </tr>
+      {% if not forloop.last %}
+  <tr>
+      {% endif %}
+    {% else %}
+      {% if forloop.last %}
+        {{ forloop.counter|finishrow:table_width }}
+  </tr>
+      {% endif %}
+    {% endif %}
+  {% endwith %}
+  {% endfor %}
+</table>
