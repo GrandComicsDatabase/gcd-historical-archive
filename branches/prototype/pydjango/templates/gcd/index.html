@@ -1,3 +1,4 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/DTD/strict.dtd"> 
 {% load statustags %}
 
 <html>
@@ -7,43 +8,96 @@
         href="{{ MEDIA_URL }}/css/gcd/{{ style }}.css"/>
   <link rel="stylesheet" type="text/css"
         href="{{ MEDIA_URL }}/css/gcd/{{ style }}/front_page.css"/>
+  <link rel="shortcut icon" href="{{ MEDIA_URL }}/img/favicon.ico"/>
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
 </head>
 
 <body>
 <div id="sizing_base">
 
-<div id="between_header_footer">
-{% include "gcd/bits/front_page_menu.html" %}
+<!-- 3 column layout with two fixed width sidebars from
+http://matthewjamestaylor.com/blog/ultimate-3-column-holy-grail-ems.htm -->
 
-    <div class="front_page_right_box">
-        <div class="front_page_right_box_inner">
-        <a href="{% url apps.gcd.views.details.covers_to_replace %}">Covers marked for replacement</a><br>
-        <a href="{% url apps.gcd.views.details.daily_covers %}">See all covers uploaded today</a>
-        </div> <!-- front_page_right_box_inner -->
-    </div> <!-- front_page_right_box -->
-    <div class="front_page_right_box">
-        <div class="front_page_right_box_header">Last updated indices</div>
-        <div class="front_page_right_box_inner">
-            {% last_updated_issues %}
-        </div> <!-- front_page_right_box_inner -->
-    </div> <!-- front_page_right_box -->
-    <div class="front_page_central_box">
-{% include "gcd/bits/front_page_notice.html" %}
-    </div> <!-- front_page_central_box -->
-    <div class="front_page_central_box">
-{% include "gcd/bits/front_page_search_box.html" %}
-    </div> <!-- front_page_central_box -->
-{% include "gcd/bits/front_page_content.html" %}
+<div id="main_body"> 
+    <div id="colmid"> 
+        <div id="colleft">
+            <div id="col1wrap"> 
+                <div id="center_column"> 
+                    <!-- Center Column start --> 
+                    <div class="front_page_central">
+                        <div class="front_page_central_box">
+                            {% include "gcd/bits/front_page_search_box.html" %}
+                        </div>
+                    </div>
+                    <div class="front_page_central">
+                        <div class="front_page_central_box">
+                            {% include "gcd/bits/front_page_notice.html" %}
+                        </div>
+                    </div>
+                    <div class="front_page_central">
+                        {% include "gcd/bits/front_page_content.html" %}
+                    </div>
+                    <!-- Center Column end --> 
+                </div> 
+            </div> 
 
+            <div id="left_column"> 
+                <!-- Left Column start --> 
+                <div class="front_page_left_box">
+                    {% include "gcd/bits/front_page_menu.html" %}
+                </div>
+                <div class="front_page_left_box">
+                    <div class="box_header">
+                        Login
+                    </div>
+                    <div class="box_inner">
+                        {% include "gcd/bits/front_page_login.html" %}
+                    </div>
+                </div>
+                <!-- Left Column end --> 
+            </div>
 
+            <div id="right_column"> 
+                <!-- Right Column start --> 
+                <div class="front_page_right_box">
+                    <div class="box_header">
+                        Useful Links
+                    </div>
+                    <div class="box_inner">
+                        <a href="{% url apps.gcd.views.details.covers_to_replace %}">Covers marked for replacement</a>
+                        <br>
+                        <a href="{% url apps.gcd.views.details.daily_covers %}">See all covers uploaded today</a>
+                    </div>
+                </div>
+                <div class="front_page_right_box">
+                    <div class="box_header">
+                        Last Updated Indices
+                    </div>
+                    <div class="box_inner">
+                        {% last_updated_issues %}
+                    </div>
+                </div>
+                <div class="front_page_right_box">
+                    <div class="box_header">
+                        Statistics
+                    </div>
+                    <div class="box_inner">
+                        58 covers<br>
+                        25 indexes<br>
+                        92 characters<br>
+                        12 indexers<br>
+                    </div>
+                </div>
+                <!-- Right Column end --> 
+            </div> 
+        </div> <!-- id="colleft"-->
+    </div> <!-- id="colmid"-->
+</div> <!-- id="main_body"-->
 
-
-
-</div><!-- between_header_footer -->
-<hr/>
-
-{% include "gcd/front_page_fine_print.html" %}
-
+<div id="footer">
+    {% include "gcd/front_page_fine_print.html" %}
 </div>
+
+</div><!-- id="sizing_base" -->
 </body>
 </html>
