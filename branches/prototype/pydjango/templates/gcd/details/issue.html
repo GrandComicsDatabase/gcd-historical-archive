@@ -123,10 +123,10 @@
       {% if issue.cover.has_large %}
         View: <a href="{{ issue.get_absolute_url }}cover/2/?style={{ style }}">Medium</a>
         <a href="{{ issue.get_absolute_url }}cover/4/?style={{ style }}">Large</a>
-      {% endif %}
       <br>
       <a href="{% url apps.gcd.views.covers.variant_upload issue_id=issue.id%}?style={{ style }}">Add Variant Cover</a>
       <br>
+      {% endif %}
       <a href="{{ issue.series.get_absolute_url }}covers/?style={{ style }}">Cover Gallery</a>
     </div>
     <div class="disclaimer">

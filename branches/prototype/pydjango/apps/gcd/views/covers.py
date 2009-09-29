@@ -35,7 +35,7 @@ _server_prefixes = ['',
                     settings.MEDIA_URL + _local_scans]
                     #'http://imagesgcd.everycomic.net/img/gcd/covers/']
 
-def get_image_tag(series_id, cover, alt_text, zoom_level):
+def get_image_tag(series_id, cover, alt_text, zoom_level, no_cache = False):
     if cover is None:
         return mark_safe('<img class="no_cover" src="' + _server_prefixes[2] + \
                'nocover.gif" alt="No image yet" class="cover_img"/>')
@@ -59,13 +59,6 @@ def get_image_tag(series_id, cover, alt_text, zoom_level):
     elif zoom_level == ZOOM_LARGE:
         width = 'width="400"'
 
-    # I don't think this is used ?
-    img_url = ('<img src="" alt="' +
-               esc(alt_text) +
-               '" ' +
-               width +
-               ' class="cover_img"/>')
-
     if (zoom_level == ZOOM_SMALL):
         if not (cover.has_image):
             return mark_safe('<img class="no_cover" src="' + _server_prefixes[2] + \
@@ -75,6 +68,12 @@ def get_image_tag(series_id, cover, alt_text, zoom_level):
         suffix = "%d/" % series_id
         suffix = suffix + "%d00/" % zoom_level
         suffix = suffix + "%d_%d_%s.jpg" % (series_id, zoom_level, cover.code)
+
+    # For replacement and variant cover uploads we should make sure that no 
+    # cached cover is displayed. Adding a changing query string seems the
+    # prefered solution found on the net.
+    if no_cache:
+        suffix = suffix + '?' + str(datetime.today())
 
     # For now trust the DB on the graphics server.  This will sometimes
     # be wrong but is *MUCH* faster.
@@ -181,6 +180,13 @@ def cover_upload(request, issue_id, add_variant=False):
     else:
         cover = cover[0]
 
+    if add_variant and not cover.has_image:
+        info_text = "No cover present for %s. You cannot upload a variant." % cover.issue
+        return render_to_response(error_template, {
+            'error_text' : info_text,
+            },
+            context_instance=RequestContext(request))
+
     # check that we are actually allowed to upload
     if cover.has_image and not cover.marked and not add_variant:
         tag = get_image_tag(issue.series.id, cover, "existing cover", 2)
@@ -202,11 +208,11 @@ def cover_upload(request, issue_id, add_variant=False):
     # check what kind of upload
     if cover.has_image and cover.marked:
         display_cover = get_image_tag(issue.series.id, cover,
-                                      "cover to replace", 2)
+                                      "cover to replace", 2, no_cache = True)
         upload_type = 'replacement'
     elif add_variant:
         display_cover = get_image_tag(issue.series.id, cover,
-                                      "first cover", 2)
+                                      "first cover", 2, no_cache = True)
         upload_type = 'variant'
     else:
         display_cover = None
@@ -233,16 +239,17 @@ def cover_upload(request, issue_id, add_variant=False):
                                       context_instance=RequestContext(request))
         # if file is in form handle it
         if 'scan' in request.FILES:
+            upload_datetime = datetime.today()
             scan = request.FILES['scan']
             contributor = '%s (%s)' % (request.POST['name'],
                                        request.POST['email'])
             # put new covers into media/_local_new_scans/monthname_year/
             # name <issue_id>_<series_name>_#<issue_number>_<date>_<time>.<ext>
-            scan_name = str(issue.id) + "_" + \
+            scan_name = str(issue.series.id) + "_" + str(issue.id) + "_" + \
                         uni(issue).replace(' ','_').replace('/','-') + \
                         "_" + datetime.today().strftime('%Y%m%d_%H%M%S')
             upload_dir = settings.MEDIA_ROOT + _local_new_scans + \
-                         datetime.today().strftime('%B_%Y/').lower()
+                         upload_datetime.strftime('%B_%Y/').lower()
             destination_name = upload_dir + scan_name + \
                                os.path.splitext(scan.name)[1]
             if not os.path.isdir(upload_dir):
@@ -299,7 +306,7 @@ def cover_upload(request, issue_id, add_variant=False):
 
                         # backup current scan
                         backup_name = os.path.splitext(current_im_name)[0] + \
-                          "_" + datetime.today().strftime('%Y%m%d_%H%M%S') + \
+                          "_" + upload_datetime.strftime('%Y%m%d_%H%M%S') + \
                           "_backup.jpg"
                         im_old.save(backup_name)
 
@@ -315,7 +322,8 @@ def cover_upload(request, issue_id, add_variant=False):
                         save_text = "series: " + str(issue.series.id) + \
                                     " issue: " + str(issue.id) + "\n"
                         save_text = uni(save_text) + "--old: " + \
-                                    uni(backup_name) + "\n--add: " + \
+                                    uni(backup_name) + "\n--old-uploader: " + \
+                                    uni(cover.contributor) + "\n--add: " + \
                                     uni(destination_name) + "\n"
                         variants.write(save_text)
                         variants.close()
@@ -354,7 +362,7 @@ def cover_upload(request, issue_id, add_variant=False):
                         series = cover.series
                         series.gallery_present = True
                         series.save()
-                    cover.modified = datetime.today()                    
+                    cover.modified = upload_datetime                    
                     cover.save()
 
                     if 'remember_me' in request.POST:
