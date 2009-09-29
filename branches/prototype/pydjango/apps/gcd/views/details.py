@@ -4,7 +4,7 @@
 
 import re
 from urllib import urlopen
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 
 from django.db.models import Q
 from django.conf import settings
@@ -260,7 +260,11 @@ def daily_covers(request, show_date=None):
     # TODO: Figure out optimal table width and/or make it user controllable.
     table_width = 5
     style = get_style(request)
-    covers = Cover.objects.filter(modified=requested_date)
+
+    covers = Cover.objects.filter(modified__range=(\
+                                  datetime.combine(requested_date, time.min),
+                                  datetime.combine(requested_date, time.max)))
+
     covers = covers.filter(has_image=True)
     covers = covers.order_by("issue__series__publisher__name",
                              "issue__series__name",
