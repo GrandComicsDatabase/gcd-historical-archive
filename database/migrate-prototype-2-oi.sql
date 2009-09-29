@@ -109,3 +109,7 @@ INSERT INTO auth_group_permissions (group_id, permission_id)
 INSERT INTO auth_group_permissions (group_id, permission_id)
     SELECT @admins, id from auth_permission;
 
+UPDATE issues SET Issue='[nn]' WHERE Issue = 'nn';
+UPDATE stories SET feature=''
+    WHERE feature in ('none', '[none]') OR feature IS NULL;
+
