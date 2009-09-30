@@ -49,6 +49,17 @@ fieldset.control label {
     width: 10em;
 }
 
+span.left{
+    width: 49%;
+    clear: right;
+    float: left;
+}
+
+span.right{
+    width: 49%;
+    float: right;
+}
+
 input {
     margin-bottom: 0.2em;
 }
@@ -65,30 +76,27 @@ fieldset.submit input {
 
 fieldset.sequence {
     padding-bottom: 1em;
+    clear: both;
+    width: 100%;
+    float: left;
 }
 
 fieldset.publisher {
+    width: 100%;
 }
 
 fieldset fieldset {
     margin: 0 3% 1em 3%;
-    width: 94%
+    width: 94%;
 }
 
-.control {
-    border: none;
+
+fieldset.control{
+    width: 100%;
 }
-.control ol {
-    margin: 0;
-    padding-left: 0;
-}
-.control li {
-    margin-left: 0;
-}
-.control label {
-    width: 6.5em;
-    text-align: left;
-    font-weight: bold;
+
+fieldset.ordering{
+    width: 100%;
 }
 
 /******************************************************************/

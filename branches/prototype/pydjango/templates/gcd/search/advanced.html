@@ -27,15 +27,22 @@ support the most options that we can and still deliver good performance.
 </p>
 </div>
 <form action="{% url apps.gcd.views.search.process_advanced %}" method="get">
+<span>
+<fieldset class="submit">
+  <input type="submit" value="Search">
+</fieldset>
+</span>
+<span class="left">
 <fieldset class="control">
-<!-- TODO: why did I put this style attr here? -->
-<legend style="visibility:hidden">Search Control</legend>
+<legend>Search Control</legend>
 <ol>
   {{ form.target|show_form }}
   {{ form.method|show_form }}
   {{ form.logic|show_form }}
 </ol>
 </fieldset>
+</span>
+<span class="right">
 <fieldset class="ordering">
 <legend>Ordering</legend>
 <ol>
@@ -44,7 +51,7 @@ support the most options that we can and still deliver good performance.
   {{ form.order3|show_form }}
 </ol>
 </fieldset>
-
+</span>
 {% comment %}
 <fieldset class="universal">
 <legend>Universal Fields</legend>
@@ -56,7 +63,51 @@ support the most options that we can and still deliver good performance.
 </ol>
 </fieldset>
 {% endcomment %}
+<span class="left">
+<fieldset class="sequence">
+  <legend> Story Fields </legend>
+  <ol>
+    {{ form.title|show_form }}
+    {{ form.feature|show_form }}
+    {{ form.job_number|show_form }}
+{% comment %}
+    {{ form.type|show_form }}
+    {{ form.pages|show_form }}
+{% endcomment %}
+  </ol>
 
+  <fieldset class="credits">
+    <legend> Credits </legend>
+    <ol>
+      {{ form.script|show_form }}
+      {{ form.pencils|show_form }}
+      {{ form.inks|show_form }}
+      {{ form.colors|show_form }}
+      {{ form.letters|show_form }}
+      {{ form.story_editor|show_form }}
+    </ol>
+  </fieldset>
+
+{% comment %}
+  <fieldset class="contents">
+    <legend> Contents </legend>
+    <ol>
+      {{ form.genre|show_form }}
+      {{ form.characters|show_form }}
+      {{ form.synopsis|show_form }}
+      {{ form.reprints|show_form }}
+    </ol>
+  </fieldset>
+  <fieldset class="notes">
+    <legend> Indexer Notes </legend>
+    <ol>
+      {{ form.notes|show_form }}
+    </ol>
+  </fieldset>
+{% endcomment %}
+</fieldset>
+</span>
+<span class="right">
 <fieldset class="publisher" id="publisher_fieldset">
   <legend>
     Publisher Fields
@@ -107,53 +158,12 @@ support the most options that we can and still deliver good performance.
 {% endcomment %}
   </ol>
 </fieldset>
-
-<fieldset class="sequence">
-  <legend> Story Fields </legend>
-  <ol>
-    {{ form.title|show_form }}
-    {{ form.feature|show_form }}
-    {{ form.job_number|show_form }}
-{% comment %}
-    {{ form.type|show_form }}
-    {{ form.pages|show_form }}
-{% endcomment %}
-  </ol>
-
-  <fieldset class="credits">
-    <legend> Credits </legend>
-    <ol>
-      {{ form.script|show_form }}
-      {{ form.pencils|show_form }}
-      {{ form.inks|show_form }}
-      {{ form.colors|show_form }}
-      {{ form.letters|show_form }}
-      {{ form.story_editor|show_form }}
-    </ol>
-  </fieldset>
-
-{% comment %}
-  <fieldset class="contents">
-    <legend> Contents </legend>
-    <ol>
-      {{ form.genre|show_form }}
-      {{ form.characters|show_form }}
-      {{ form.synopsis|show_form }}
-      {{ form.reprints|show_form }}
-    </ol>
-  </fieldset>
-  <fieldset class="notes">
-    <legend> Indexer Notes </legend>
-    <ol>
-      {{ form.notes|show_form }}
-    </ol>
-  </fieldset>
-{% endcomment %}
-</fieldset>
-
+</span>
+<span class='left'>
 <fieldset class="submit">
   <input type="submit" value="Search">
 </fieldset>
+</span>
 </form>
 {% endblock %}
 

@@ -28,7 +28,7 @@ class AdvancedSearch(forms.Form):
                                         ['series', 'Series'],
                                         ['issue', 'Issues'],
                                         ['sequence', 'Stories']],
-                               initial='series',
+                               initial='sequence',
                                label='Search For')
 
     method_help = "All methods case-insensitive.  Regular expressions " + \

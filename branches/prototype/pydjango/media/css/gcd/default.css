@@ -176,24 +176,26 @@ h1#search_id {
     background-color: #77E;
     color: black;
     margin-bottom: 1em;
-    padding-bottom: 0.5em;
+    padding: 0.6em;
     vertical-align: center;
     border: solid 1px;
     width: 100%;
 }
 
 #plain_bar img {
-    font-weight: bold;
     height: 2em;
     position: relative;
-    top: 0.3em;
-    margin-top: -0.3em;
-    margin-left: 0.5em;
+    top: 0.5em;
+    margin-top: -0.5em;
 }
 
 #plain_bar span {
-    font-size: 2em;
+    font-size: 1.2em;
     font-weight: bold;
+}
+
+#plain_bar :visited {
+    color: black;
 }
 
 .fine_print {
@@ -210,7 +212,7 @@ table#covers {
 }
 
 table#covers td.marked {
-    background-color: #77E;
+    background-color: #DDD;
 }
 
 .no_cover {
