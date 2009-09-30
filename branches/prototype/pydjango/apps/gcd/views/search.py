@@ -415,7 +415,8 @@ def search_publishers(data, op):
 
     q_and_only = []
     if data['country']:
-        q_and_only.append(Q(country__code__in=data['country']))
+        q_and_only.append(Q(**{ '%scountry__code__in' % prefix:
+                                data['country'] }))
     if target == 'publisher':
         q_and_only.extend(search_dates(data,
                                        start_name='%syear_began' % prefix,
