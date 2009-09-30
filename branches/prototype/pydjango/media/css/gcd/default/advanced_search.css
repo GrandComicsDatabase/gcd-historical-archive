@@ -51,7 +51,6 @@ fieldset.control label {
 
 div.search_left {
     width: 49%;
-    clear: right;
     float: left;
 }
 
@@ -76,13 +75,6 @@ fieldset.submit input {
 
 fieldset.sequence {
     padding-bottom: 1em;
-    clear: both;
-    width: 100%;
-    float: left;
-}
-
-fieldset.publisher {
-    width: 100%;
 }
 
 fieldset fieldset {
@@ -99,9 +91,6 @@ fieldset.ordering {
     width: 100%;
 }
 
-fieldset.universal {
-    width: 100%;
-}
 
 /******************************************************************/
 
