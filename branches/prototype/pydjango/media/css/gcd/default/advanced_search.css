@@ -49,13 +49,13 @@ fieldset.control label {
     width: 10em;
 }
 
-span.left{
+div.search_left {
     width: 49%;
     clear: right;
     float: left;
 }
 
-span.right{
+div.search_right {
     width: 49%;
     float: right;
 }
@@ -91,11 +91,15 @@ fieldset fieldset {
 }
 
 
-fieldset.control{
+fieldset.control {
     width: 100%;
 }
 
-fieldset.ordering{
+fieldset.ordering {
+    width: 100%;
+}
+
+fieldset.universal {
     width: 100%;
 }
 

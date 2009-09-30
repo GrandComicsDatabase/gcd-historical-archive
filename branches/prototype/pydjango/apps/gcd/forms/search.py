@@ -60,35 +60,34 @@ class AdvancedSearch(forms.Form):
                                required=False,
                                label='Third By')
 
-#    start_date = forms.DateField(label='Start Date', required=False,
-#                                 input_formats=DATE_FORMATS)
-#    end_date = forms.DateField(label='End Date', required=False,
-#                                 input_formats=DATE_FORMATS)
+    start_date = forms.DateField(label='Start Date', required=False,
+                                 input_formats=DATE_FORMATS)
+    end_date = forms.DateField(label='End Date', required=False,
+                                 input_formats=DATE_FORMATS)
 
     pub_name = forms.CharField(label='Publisher', required=False)
-    imprints = forms.BooleanField(label='Imprints', required=False)
-#    pub_notes = forms.CharField(label='Notes', required=False)
+    pub_notes = forms.CharField(label='Notes', required=False)
 
     series = forms.CharField(label='Name', required=False)
-#    format = forms.CharField(label='Format', required=False)
-#    series_notes = forms.CharField(label='Series Notes', required=False)
-#    tracking_notes = forms.CharField(label='Tracking Notes', required=False)
-#    publication_notes = forms.CharField(label='Publication Notes',
-#                                        required=False)
+    format = forms.CharField(label='Format', required=False)
+    series_notes = forms.CharField(label='Series Notes', required=False)
+    tracking_notes = forms.CharField(label='Tracking Notes', required=False)
+    publication_notes = forms.CharField(label='Publication Notes',
+                                        required=False)
 
-#    issues = forms.CharField(label='Issues', required=False)
-#    price = forms.CharField(required=False)
-#    issue_pages = forms.CharField(required=False)
-#    issue_notes = forms.CharField(label='Issue Notes', required=False)
-#    issue_reprints = forms.CharField(label='Issue Reprints', required=False)
+    issues = forms.CharField(label='Issues', required=False)
+    price = forms.CharField(required=False)
+    issue_pages = forms.CharField(required=False)
+    issue_notes = forms.CharField(label='Issue Notes', required=False)
+    issue_reprints = forms.CharField(label='Issue Reprints', required=False)
     issue_editor = forms.CharField(required=False)
-#    issue_date = forms.CharField(label='Cover Date', required=False)
+    issue_date = forms.CharField(label='Cover Date', required=False)
 
 
     feature = forms.CharField(required=False)
-#    type = forms.CharField(required=False)
+    type = forms.CharField(required=False)
     title = forms.CharField(required=False)
-#    pages = forms.CharField(required=False)
+    pages = forms.CharField(required=False)
 
     script = forms.CharField(required=False)
     pencils = forms.CharField(required=False)
@@ -115,8 +114,4 @@ class AdvancedSearch(forms.Form):
       choices=([l.code, l.name] for l in Language.objects.order_by('name')),
       widget=forms.SelectMultiple(attrs={'size' : '4'}))
     alt_language = forms.CharField(label='', required=False, max_length=3)
-
-#    indexer = forms.ModelMultipleChoiceField(required=False,
-#      queryset=Indexer.objects.all(),
-#      widget=forms.SelectMultiple(attrs={'size' : '6'}))
 

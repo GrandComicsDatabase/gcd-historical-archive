@@ -27,12 +27,12 @@ support the most options that we can and still deliver good performance.
 </p>
 </div>
 <form action="{% url apps.gcd.views.search.process_advanced %}" method="get">
-<span>
+<div>
 <fieldset class="submit">
   <input type="submit" value="Search">
 </fieldset>
-</span>
-<span class="left">
+</div>
+<div class="search_left">
 <fieldset class="control">
 <legend>Search Control</legend>
 <ol>
@@ -41,8 +41,8 @@ support the most options that we can and still deliver good performance.
   {{ form.logic|show_form }}
 </ol>
 </fieldset>
-</span>
-<span class="right">
+</div>
+<div class="search_right">
 <fieldset class="ordering">
 <legend>Ordering</legend>
 <ol>
@@ -51,29 +51,17 @@ support the most options that we can and still deliver good performance.
   {{ form.order3|show_form }}
 </ol>
 </fieldset>
-</span>
-{% comment %}
-<fieldset class="universal">
-<legend>Universal Fields</legend>
-<ol>
-  {{ form.start_date|show_form }}
-  {{ form.end_date|show_form }}
-  {{ form.country|show_form }}
-  {{ form.language|show_form }}
-</ol>
-</fieldset>
-{% endcomment %}
-<span class="left">
+</div>
+
+<div class="search_left">
 <fieldset class="sequence">
   <legend> Story Fields </legend>
   <ol>
     {{ form.title|show_form }}
     {{ form.feature|show_form }}
     {{ form.job_number|show_form }}
-{% comment %}
     {{ form.type|show_form }}
     {{ form.pages|show_form }}
-{% endcomment %}
   </ol>
 
   <fieldset class="credits">
@@ -88,7 +76,6 @@ support the most options that we can and still deliver good performance.
     </ol>
   </fieldset>
 
-{% comment %}
   <fieldset class="contents">
     <legend> Contents </legend>
     <ol>
@@ -104,21 +91,28 @@ support the most options that we can and still deliver good performance.
       {{ form.notes|show_form }}
     </ol>
   </fieldset>
-{% endcomment %}
 </fieldset>
-</span>
-<span class="right">
+</div>
+
+<div class="search_right">
+<fieldset class="universal">
+<legend>Universal Fields</legend>
+<ol>
+  {{ form.start_date|show_form }}
+  {{ form.end_date|show_form }}
+  {{ form.country|show_form }}
+  {{ form.language|show_form }}
+</ol>
+</fieldset>
+
 <fieldset class="publisher" id="publisher_fieldset">
   <legend>
     Publisher Fields
   </legend>
   <ol>
     {{ form.pub_name|show_form }}
-    {{ form.imprints|show_form }}
     {{ form.country|show_form }}
-{% comment %}
     {{ form.pub_notes|show_form }}
-{% endcomment %}
   </ol>
 </fieldset>
 
@@ -129,12 +123,9 @@ support the most options that we can and still deliver good performance.
 
   <ol id="series_list">
     {{ form.series|show_form }}
-{% comment %}
     {{ form.series_notes|show_form }}
     {{ form.tracking_notes|show_form }}
     {{ form.publication_notes|show_form }}
-    {{ form.indexer|show_form }}
-{% endcomment %}
     {{ form.language|show_form }}
   </ol>
 </fieldset>
@@ -144,26 +135,22 @@ support the most options that we can and still deliver good performance.
     Issue Fields
   </legend>
   <ol>
-{% comment %}
     {{ form.issues|show_form }}
     {{ form.issue_date|show_form }}
     {{ form.price|show_form }}
     {{ form.issue_pages|show_form }}
     {{ form.format|show_form }}
-{% endcomment %}
     {{ form.issue_editor|show_form }}
-{% comment %}
     {{ form.issue_notes|show_form }}
     {{ form.issue_reprints|show_form }}
-{% endcomment %}
   </ol>
 </fieldset>
-</span>
-<span class='left'>
+</div>
+<div class='search_left'>
 <fieldset class="submit">
   <input type="submit" value="Search">
 </fieldset>
-</span>
+</div>
 </form>
 {% endblock %}
 
