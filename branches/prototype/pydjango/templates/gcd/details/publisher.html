@@ -19,6 +19,7 @@
 
 {% include "gcd/bits/publisher_header.html" %}
 
+{% comment %}
 {% if publisher.reserved %}
   {% with publisher.revisions.all.0 as revision %}
     <div id="index_status" class="index_status_{{ revision.state }}">
@@ -45,6 +46,7 @@
   </form>
   </div>
 {% endif %}
+{% endcomment %}
 
 <dl class="pub_data">
 {% if publisher.country %}
