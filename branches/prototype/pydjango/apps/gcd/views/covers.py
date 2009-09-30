@@ -16,6 +16,7 @@ from django.utils.encoding import smart_unicode as uni
 from django.core.files import temp as tempfile
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as esc
+from django.http import HttpResponseRedirect
 
 from apps.gcd.models import Cover, Series, Issue
 
@@ -30,7 +31,8 @@ _local_scans = '/img/gcd/covers/'
 # Entries in this tuple match the server_version column of the covers table.
 # Note that there is no sever version 0 recorded.
 _server_prefixes = ['',
-                    'http://www.comics.org/graphics/covers/',
+                    #'http://www.comics.org/graphics/covers/',
+                    'http://images.comics.org/img/gcd/old_covers/',
                     'http://www.gcdcovers.com/graphics/covers/',
                     settings.MEDIA_URL + _local_scans]
                     #'http://imagesgcd.everycomic.net/img/gcd/covers/']
@@ -206,7 +208,7 @@ def cover_upload(request, issue_id, add_variant=False):
                                   context_instance=RequestContext(request))
 
     # check what kind of upload
-    if cover.has_image and cover.marked:
+    if cover.has_image and cover.marked and not add_variant:
         display_cover = get_image_tag(issue.series.id, cover,
                                       "cover to replace", 2, no_cache = True)
         upload_type = 'replacement'
@@ -424,11 +426,15 @@ def cover_upload(request, issue_id, add_variant=False):
     else:
         # do we have email/name cached
         if 'gcd_uploader_email' in request.session:
-            var = {'name' : request.session['gcd_uploader_name'],
+            vars = {'name' : request.session['gcd_uploader_name'],
                    'email' : request.session['gcd_uploader_email'],
                    'remember_me' : True}
+        elif request.user.is_authenticated():
+            vars = {'name' : request.user.indexer.name,
+                   'email' : request.user.email,
+                   'remember_me' : True}            
         else:
-            var = {'name' : 'Your name', 'email' : 'your@email.adress'}
+            vars = {'name' : 'Your name', 'email' : 'your@email.address'}
 
         form = UploadScanForm(initial=var)
         # display the form
@@ -478,18 +484,23 @@ def mark_cover(request, issue_id):
         
         cover.marked = True
         cover.save()
-        cover_tag = get_image_tag(issue.series_id, cover,
-                                  "Cover Image", 2)
-        return render_to_response(
-          'gcd/details/cover_marked.html',
-          {
-            'issue': issue,
-            'cover_tag': cover_tag,
-            'error_subject': '%s cover' % issue,
-            'style': 'default',
-          },
-          context_instance=RequestContext(request)
-        )        
+
+        # I kinda assume the HTTP_REFERER is always present, but just in case
+        if request.META.has_key('HTTP_REFERER'):
+            return HttpResponseRedirect(request.META['HTTP_REFERER'])
+        else:
+            cover_tag = get_image_tag(issue.series_id, cover,
+                                      "Cover Image", 2)
+            return render_to_response(
+              'gcd/details/cover_marked.html',
+              {
+                'issue': issue,
+                'cover_tag': cover_tag,
+                'error_subject': '%s cover' % issue,
+                'style': 'default',
+              },
+              context_instance=RequestContext(request)
+            )        
     else:
         return render_to_response('gcd/error.html',
           {

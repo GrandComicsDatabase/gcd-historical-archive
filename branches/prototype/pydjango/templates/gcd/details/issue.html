@@ -115,7 +115,7 @@
 
   <div id="cover">
     {% if issue.cover.has_image %}
-      {{ image_tag }}
+      <a href="{{ issue.get_absolute_url }}cover/4/?style={{ style }}">{{ image_tag }}</a>
     {% else %}
       <a href="{{ issue.cover.get_status_url }}">{{ image_tag }}</a>
     {% endif %}
@@ -124,12 +124,16 @@
         View: <a href="{{ issue.get_absolute_url }}cover/2/?style={{ style }}">Medium</a>
         <a href="{{ issue.get_absolute_url }}cover/4/?style={{ style }}">Large</a>
       <br>
-      <a href="{% url apps.gcd.views.covers.variant_upload issue_id=issue.id%}?style={{ style }}">Add Variant Cover</a>
+      {% if issue.cover.marked %}
+      <a href="{% url apps.gcd.views.covers.cover_upload issue_id=issue.id%}?style={{ style }}">Replace cover</a>
       <br>
       {% endif %}
-      <a href="{{ issue.series.get_absolute_url }}covers/?style={{ style }}">Cover Gallery</a>
+      <a href="{% url apps.gcd.views.covers.variant_upload issue_id=issue.id%}?style={{ style }}">Add variant cover</a>
+      <br>
+      {% endif %}
+      <a href="{{ issue.series.get_absolute_url }}covers/?style={{ style }}">Cover gallery</a>
     </div>
-    <div class="disclaimer">
+    <div id="cover_disclaimer">
     Cover thumbnails are used for identification purposes only. All rights to 
     cover images reserved by the respective copyright holders. 
     </div>

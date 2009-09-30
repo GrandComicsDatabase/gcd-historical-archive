@@ -72,13 +72,16 @@
 <a href="{{ issue.get_absolute_url }}cover/2/?style={{ style }}">Medium</a>
 <a href="{{ issue.get_absolute_url }}cover/4/?style={{ style }}">Large</a></span> <br/>
       <div class="cover_caption">
-        {% if can_mark and not cover.marked %}
-        <a href="{% url apps.gcd.views.covers.mark_cover issue_id=issue.id %}">mark for replacement</a><br>
-        {% endif %}
         {{ issue.series.name }} #{{ issue.number }}<br/>
-        ({{ issue.series.publisher }}, {{ issue.series.year_began }}) <br/>
+        ({{ issue.series.publisher }}, {{ issue.series.year_began }}) <br>
         {% if issue.publication_date %}
-        <span class="cover_date">{{ issue.publication_date }}</span>
+        <span class="cover_date">{{ issue.publication_date }}</span><br>
+        {% endif %}
+        {% if can_mark and not cover.marked %}
+        <a href="{% url apps.gcd.views.covers.mark_cover issue_id=issue.id %}">Mark for replacement</a>
+        {% endif %}
+        {% if cover.marked %}
+        <a href="{% url apps.gcd.views.covers.cover_upload issue_id=issue.id %}">Replace cover</a>
         {% endif %}
       </div>
     </td>
