@@ -79,6 +79,7 @@
       <ol>
         {% for story in stories %}
         <li class="{% cycle 'odd' 'even' %}">
+          {{ forloop.counter }}.
           <span class="toc_story_title">
           <a href="#{{ story.id }}">{% if story.title %}
             {{ story.title }}
