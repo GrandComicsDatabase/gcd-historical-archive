@@ -436,7 +436,7 @@ def cover_upload(request, issue_id, add_variant=False):
         else:
             vars = {'name' : 'Your name', 'email' : 'your@email.address'}
 
-        form = UploadScanForm(initial=var)
+        form = UploadScanForm(initial=vars)
         # display the form
         return render_to_response(upload_template, {
                                   'form': form.as_ul(), 
