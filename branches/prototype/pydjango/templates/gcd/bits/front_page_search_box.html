@@ -1,29 +1,32 @@
 <div id="search_box">
   <form action="{% url apps.gcd.views.search.search %}" method="get">
-    search
-    <input type="text" name="query" id="query" size="15">
-    in
-    <select name="type" size="1">
-        <option value="writer"> Writer
-        <option value="penciller"> Penciller
-        <option value="inker"> Inker
-        <option value="colorist"> Colorist
-        <option value="letterer"> Letterer
-        <option value="editor"> Editor
-        <option value="credit"> Any credit
-        <option value="story"> Story title
-        <option value="feature"> Feature
-        <option value="character"> Character
-        <option value="job_number"> Job Number
-        <option value="publisher"> Publisher
-        <option value="series" selected> Comic Book title
-    </select>
-    sort
-    <select name="sort" size="1">
-        <option value="alpha" selected> Series
-        <option value="chrono"> Year
-    </select>
-    <input type="submit" name="submit" id="submit" value="Go">
-    <a href="{% url apps.gcd.views.search.advanced_search %}">Advanced</a>
+    <div class="first_line">
+        Search {% include "gcd/bits/search_for.html" %}
+        <input type="text" name="query" id="query" size="15">
+    </div>
+    <div class="second_line">
+        Sort by
+        {% include "gcd/bits/search_order.html" %}
+        <input type="submit" name="submit" id="submit" value="Go">
+        | <a href="{% url apps.gcd.views.search.advanced_search %}">Advanced</a>
+    </div>
+<!--
+    <table>
+      <tr>
+        <td>Search</td>
+        <td>{% include "gcd/bits/search_for.html" %}</td>
+        <td><input type="text" name="query" id="query" size="15"></td>
+        <td></td>
+      </tr>
+      <tr>  
+        <td>Sort by</td>
+        <td>{% include "gcd/bits/search_order.html" %}</td>
+        <td><input type="submit" name="submit" id="submit" value="Go"></td>
+        <td class="advanced_link">
+          <a href="{% url apps.gcd.views.search.advanced_search %}">Advanced</a>
+        </td>
+      </tr>
+    </table>
+ -->
   </form> 
 </div>

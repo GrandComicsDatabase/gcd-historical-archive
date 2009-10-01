@@ -8,7 +8,7 @@ body {
     border:0;           /* This removes the border around the viewport in old versions of IE */
     width:95%;
     background:#fff;
-    min-width:70em;     /* Minimum width of layout - remove line if not required [15 + 45 + 24]*/
+    min-width:45em;     /* Minimum width of layout - remove line if not required [15 + 45 + 24]*/
                         /* The min-width property does not work in old versions of Internet Explorer */
 }
 
@@ -23,18 +23,10 @@ body {
     /*background:#3ed;      /* Right column background colour [in case we ever need it]*/
 }
 
-#main_body a {
-    text-decoration: none;
-}
-
-#main_body a:hover {
-    text-decoration: underline;
-}
-
 #colmid {
     float:left;
     width:200%;
-    margin-left:-24em;      /* Width of right column [1 + 22 + 1]*/
+    margin-left:-15em;      /* Width of right column [1 + 15 + 1]*/
     position:relative;
     right:100%;
     /*background:#abc;      /* Centre column background colour  [in case we ever need it]*/
@@ -45,7 +37,7 @@ body {
     width:100%;
     margin-left:-50%;
     position:relative;
-    left:39em;              /* Left column width + right column width  [15 + 24]*/
+    left:30em;;              /* Left column width + right column width  [15 + 15]*/
     /*background:#cfc;      /* Left column background colour  [in case we ever need it]*/
 }
 
@@ -60,7 +52,7 @@ body {
 #center_column {
                             /* Centre column side padding:*/
     margin-left: 16em;      /* Left padding = left column width + centre column left padding width*/
-    margin-right: 25em;     /* Right padding = right column width + centre column right padding width */
+    margin-right: 16em;     /* Right padding = right column width + centre column right padding width */
     position:relative;
     left:200%;
     overflow:hidden;
@@ -77,7 +69,7 @@ body {
 #right_column {
     float:left;
     float:right;            /* This overrides the float:left above */
-    width:22em;             /* Width of right column content (right column width minus left and right padding)*/
+    width:13em;             /* Width of right column content (right column width minus left and right padding)*/
     margin-right:3em;       /* Width of right column right-hand padding + left column left and right padding*/
     position:relative;
     left:50%;
@@ -164,13 +156,25 @@ body {
     font-weight: bold;
 }
 
-#search_box form {
-    display: inline;
-    padding: 0.4em;
+#search_box form input,
+#search_box form select {
+    font-size: smaller;
+}
+
+#search_box table {
+    width: 100%;
 }
 
 #search_box a {
     color: white;
+}
+
+#search_box .first_line {
+    margin-bottom: 0.5em;
+}
+
+.advanced_link {
+    text-align: right;
 }
 
 #front_page_notice_header {
@@ -206,6 +210,6 @@ body {
 .front_page_right_box {
     clear: right;
     border: solid 1px;
-    width: 22em;
+    width: 13em;
     margin-bottom: 1em;
 }

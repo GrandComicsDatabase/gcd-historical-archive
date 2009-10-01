@@ -17,6 +17,7 @@ ORDERINGS = [['', '--'],
 
 DATE_FORMATS = ['%Y.%m.%d', '%Y-%m-%d',
                 '%m/%d/%Y', '%m/%d/%y',
+                '%m / %d / %Y', '%m / %d / %y',
                 '%b %d %Y', '%b %d, %Y',
                 '%d %b %Y', '%d %b, %Y',
                 '%B %d %Y', '%B %d, %Y',
@@ -31,18 +32,16 @@ class AdvancedSearch(forms.Form):
                                initial='sequence',
                                label='Search For')
 
-    method_help = "All methods case-insensitive.  Regular expressions " + \
-                  "use MYSQL's syntax."
+    method_help = "All methods case-insensitive."
     method = forms.ChoiceField(choices=[['iexact', 'Matches Exactly'],
                                         ['istartswith', 'Starts With'],
-                                        ['icontains', 'Contains'],
-                                       ], # ['iregex', 'Regular Expression']],
+                                        ['icontains', 'Contains'] ],
                                initial='icontains',
                                label='Search Method',
                                help_text = method_help)
 
-    logic_help = "This option mostly applies to credit fields, and only " + \
-                 "sort of works.  It will be replaced with something better."
+    logic_help = "This option applies primarily to the story credit fields." \
+                 "It will eventually be replaced by more powerful options."
     logic = forms.ChoiceField(choices=[[False, 'AND all fields'],
                                        [True, 'OR credit, AND other fields']],
                               initial=False,
@@ -85,7 +84,31 @@ class AdvancedSearch(forms.Form):
 
 
     feature = forms.CharField(required=False)
-    type = forms.CharField(required=False)
+    type = forms.MultipleChoiceField(
+      choices=[['story', 'Story'],
+               ['text story', 'Text Story'],
+               ['photo story', 'Photo Story'],
+               ['cover', 'Cover'],
+               ['cover reprint', 'Cover Reprint'],
+               ['backcovers', 'Back Cover'],
+               ['cartoon', 'Cartoon'],
+               ['filler', 'Filler'],
+               ['pinup', 'Pin-Up'],
+               ['ad', 'Advertisement'],
+               ['promo', 'Promo'],
+               ['bio', 'Biography'],
+               ['profile', 'Character Profile'],
+               ['credits', 'Credits'],
+               ['letters', 'Letters Page'],
+               ['psa', 'Public Service Announcemnt'],
+               ['activity', 'Activity'],
+               ['insert', 'Insert'],
+               ['foreward', 'Foreword'],
+               ['recap', 'Recap']],
+      initial='story',
+      widget=forms.SelectMultiple(attrs={'size' : '6'}),
+      required=False)
+
     title = forms.CharField(required=False)
     pages = forms.CharField(required=False)
 

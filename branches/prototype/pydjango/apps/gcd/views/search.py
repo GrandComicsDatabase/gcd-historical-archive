@@ -424,7 +424,14 @@ def search_publishers(data, op):
 
     q_objs = []
     if data['pub_name']:
-        q_objs.append(Q(**{ '%sname__%s' % (prefix, op) : data['pub_name'] }))
+        pub_name_q = Q(**{ '%sname__%s' % (prefix, op) : data['pub_name'] })
+        if target == 'publisher':
+            q_objs.append(pub_name_q)
+        else:
+            imprint_prefix = compute_prefix(target, 'series')
+            imprint_q = Q(**{ '%simprint__name__%s' % (imprint_prefix, op) :
+                              data['pub_name'] })
+            q_objs.append(pub_name_q | imprint_q)
 
     return compute_qobj(data, q_and_only, q_objs)
 
@@ -474,6 +481,9 @@ def search_issues(data, op, stories_q=None):
         q_and_only.extend(search_dates(data, date_formatter,
                                        '%skey_date' % prefix,
                                        '%skey_date' % prefix))
+
+    if data['price']:
+        q_and_only.append(Q(**{ '%sprice__%s' % (prefix, op): data['price'] }))
 
     q_objs = []
     if data['issues']:
@@ -529,7 +539,7 @@ def search_stories(data, op):
     prefix = compute_prefix(target, 'sequence')
 
     q_objs = []
-    for field in ('feature', 'title', 'type',
+    for field in ('feature', 'title',
                   'script', 'pencils', 'inks',
                   'colors', 'letters', 'job_number', 'characters',
                   'synopsis', 'reprints', 'notes'):
@@ -537,43 +547,47 @@ def search_stories(data, op):
             q_objs.append(Q(**{ '%s%s__%s' % (prefix, field, op) :
                                 data[field] }))
 
-    for field in ('issue_editor',): # , 'issue_notes', 'issue_reprints'):
+    if data['type']:
+        q_objs.append(Q(**{ '%stype__in' % prefix : data['type'] }))
+
+    for field in ('issue_editor', 'issue_notes', 'issue_reprints'):
         if data[field]:
             m = match(r'issue_(?P<column>.+)', field)
             column = m.group('column')
             kwargs = {'%s%s__%s' % (prefix, column, op) : data[field],
-                      'sequence_number' : 0}
+                      '%ssequence_number' % prefix : 0}
             q_objs.append(Q(**kwargs))
 
     if data['story_editor']:
         q_objs.append(Q(**{ '%seditor__%s' % (prefix, op) :
-                            data['story_editor'] }) &
-                      ~Q(**{ '%ssequence_number' % prefix : 0 }))
+                            data['story_editor'] }))
 
-    if data['pages']:
-        range_match = match(r'(?P<begin>\d+)\s*-\s*(?P<end>\d+)$',
+    if data['pages'] is not None and data['pages'] != '':
+        range_match = match(r'(?P<begin>(?:\d|\.)+)\s*-\s*(?P<end>(?:\d|\.)+)$',
                             data['pages'])
         if range_match:
-            page_start = int(range_match.group('begin'))
-            page_end = int(range_match.group('end'))
+            page_start = float(range_match.group('begin'))
+            page_end = float(range_match.group('end'))
             q_objs.append(Q(**{ '%spage_count__range' % prefix :
                                 (page_start, page_end) }) &
                           ~Q(**{ '%ssequence_number' % prefix : 0 }))
         else:
-            q_objs.append(Q(**{ '%spage_count' % prefix : data['pages'] }) &
+            q_objs.append(Q(**{ '%spage_count' % prefix :
+                                float(data['pages']) }) &
                           ~Q(**{ '%ssequence_number' % prefix : 0 }))
         
-    if data['issue_pages']:
-        range_match = match(r'(?P<begin>\d+)\s*-\s*(?P<end>\d+)$',
+    if data['issue_pages'] is not None and data['issue_pages'] != '':
+        range_match = match(r'(?P<begin>(?:\d|\.)+)\s*-\s*(?P<end>(?:\d|\.)+)$',
                             data['issue_pages'])
         if range_match:
-            page_start = int(range_match.group('begin'))
-            page_end = int(range_match.group('end'))
+            page_start = float(range_match.group('begin'))
+            page_end = float(range_match.group('end'))
             q_objs.append(Q(**{ '%spage_count__range' % prefix :
                                 (page_start, page_end) }) &
                           Q(**{ '%ssequence_number' % prefix : 0 }))
         else:
-            q_objs.append(Q(**{ '%spage_count' % prefix : data['pages'] }) &
+            q_objs.append(Q(**{ '%spage_count' % prefix :
+                                float(data['issue_pages']) }) &
                           Q(**{ '%ssequence_number' % prefix : 0 }))
 
     return compute_qobj(data, [], q_objs)

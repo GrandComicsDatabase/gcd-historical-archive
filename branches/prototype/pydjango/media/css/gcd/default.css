@@ -157,6 +157,7 @@ h1#search_id {
 }
 
 #search_bar img {
+    display: inline;
     height: 2em;
     position: relative;
     top: 0.5em;
