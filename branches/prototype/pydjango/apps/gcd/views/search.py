@@ -186,7 +186,8 @@ def series_and_issue(request, series_name, issue_nr, sort=ORDER_ALPHA):
                 .filter(number__exact = issue_nr)
     
     if things.count() == 1: # if one display the issue
-        return issue(request,things[0].id)
+        return HttpResponseRedirect(urlresolvers.reverse(issue,
+                                    kwargs={ 'issue_id': things[0].id }))
     else: # if more or none use issue_list.html from search
         p = QuerySetPaginator(things, 100)
         page_num = 1
