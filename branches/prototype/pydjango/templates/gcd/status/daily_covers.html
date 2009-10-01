@@ -44,8 +44,9 @@
         <option value="10">{% trans 'October' %}</option>
         <option value="11">{% trans 'November' %}</option>
         <option value="12">{% trans 'December' %}</option>
-      <input type="text" name="day" id="day" size="2"/>
-      <input type="submit" value="{% trans 'Go' %}"/>
+      </select>
+      <input type="text" name="day" id="day" size="2">
+      <input type="submit" value="{% trans 'Go' %}">
     </form>
   {% if date_after %}
    | <a href="{% url apps.gcd.views.details.daily_covers show_date=date_after %}">{% trans "Day after" %} &gt;</a>
