@@ -96,21 +96,18 @@ def series(request, series_id):
     covers = series.cover_set.select_related('issue')
     
     try:
-        cover = covers.filter(has_image = '1')[0]
+        cover = covers.filter(has_medium = True)[0]
+        image_tag = get_image_tag(series_id = int(series_id),
+                                  cover = cover,
+                                  zoom_level = ZOOM_MEDIUM,
+                                  alt_text = 'First Issue Cover')
     except IndexError:
-        try:
-            cover = covers[0]
-        except IndexError:
-            cover = None
+        image_tag = ''
         
     try:
         country = Country.objects.get(code__iexact = series.country_code).name
     except:
         country = series.country_code
-    image_tag = get_image_tag(series_id = int(series_id),
-                              cover = cover,
-                              zoom_level = ZOOM_MEDIUM,
-                              alt_text = 'First Issue Cover')
 
     # TODO: Fix language table hookup- why is this not a foreign key?
     # For now if we can't get a match in the table then just use the
