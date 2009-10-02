@@ -49,10 +49,6 @@ class Story(models.Model):
                               db_column = 'IssueID',
                               null = True)
 
-    # Fields from series.  Should be a foreign key but apparently somtimes
-    # violates that constraint so kept only as an integer.  Needs work.
-    series = models.IntegerField(db_column = 'SeriesID', null = True)
-
     # Fields related to change management.
     reserved = models.BooleanField(default=0)
     created = models.DateTimeField(auto_now_add = True, null = True)
