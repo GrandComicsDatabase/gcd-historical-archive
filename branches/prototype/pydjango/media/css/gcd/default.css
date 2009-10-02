@@ -76,6 +76,14 @@ img .cover_img {
     margin-bottom: 1em;
 }
 
+#item_id_footer_replace_top {
+    border: solid 1px black;
+}
+
+#item_id_footer_replace_bottom {
+    margin-bottom: 1em;
+}
+
 .item_id :link {
     color: white;
 }

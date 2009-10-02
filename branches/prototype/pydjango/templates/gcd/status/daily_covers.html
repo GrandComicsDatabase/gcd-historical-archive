@@ -94,6 +94,12 @@
   </tr>
 </table>
 
+<div id="item_id_footer" class="item_id">
+  {% if page %}
+  {% include "gcd/bits/pagination_bar.html" %}
+  {% endif %}
+</div>
+
 {% endblock %}
 
 
