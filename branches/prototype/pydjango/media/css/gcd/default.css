@@ -387,6 +387,10 @@ dl.pub_data dd {
     clear: both;
 }
 
+.message {
+    font-weight: bold;
+}
+
 .error_message {
     color: red;
     font-weight: bold;
