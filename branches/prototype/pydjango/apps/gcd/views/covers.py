@@ -37,8 +37,8 @@ _server_prefixes = ['',
 
 def get_image_tag(series_id, cover, alt_text, zoom_level, no_cache = False):
     if cover is None:
-        return mark_safe('<img class="no_cover" src="' + _server_prefixes[2] + \
-               'nocover.gif" alt="No image yet" class="cover_img"/>')
+        return mark_safe('<img class="no_cover" src="' + settings.MEDIA_URL + \
+               'img/nocover.gif" alt="No image yet" class="cover_img"/>')
 
     if settings.FAKE_COVER_IMAGES:
         if zoom_level == ZOOM_SMALL:
@@ -61,8 +61,8 @@ def get_image_tag(series_id, cover, alt_text, zoom_level, no_cache = False):
 
     if (zoom_level == ZOOM_SMALL):
         if not (cover.has_image):
-            return mark_safe('<img class="no_cover" src="' + _server_prefixes[2] + \
-                   'nocover.gif" alt="No image yet" class="cover_img"/>')
+            return mark_safe('<img class="no_cover" src="' + settings.MEDIA_URL + \
+                   'img/nocover.gif" alt="No image yet" class="cover_img"/>')
         suffix = "%d/%d_%s.jpg" % (series_id, series_id, cover.code)
     else:
         suffix = "%d/" % series_id
