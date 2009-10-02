@@ -20,6 +20,13 @@ def publisher(request):
 
     return HttpResponsePermanentRedirect("/")
 
+def index(request):
+    """
+    Redirects the lasso index page.
+    """
+
+    return HttpResponsePermanentRedirect("/")
+
 
 def series(request):
     """
