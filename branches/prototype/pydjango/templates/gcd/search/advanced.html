@@ -44,7 +44,16 @@ and limitations:
        actual date.
 </ul>
 </div>
-<form action="{% url apps.gcd.views.search.process_advanced %}" method="get">
+
+{% if error_text %}
+<div class="error_message">
+{{ error_text }}
+</div>
+{% endif %}
+
+<form id="advanced_search_form"
+      action="{% url apps.gcd.views.search.process_advanced %}"
+      method="get">
 <div>
 <fieldset class="submit">
   <input type="submit" value="Search">

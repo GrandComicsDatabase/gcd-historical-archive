@@ -268,3 +268,8 @@ fieldset.control .errorlist {
 #blithering li {
     margin-bottom: 0.5em;
 }
+
+#advanced_search_form fieldset.submit {
+    clear: both;
+}
+

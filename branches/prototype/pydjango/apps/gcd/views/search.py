@@ -21,6 +21,8 @@ from apps.gcd.views import paginate_response, ORDER_ALPHA, ORDER_CHRONO
 from apps.gcd.forms.search import AdvancedSearch
 from apps.gcd.views.details import issue 
 
+class SearchError(Exception):
+    pass
 
 def generic_by_name(request, name, q_obj, sort,
                     class_=Story,
@@ -286,13 +288,35 @@ def process_advanced(request):
     context = {}
     op = str(data['method'] or 'iregex')
 
-    stq_obj = search_stories(data, op)
-    iq_obj = search_issues(data, op)
-    sq_obj = search_series(data, op)
-    pq_obj = search_publishers(data, op)
-    query = combine_q(data, stq_obj, iq_obj, sq_obj, pq_obj)
-    terms = compute_order(data)
+    try:
+        stq_obj = search_stories(data, op)
+        iq_obj = search_issues(data, op)
+        sq_obj = search_series(data, op)
+        pq_obj = search_publishers(data, op)
+        query = combine_q(data, stq_obj, iq_obj, sq_obj, pq_obj)
+        terms = compute_order(data)
+    except SearchError, se:
+        return render_to_response(
+          'gcd/search/advanced.html',
+          {
+            'form': form,
+            'style': 'default',
+            'error_text': '%s' % se,
+          },
+          context_instance=RequestContext(request))
 
+    if (not query) and terms:
+        return render_to_response(
+          'gcd/search/advanced.html',
+          {
+            'form': form,
+            'style': 'default',
+            'error_text': "Please enter at least one search term "
+                          "or clear the 'ordering' fields.  Ordered searches "
+                          "must have at least one search term."
+          },
+          context_instance=RequestContext(request))
+        
     items = []
     list_template = None
     if data['target'] == 'publisher':
@@ -563,33 +587,37 @@ def search_stories(data, op):
         q_objs.append(Q(**{ '%seditor__%s' % (prefix, op) :
                             data['story_editor'] }))
 
-    if data['pages'] is not None and data['pages'] != '':
-        range_match = match(r'(?P<begin>(?:\d|\.)+)\s*-\s*(?P<end>(?:\d|\.)+)$',
-                            data['pages'])
-        if range_match:
-            page_start = float(range_match.group('begin'))
-            page_end = float(range_match.group('end'))
-            q_objs.append(Q(**{ '%spage_count__range' % prefix :
-                                (page_start, page_end) }) &
-                          ~Q(**{ '%ssequence_number' % prefix : 0 }))
-        else:
-            q_objs.append(Q(**{ '%spage_count' % prefix :
-                                float(data['pages']) }) &
-                          ~Q(**{ '%ssequence_number' % prefix : 0 }))
-        
-    if data['issue_pages'] is not None and data['issue_pages'] != '':
-        range_match = match(r'(?P<begin>(?:\d|\.)+)\s*-\s*(?P<end>(?:\d|\.)+)$',
-                            data['issue_pages'])
-        if range_match:
-            page_start = float(range_match.group('begin'))
-            page_end = float(range_match.group('end'))
-            q_objs.append(Q(**{ '%spage_count__range' % prefix :
-                                (page_start, page_end) }) &
-                          Q(**{ '%ssequence_number' % prefix : 0 }))
-        else:
-            q_objs.append(Q(**{ '%spage_count' % prefix :
-                                float(data['issue_pages']) }) &
-                          Q(**{ '%ssequence_number' % prefix : 0 }))
+    try:
+        page_range_regexp = r'(?P<begin>(?:\d|\.)+)\s*-\s*(?P<end>(?:\d|\.)+)$'
+        if data['pages'] is not None and data['pages'] != '':
+            range_match = match(page_range_regexp, data['pages'])
+            if range_match:
+                page_start = float(range_match.group('begin'))
+                page_end = float(range_match.group('end'))
+                q_objs.append(Q(**{ '%spage_count__range' % prefix :
+                                    (page_start, page_end) }) &
+                              ~Q(**{ '%ssequence_number' % prefix : 0 }))
+            else:
+                q_objs.append(Q(**{ '%spage_count' % prefix :
+                                    float(data['pages']) }) &
+                              ~Q(**{ '%ssequence_number' % prefix : 0 }))
+
+        if data['issue_pages'] is not None and data['issue_pages'] != '':
+            range_match = match(page_range_regexp, data['issue_pages'])
+            if range_match:
+                page_start = float(range_match.group('begin'))
+                page_end = float(range_match.group('end'))
+                q_objs.append(Q(**{ '%spage_count__range' % prefix :
+                                    (page_start, page_end) }) &
+                              Q(**{ '%ssequence_number' % prefix : 0 }))
+            else:
+                q_objs.append(Q(**{ '%spage_count' % prefix :
+                                    float(data['issue_pages']) }) &
+                              Q(**{ '%ssequence_number' % prefix : 0 }))
+
+    except ValueError:
+        raise SearchError, ("Page count must be a decimal number or a pair of "
+                            "decimal numbers separated by a hyphen.")
 
     return compute_qobj(data, [], q_objs)
 

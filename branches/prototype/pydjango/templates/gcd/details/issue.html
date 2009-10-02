@@ -29,6 +29,7 @@
 {% endwith %}
 {% endwith %}
 
+{% comment %}
 {% ifnotequal issue.index_status 3 %}
 <div id="index_status" class="index_status_{{ issue.index_status }}">
 <!-- Not trying to display the reservation holder now until we figure out
@@ -49,6 +50,7 @@
 </span>
 </div>
 {% endifnotequal %}
+{% endcomment %}
 
 <dl id="issue_data_list">
   <dt> {% trans "Price" %}:
