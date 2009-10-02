@@ -44,10 +44,6 @@ class Story(models.Model):
     sequence_number = models.IntegerField(db_column='Seq_No', null=True)
     job_number = models.CharField(max_length=25, db_column='JobNo', null=True)
 
-    # I believe this counts issues this appears in (i.e. reprints)
-    issue_count = models.IntegerField(db_column = 'IssueCount', null = True)
-
-
     # Fields from issue (foreign key plus duplicates/caches).
     issue = models.ForeignKey(Issue,
                               db_column = 'IssueID',
