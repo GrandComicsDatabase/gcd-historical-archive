@@ -156,7 +156,6 @@ urlpatterns = patterns('',
     (r'^countries/$','apps.gcd.views.details.countries_in_use'),
 
     # redirects of old lasso pages
-    (r'^index.lasso/$', 'apps.gcd.views.redirect.index'),
     (r'^publisher_details.lasso/$', 'apps.gcd.views.redirect.publisher'),
     (r'^series.lasso/$', 'apps.gcd.views.redirect.series'),
     (r'^indexstatus.lasso/$', 'apps.gcd.views.redirect.series_status'),
@@ -172,4 +171,5 @@ urlpatterns = patterns('',
 urlpatterns += patterns('django.views.generic.simple',
     ('^covers_for_replacement.lasso/$', 'redirect_to', 
      {'url' : '/covers_to_replace/' }),
+    ('^index.lasso/$', 'redirect_to', {'url' : '/' })
 )
