@@ -213,3 +213,12 @@ body {
     width: 13em;
     margin-bottom: 1em;
 }
+
+.announcement dd {
+    margin-bottom: 1em;
+}
+
+.disclaimer_text {
+    margin-bottom: 1em;
+}
+
