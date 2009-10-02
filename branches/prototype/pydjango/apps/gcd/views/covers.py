@@ -31,11 +31,9 @@ _local_scans = '/img/gcd/covers/'
 # Entries in this tuple match the server_version column of the covers table.
 # Note that there is no sever version 0 recorded.
 _server_prefixes = ['',
-                    #'http://www.comics.org/graphics/covers/',
-                    'http://images.comics.org/img/gcd/old_covers/',
+                    'http://images.comics.org/img/gcd/covers/',
                     'http://www.gcdcovers.com/graphics/covers/',
                     settings.MEDIA_URL + _local_scans]
-                    #'http://imagesgcd.everycomic.net/img/gcd/covers/']
 
 def get_image_tag(series_id, cover, alt_text, zoom_level, no_cache = False):
     if cover is None:
@@ -353,7 +351,7 @@ def cover_upload(request, issue_id, add_variant=False):
                     scaled.save(scaled_name)
 
                     # set cover table values
-                    cover.server_version = 3
+                    cover.server_version = 1
                     cover.has_small = True
                     cover.has_medium = True
                     cover.has_large = True
