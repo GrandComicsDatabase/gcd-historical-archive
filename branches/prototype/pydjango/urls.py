@@ -2,9 +2,13 @@ from django.conf.urls.defaults import *
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.views.generic.simple import direct_to_template
 
 urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
+
+    (r'^robots.txt$', direct_to_template, { 'template': 'robots.txt',
+                                            'mimetype': 'text/plain', }),
 
     # Account management
     (r'^accounts/logout/', auth_views.logout),
