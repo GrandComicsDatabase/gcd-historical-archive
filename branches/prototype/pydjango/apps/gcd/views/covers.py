@@ -75,18 +75,9 @@ def get_image_tag(series_id, cover, alt_text, zoom_level, no_cache = False):
     if no_cache:
         suffix = suffix + '?' + str(datetime.today())
 
-    # For now trust the DB on the graphics server.  This will sometimes
-    # be wrong but is *MUCH* faster.
-    img_url = _server_prefixes[cover.server_version] + suffix
-    # try:
-        # img_url = _server_prefixes[cover.server_version] + suffix
-        # img = urlopen(img_url)
-    # except:
-        # TODO: Figure out specific recoverable error.
-        # TODO: Don't hardcode the number 2.
-        # cover.server_version = 2
-        # cover.save()
-        # img_url = _server_prefixes[cover.server_version] + suffix
+    # For now use only the covers from images.comics.org.
+    # gcdcovers.com does not have all the covers the db says it should have.
+    img_url = _server_prefixes[1] + suffix
 
     return mark_safe('<img src="' + img_url + '" alt="' + esc(alt_text) + \
            '" ' + width + ' class="cover_img"/>')
@@ -364,7 +355,12 @@ def cover_upload(request, issue_id, add_variant=False):
                         series.save()
                     cover.modified = upload_datetime                    
                     cover.save()
-
+                    store_count = codecs.open(settings.MEDIA_ROOT + \
+                                  _local_scans + "cover_count", "w", "utf-8")
+                    store_count.write(str(Cover.objects.filter(has_image=True)\
+                                                               .count()))
+                    store_count.close()
+ 
                     if 'remember_me' in request.POST:
                         request.session['gcd_uploader_name'] = \
                           request.POST['name']
