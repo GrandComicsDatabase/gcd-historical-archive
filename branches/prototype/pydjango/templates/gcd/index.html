@@ -90,10 +90,12 @@ http://matthewjamestaylor.com/blog/ultimate-3-column-holy-grail-ems.htm -->
                     <div class="box_header">
                         Useful Links
                     </div>
-                    <div class="box_inner">
-                        <a href="{% url apps.gcd.views.details.covers_to_replace %}">Covers marked for replacement</a>
+                    <div id="useful_links_inner" class="box_inner">
+                      <ul>
+                        <li><a href="{% url apps.gcd.views.details.covers_to_replace %}">Covers to replace</a>
                         <br>
-                        <a href="{% url apps.gcd.views.details.daily_covers %}">See all covers uploaded today</a>
+                        <li><a href="{% url apps.gcd.views.details.daily_covers %}">Today's covers</a>
+                      </ul>
                     </div>
                 </div>
                 <div class="front_page_right_box">

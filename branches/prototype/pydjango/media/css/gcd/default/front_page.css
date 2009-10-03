@@ -222,3 +222,12 @@ body {
     margin-bottom: 1em;
 }
 
+#useful_links_inner ul {
+    list-style: none;
+    margin: 0 0.4em 0 0;
+    padding: 0;
+}
+
+#useful_links_inner li {
+    margin-bottom: 0.4em;
+}
