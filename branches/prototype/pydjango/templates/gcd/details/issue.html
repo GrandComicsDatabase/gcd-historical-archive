@@ -29,28 +29,31 @@
 {% endwith %}
 {% endwith %}
 
-{% comment %}
 {% ifnotequal issue.index_status 3 %}
 <div id="index_status" class="index_status_{{ issue.index_status }}">
 <!-- Not trying to display the reservation holder now until we figure out
      what to do with all the null and multiple reservations.
   -->
+<div id="index_status_inner">
 <span>
 {% ifequal issue.index_status 0 %}
-   This issue has not been indexed yet.  Please sign in and index it if you can!
+   This issue has not been indexed yet.  You can help when our new indexing system comes online in late October!
 {% endifequal %}
 {% ifequal issue.index_status 1 %}
    This issue is currently being edited by
-   {{ issue.reserver|default:"[no one, please contact the editors to fix this reservation]" }}
+   {{ issue.reserver|default:"[no one, please contact the editors to fix this reservation]" }},
+   although no changes can be made until our new indexing system comes online in late October.
+{% comment %}
    (since {{ issue.reservation_set.all.0.created }}, last edit {{ issue.reservation_set.all.0.modified|default:"[not recorded]" }})
+{% endcomment %}
 {% endifequal %}
 {% ifequal issue.index_status 2 %}
-   The index for this issue is awaiting editorial approval.
+   The index for this issue is awaiting editorial approval once our indexing system is rewritten and deployed in late October.
 {% endifequal %}
 </span>
 </div>
+</div>
 {% endifnotequal %}
-{% endcomment %}
 
 <dl id="issue_data_list">
   <dt> {% trans "Price" %}:
