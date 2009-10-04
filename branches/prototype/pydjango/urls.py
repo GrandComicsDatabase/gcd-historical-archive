@@ -7,14 +7,22 @@ from django.views.generic.simple import direct_to_template
 urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
 
-    (r'^robots.txt$', direct_to_template, { 'template': 'robots.txt',
-                                            'mimetype': 'text/plain', }),
-
     # Account management
-    (r'^accounts/logout/', auth_views.logout),
+
+    # Logout will only look for a 'next_page' parameter in GET, but
+    # GET requests should not have side effects so use a wrapper to
+    # pull from POST.
+    url(r'^accounts/logout/$',
+        lambda request: auth_views.logout(request,
+                                          next_page=request.POST['next']),
+        name='gcd_logout'),
     (r'^accounts/login/$', auth_views.login, 
      {'template_name': 'gcd/accounts/login.html'}),
     (r'^accounts/profile/$', 'apps.gcd.views.accounts.profile'),
+    url(r'^accounts/forgot/$',
+        direct_to_template,
+        { 'template': 'gcd/accounts/forgot.html' },
+        name='forgot_password'),
 
     (r'^', include('apps.gcd.urls')),
     # (r'^', include('apps.oi.urls')),

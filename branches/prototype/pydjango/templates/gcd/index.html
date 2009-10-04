@@ -92,9 +92,8 @@ http://matthewjamestaylor.com/blog/ultimate-3-column-holy-grail-ems.htm -->
                     </div>
                     <div id="useful_links_inner" class="box_inner">
                       <ul>
-                        <li><a href="{% url apps.gcd.views.details.covers_to_replace %}">Covers to replace</a>
-                        <br>
                         <li><a href="{% url apps.gcd.views.details.daily_covers %}">Today's covers</a>
+                        <li><a href="{% url apps.gcd.views.details.covers_to_replace %}">Covers to replace</a>
                       </ul>
                     </div>
                 </div>
@@ -103,7 +102,11 @@ http://matthewjamestaylor.com/blog/ultimate-3-column-holy-grail-ems.htm -->
                         Last Updated Indices
                     </div>
                     <div class="box_inner">
-                        {% last_updated_issues %}
+                        Index updating is suspended during October while we
+                        write and test the new data entry application.
+                    </div>
+                    <div class="box_inner">
+                        Public beta coming soon!
                     </div>
                 </div>
                 <div class="front_page_right_box">
@@ -125,7 +128,7 @@ http://matthewjamestaylor.com/blog/ultimate-3-column-holy-grail-ems.htm -->
 </div> <!-- id="main_body"-->
 
 <div id="footer">
-    {% include "gcd/front_page_fine_print.html" %}
+    {% include "gcd/bits/legalese.html" %}
 </div>
 
 </div><!-- id="sizing_base" -->
