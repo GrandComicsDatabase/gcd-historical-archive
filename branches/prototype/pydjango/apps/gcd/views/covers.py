@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
-from urllib import urlopen, urlretrieve
+from urllib import urlopen, urlretrieve, quote
 import Image
 import os
 import codecs
@@ -72,8 +72,8 @@ def get_image_tag(series_id, cover, alt_text, zoom_level, no_cache = False):
     # For replacement and variant cover uploads we should make sure that no 
     # cached cover is displayed. Adding a changing query string seems the
     # prefered solution found on the net.
-    if no_cache:
-        suffix = suffix + '?' + str(datetime.today())
+    # if no_cache:
+    suffix = suffix + '?' + quote(str(cover.modified))
 
     # For now use only the covers from images.comics.org.
     # gcdcovers.com does not have all the covers the db says it should have.
@@ -278,11 +278,7 @@ def cover_upload(request, issue_id, add_variant=False):
                             },
                             context_instance=RequestContext(request))
 
-                    if add_variant:
-                        # we need current scan in 400 width
-                        temp = tempfile.NamedTemporaryFile(suffix='.jpg')
-                        size = 400,int(400./im.size[0]*im.size[1])
-                        scaled = im.resize(size,Image.ANTIALIAS)
+                    if add_variant or upload_type == 'replacement':
                         suffix = "%d/400/" % issue.series_id
                         suffix = suffix + "%d_4_%s.jpg" % (issue.series.id,
                                                            cover.code)
@@ -300,6 +296,13 @@ def cover_upload(request, issue_id, add_variant=False):
                           "_" + upload_datetime.strftime('%Y%m%d_%H%M%S') + \
                           "_backup.jpg"
                         im_old.save(backup_name)
+        
+                    # im_old is kept from before
+                    if add_variant:
+                        # we need current scan in 400 width
+                        temp = tempfile.NamedTemporaryFile(suffix='.jpg')
+                        size = 400,int(400./im.size[0]*im.size[1])
+                        scaled = im.resize(size,Image.ANTIALIAS)
 
                         # and do the stacking
                         h = im_old.size[1]+scaled.size[1]
