@@ -212,7 +212,7 @@ def cover_upload(request, issue_id, add_variant=False):
     # current request is an upload
     if request.method == 'POST':
         # user has to change defaults and enter something valid
-        if request.POST['email'] == 'your@email.adress':
+        if request.POST['email'] == 'your@email.address':
             request.POST['email'] = ''
         if request.POST['name'] == 'Your name':
             request.POST['name'] = ''
