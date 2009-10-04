@@ -564,7 +564,7 @@ def search_stories(data, op):
     prefix = compute_prefix(target, 'sequence')
 
     q_objs = []
-    for field in ('feature', 'title',
+    for field in ('feature', 'title', 'genre',
                   'script', 'pencils', 'inks',
                   'colors', 'letters', 'job_number', 'characters',
                   'synopsis', 'reprints', 'notes'):
