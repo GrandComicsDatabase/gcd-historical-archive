@@ -13,7 +13,7 @@ from django.core.paginator import QuerySetPaginator
 from django.shortcuts import render_to_response, \
                              get_object_or_404, \
                              get_list_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.template import RequestContext
 
 from apps.gcd.models import Publisher, Series, Issue, Story, \
@@ -359,6 +359,9 @@ def issue_form(request):
     a better way to propagate the 'style' parameter.
     """
     params = request.GET.copy()
+    if 'id' not in params:
+        raise Http404
+
     id = params['id']
     del params['id']
     return HttpResponseRedirect(
