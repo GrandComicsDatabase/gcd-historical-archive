@@ -7,13 +7,6 @@
 # irresponsible, your access to the site may be blocked.
 #
 
-# advertising-related bots:
-User-agent: Mediapartners-Google*
-Disallow: /
-
-User-agent: Googlebot
-Disallow: /graphics
-
 # Crawlers that are kind enough to obey, but which we'd rather not have
 # unless they're feeding search engines.
 User-agent: UbiCrawler
@@ -30,22 +23,13 @@ Disallow: /
 User-agent: sitecheck.internetseer.com
 Disallow: /
 
-User-agent: msnbot
-Disallow: /
-
 User-agent: HouxouCrawler
 Disallow: /
 
 User-agent: Baiduspider
 Disallow: /
 
-User-agent: Ask Jeeves/Teoma
-Disallow: /
-
 User-agent: Twiceler
-Disallow: /
-
-User-agent: Yahoo! Slurp
 Disallow: /
 
 User-agent: Zealbot
@@ -133,10 +117,6 @@ Disallow: /
 # http://www.webreaper.net/
 User-agent: WebReaper
 Disallow: /
-
-# Don't allow the wayback-maschine to index user-pages
-#User-agent: ia_archiver
-Disallow: /graphics
 
 ## experimental
 Crawl-delay: 120
