@@ -102,6 +102,30 @@ def get_image_tags_per_page(page, series=None):
     return cover_tags
 
 
+def backups(filename): 
+    return filename.find('backup') > 0
+
+
+def backup_scans(request, series_id):
+    """
+    Display the backed up cover scans for a series.
+    """
+
+    if request.user.is_authenticated() and \
+      request.user.groups.filter(name='editor'):
+        files = os.listdir(settings.MEDIA_ROOT + _local_scans + str(series_id) + "/400")
+        backup_files = filter(backups, files) 
+
+        return render_to_response('gcd/status/backup_scans.html', {
+          'series_id' : series_id,
+          'covers' : backup_files},
+          context_instance=RequestContext(request))
+    else:
+        return render_to_response('gcd/error.html', {
+          'error_text' : 'You are not allowed to access this page.',
+          },
+          context_instance=RequestContext(request))
+
 def check_series_cover_dir(series):
     """
     Checks if the necessary cover directories exist and creates

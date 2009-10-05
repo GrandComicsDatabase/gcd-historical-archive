@@ -57,6 +57,9 @@ urlpatterns = patterns('',
     (r'^series/(?P<series_id>\d+)/scans/$',
      'apps.gcd.views.details.scans'),
 
+    (r'^series/(?P<series_id>\d+)/backup_scans/$',
+     'apps.gcd.views.covers.backup_scans'),
+
     # Issue
     (r'^issue/(?P<issue_id>\d+)/$', 'apps.gcd.views.details.issue'),
     (r'^issue/$', 'apps.gcd.views.details.issue_form'),
