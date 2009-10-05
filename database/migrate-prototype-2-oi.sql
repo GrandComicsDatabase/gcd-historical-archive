@@ -8,30 +8,40 @@ SET SESSION sql_mode='STRICT_ALL_TABLES';
 -- having a separate time field and sometimes not.
 -- ----------------------------------------------------------------------------
 
+UPDATE publishers SET Created='1901-01-01' WHERE Created < '1901-01-01';
+UPDATE publishers SET Modified='1901-01-01' WHERE Modified < '1901-01-01';
 ALTER TABLE publishers
     MODIFY COLUMN Created datetime NOT NULL default '1901-01-01 00:00:00',
     MODIFY COLUMN Modified datetime NOT NULL default '1901-01-01 00:00:00',
     ADD COLUMN reserved tinyint(1) NOT NULL default 0,
     ADD INDEX (reserved);
 
+UPDATE series SET Created='1901-01-01' WHERE Created < '1901-01-01';
+UPDATE series SET Modified='1901-01-01' WHERE Modified < '1901-01-01';
 ALTER TABLE series
     MODIFY COLUMN Created datetime NOT NULL default '1901-01-01 00:00:00',
     MODIFY COLUMN Modified datetime NOT NULL default '1901-01-01 00:00:00',
     ADD COLUMN reserved tinyint(1) NOT NULL default 0,
     ADD INDEX (reserved);
 
+UPDATE issues SET Created='1901-01-01' WHERE Created < '1901-01-01';
+UPDATE issues SET Modified='1901-01-01' WHERE Modified < '1901-01-01';
 ALTER TABLE issues
     MODIFY COLUMN created datetime NOT NULL default '1901-01-01 00:00:00',
     MODIFY COLUMN Modified datetime NOT NULL default '1901-01-01 00:00:00',
     ADD COLUMN reserved tinyint(1) NOT NULL default 0,
     ADD INDEX (reserved);
 
+UPDATE stories SET Created='1901-01-01' WHERE Created < '1901-01-01';
+UPDATE stories SET Modified='1901-01-01' WHERE Modified < '1901-01-01';
 ALTER TABLE stories
     MODIFY COLUMN Created datetime NOT NULL default '1901-01-01 00:00:00',
     MODIFY COLUMN Modified datetime NOT NULL default '1901-01-01 00:00:00',
     ADD COLUMN reserved tinyint(1) NOT NULL default 0,
     ADD INDEX (reserved);
 
+UPDATE covers SET Created='1901-01-01' WHERE Created < '1901-01-01';
+UPDATE covers SET Modified='1901-01-01' WHERE Modified < '1901-01-01';
 ALTER TABLE covers
     MODIFY COLUMN Created datetime NOT NULL default '1901-01-01 00:00:00',
     MODIFY COLUMN Modified datetime NOT NULL default '1901-01-01 00:00:00';
@@ -46,11 +56,11 @@ ALTER TABLE covers
 UPDATE series SET Modified=Created
     WHERE Modified > DATE_ADD(NOW(), INTERVAL 1 DAY);
 UPDATE series
-    SET Modified=DATE_ADD(Modified, INTERVAL ModTime SECOND);
+    SET Modified=DATE_ADD(Modified, INTERVAL ModTime HOUR_SECOND);
 UPDATE issues
-    SET Modified=DATE_ADD(Modified, INTERVAL ModTime SECOND);
+    SET Modified=DATE_ADD(Modified, INTERVAL ModTime HOUR_SECOND);
 UPDATE stories
-    SET Modified=DATE_ADD(Modified, INTERVAL ModTime SECOND);
+    SET Modified=DATE_ADD(Modified, INTERVAL ModTime HOUR_SECOND);
 
 -- As always the covers table is a mess.  First fix invalid days/months.
 -- There has to be a better way to do this, but I can't find it.
@@ -69,14 +79,14 @@ UPDATE covers
     WHERE DAY(Created) = 0;
 -- Next fix dates in the future.
 UPDATE covers SET Created = '1901-01-01 00:00:00'
-    WHERE Created > DATE_ADD(NOW(), INTERVAL 1 DAY);
+    WHERE Created > NOW();
 UPDATE covers SET Modified=Created
-    WHERE Modified > DATE_ADD(NOW(), INTERVAL 1 DAY);
+    WHERE Modified > NOW();
 -- Now do the actual field migration.
 UPDATE covers
-    SET Modified=DATE_ADD(Modified, INTERVAL ModTime SECOND);
+    SET Modified=DATE_ADD(Modified, INTERVAL ModTime HOUR_SECOND);
 UPDATE covers
-    SET Created=DATE_ADD(Created, INTERVAL CreTime SECOND);
+    SET Created=DATE_ADD(Created, INTERVAL CreTime HOUR_SECOND);
 
 -- ----------------------------------------------------------------------------
 -- Drop the time fields that are now merged into datetime fields.

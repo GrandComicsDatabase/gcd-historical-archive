@@ -12,7 +12,6 @@ ALTER TABLE publishers
     DROP COLUMN NextID,
     DROP COLUMN Updated,
     DROP COLUMN AlphaSortCode,
-    DROP COLUMN IssueCount,
     CONVERT TO CHARACTER SET utf8;
 
 ALTER TABLE series
@@ -27,6 +26,7 @@ ALTER TABLE series
     DROP COLUMN SelfCount,
     DROP COLUMN Themes,
     DROP COLUMN UpdateDist,
+    ADD INDEX (LangCode),
     CONVERT TO CHARACTER SET utf8;
 
 ALTER TABLE issues
@@ -35,13 +35,16 @@ ALTER TABLE issues
     DROP COLUMN CoverCheck,
     DROP COLUMN CoverCount,
     DROP COLUMN Feature,
+    DROP COLUMN Editing,
     DROP COLUMN Genre,
     DROP COLUMN InitDist,
     DROP COLUMN Inks,
     DROP COLUMN isUpdated,
     DROP COLUMN Letters,
     DROP COLUMN LstChang,
+    DROP COLUMN Notes,
     DROP COLUMN Pencils,
+    DROP COLUMN Pg_Cnt,
     DROP COLUMN rel_year,
     DROP COLUMN Reprints,
     DROP COLUMN Seq_No,
@@ -89,6 +92,7 @@ ALTER TABLE stories
     ADD INDEX (no_inks),
     ADD INDEX (no_colors),
     ADD INDEX (no_letters),
+    ADD INDEX (Pg_Cnt),
     ADD INDEX (page_count_uncertain),
     CONVERT TO CHARACTER SET utf8;
 
