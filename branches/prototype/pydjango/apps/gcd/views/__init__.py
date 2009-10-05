@@ -1,3 +1,4 @@
+from urllib import quote
 from django.conf import settings
 from django.core.paginator import QuerySetPaginator
 from django.http import HttpResponseRedirect
@@ -43,7 +44,8 @@ def paginate_response(request, queryset, template, vars, page_size=100,
     if redirect is not None:
         args = request.GET.copy()
         args['page'] = redirect
-        return HttpResponseRedirect(request.path + '?' + args.urlencode())
+        return HttpResponseRedirect(quote(request.path.encode('UTF-8')) +
+                                    u'?' + args.urlencode())
 
     page = p.page(page_num)
 
