@@ -135,8 +135,6 @@
       <a href="{% url apps.gcd.views.covers.cover_upload issue_id=issue.id%}?style={{ style }}">Replace cover</a>
       <br>
       {% endif %}
-      <a href="{% url apps.gcd.views.covers.variant_upload issue_id=issue.id%}?style={{ style }}">Add variant cover</a>
-      <br>
       {% endif %}
       <a href="{{ issue.series.get_absolute_url }}covers/?style={{ style }}">Cover gallery</a>
     </div>

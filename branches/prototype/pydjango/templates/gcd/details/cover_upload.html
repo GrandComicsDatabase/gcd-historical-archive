@@ -29,12 +29,14 @@ GCD :: Cover upload for {{ issue.series.name }} #{{ issue.number }}
         <h2>{{ info }}<br/></h2>
      {% endif %}
 <div>
-    {% ifequal upload_type 'variant' %}
+  {% ifequal upload_type 'variant' %}
     <div id="variant_info">
-    <strong>Please</strong> do not upload covers from for example special edition reprints of this comic or variants of this comic with different interior contents. Such comics have their own entry in our db, if it is missing <a href="http://errors.comics.org/enter_bug.cgi?product=GCD&amp;bug_file_loc={{ request.build_absolute_uri }}&amp;short_desc={{ error_subject|urlencode }}"
-   target="_blank">let us know</a>.
+    Variant cover uploading has been <strong>temporarily</strong> disabled
+    as it proved to be a source of much confusion.  It will return when the
+    rest of the new Online Indexing system is released towards the end of
+    this month (October).  We apologize for the inconvenience and confusion.
     </div>
-    {% endifequal %}
+  {% else  %}
     
     <fieldset class="universal">
     <ol>
@@ -66,7 +68,7 @@ GCD :: Cover upload for {{ issue.series.name }} #{{ issue.number }}
     {% endifequal %}   
     </div> <!-- cover -->
    {% endif %}
-
+  {% endifequal %}
 </div> <!-- main -->
 <p/>
 <div id="guidelines">
