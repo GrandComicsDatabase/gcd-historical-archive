@@ -32,7 +32,7 @@ def show_credit(story, credit):
         target = credit[4:]
         credit_string = ''
         for c in ['script', 'pencils', 'inks', 'colors', 'letters', 'editor']:
-            if story.__dict__[c].find(target) != -1:
+            if story.__dict__[c].lower().find(target.lower()) != -1:
               credit_string += ' ' + __format_credit(story, c, style)
         return credit_string
 
