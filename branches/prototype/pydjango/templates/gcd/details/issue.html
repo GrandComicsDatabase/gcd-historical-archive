@@ -136,7 +136,9 @@
       <br>
       {% endif %}
       {% endif %}
+      {% if issue.series.has_gallery %}
       <a href="{{ issue.series.get_absolute_url }}covers/?style={{ style }}">Cover gallery</a>
+      {% endif %}
     </div>
     <div id="cover_disclaimer">
     Cover thumbnails are used for identification purposes only. All rights to 

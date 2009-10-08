@@ -376,9 +376,9 @@ def cover_upload(request, issue_id, add_variant=False):
                     cover.has_image = True
                     cover.marked = False
                     cover.contributor = contributor
-                    if not cover.series.gallery_present == True:
+                    if not cover.series.has_gallery == True:
                         series = cover.series
-                        series.gallery_present = True
+                        series.has_gallery = True
                         series.save()
                     cover.modified = upload_datetime                    
                     cover.save()
