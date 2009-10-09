@@ -23,6 +23,8 @@ urlpatterns = patterns('',
         direct_to_template,
         { 'template': 'gcd/accounts/forgot.html' },
         name='forgot_password'),
+    url(r'^donate/$', direct_to_template, { 'template': 'gcd/donate/donate.html' }, name='donate'),
+    url(r'^donate/thanks/$', direct_to_template, { 'template': 'gcd/donate/thanks.html' }, name='donate_thanks'),
 
     (r'^', include('apps.gcd.urls')),
     # (r'^', include('apps.oi.urls')),
