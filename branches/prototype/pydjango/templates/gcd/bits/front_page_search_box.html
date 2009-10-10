@@ -7,8 +7,8 @@
     <div class="second_line">
         Sort by
         {% include "gcd/bits/search_order.html" %}
-        <input type="submit" name="submit" id="submit" value="Go">
-        | <a href="{% url apps.gcd.views.search.advanced_search %}">Advanced</a>
+        <input type="submit" name="submit" id="submit" value="Search">
+        | <span id="advanced_link"><a href="{% url apps.gcd.views.search.advanced_search %}">Advanced Search</a></span>
     </div>
   </form> 
 </div>

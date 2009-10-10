@@ -20,7 +20,6 @@ body {
     float:left;
     width:100%;             /* width of whole page */
     overflow:hidden;        /* This chops off any overhanging divs */
-    /*background:#3ed;      /* Right column background colour [in case we ever need it]*/
 }
 
 #colmid {
@@ -29,7 +28,6 @@ body {
     margin-left:-15em;      /* Width of right column [1 + 15 + 1]*/
     position:relative;
     right:100%;
-    /*background:#abc;      /* Centre column background colour  [in case we ever need it]*/
 }
 
 #colleft {
@@ -38,7 +36,6 @@ body {
     margin-left:-50%;
     position:relative;
     left:30em;;              /* Left column width + right column width  [15 + 15]*/
-    /*background:#cfc;      /* Left column background colour  [in case we ever need it]*/
 }
 
 #col1wrap {
@@ -148,9 +145,8 @@ body {
     font-weight: bold;
 }
 
-#search_box form input,
-#search_box form select {
-    font-size: smaller;
+#search_box form input#query {
+    width: 14em;
 }
 
 #search_box table {
@@ -163,10 +159,6 @@ body {
 
 #search_box .first_line {
     margin-bottom: 0.5em;
-}
-
-.advanced_link {
-    text-align: right;
 }
 
 #front_page_notice_header {
@@ -183,10 +175,6 @@ body {
 #front_page_content_inner img {
     float: left;
     margin-right: 1em;
-}
-
-#front_page_content_inner {
-    text-align: justify;
 }
 
 #front_page_disclaimer h4 {
@@ -226,5 +214,25 @@ body {
 
 #forgot_password {
     font-size: small;
+}
+
+.instructions {
+    border: solid 4px #77E;
+    padding: 0.5em;
+}
+
+.important {
+    font-weight: bold;
+    font-style: italic;
+}
+
+#advanced_link {
+    background-color: #FFA500;
+    padding: 0.4em;
+    border: solid 1px black;
+}
+
+#advanced_link a {
+    color: black;
 }
 
