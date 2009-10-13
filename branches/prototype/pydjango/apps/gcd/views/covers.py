@@ -54,15 +54,21 @@ def get_image_tag(series_id, cover, alt_text, zoom_level, no_cache = False):
     width = ''
     if zoom_level == ZOOM_SMALL:
         width = 'width="100"'
-    elif zoom_level == ZOOM_MEDIUM:
-        width = 'width="200"'
-    elif zoom_level == ZOOM_LARGE:
-        width = 'width="400"'
-
-    if (zoom_level == ZOOM_SMALL):
         if not (cover.has_image):
             return mark_safe('<img class="no_cover" src="' + settings.MEDIA_URL + \
-                   'img/nocover.gif" alt="No image yet" class="cover_img"/>')
+                   'img/nocover_small.png" alt="No image yet" class="cover_img"/>')
+    elif zoom_level == ZOOM_MEDIUM:
+        width = 'width="200"'
+        if not (cover.has_image):
+            return mark_safe('<img class="no_cover" src="' + settings.MEDIA_URL + \
+                   'img/nocover_medium.png" alt="No image yet" class="cover_img"/>')
+    elif zoom_level == ZOOM_LARGE:
+        width = 'width="400"'
+        if not (cover.has_image):
+            return mark_safe('<img class="no_cover" src="' + settings.MEDIA_URL + \
+                   'img/nocover_large.png" alt="No image yet" class="cover_img"/>')
+
+    if (zoom_level == ZOOM_SMALL):
         suffix = "%d/%d_%s.jpg" % (series_id, series_id, cover.code)
     else:
         suffix = "%d/" % series_id
@@ -235,12 +241,23 @@ def cover_upload(request, issue_id, add_variant=False):
 
     # current request is an upload
     if request.method == 'POST':
-        # user has to change defaults and enter something valid
-        if request.POST['email'] == 'your@email.address':
-            request.POST['email'] = ''
-        if request.POST['name'] == 'Your name':
-            request.POST['name'] = ''
-        form = UploadScanForm(request.POST,request.FILES)
+        try:
+            form = UploadScanForm(request.POST,request.FILES)
+        except IOError: # sometimes uploads misbehave. connection dropped ?
+            info_text = 'Something went wrong with the upload. ' + \
+                       'Please <a href="' + request.path + '">try again</a>.'
+            return render_to_response(error_template, {
+                'error_text' : mark_safe(info_text),
+                },
+                context_instance=RequestContext(request))
+
+        if form.is_valid():
+            # user has to change defaults and enter something valid
+            if request.POST['email'] == 'your@email.address':
+                request.POST['email'] = ''
+            if request.POST['name'] == 'Your name':
+                request.POST['name'] = ''
+            form = UploadScanForm(request.POST,request.FILES)
         # TODO: even if the file is a valid image it does not survive into
         #       the next form if name/email is not valid, Django issue ?
         if not form.is_valid():
@@ -404,13 +421,14 @@ def cover_upload(request, issue_id, add_variant=False):
                     info_text = "Image is too small, only " + str(im.size) + \
                                 " in size."
                     return render_to_response(upload_template, {
-                        'form': form.as_table(),
-                        'info' : info_text,
-                        'display_cover' : display_cover,
-                        'upload_type' : upload_type,
-                        'issue' : issue,
-                        'media_url' : settings.MEDIA_URL
-                        })
+                      'form': form.as_ul(),
+                      'info' : info_text,
+                      'display_cover' : display_cover,
+                      'upload_type' : upload_type,
+                      'issue' : issue,
+                      'style' : style,
+                      },
+                      context_instance=RequestContext(request))
 
                 # what else do we need
                 covers_needed = Cover.objects.filter(issue__series = \
@@ -426,20 +444,21 @@ def cover_upload(request, issue_id, add_variant=False):
                   'style' : style},
                   context_instance=RequestContext(request))
 
-            except IOError:
+            except IOError: # file type *should* be taken care of by django
                 os.remove(destination.name)
                 return render_to_response(upload_template, {
-                  'form': form.as_table(),
+                  'form': form.as_ul(),
                   'info' : 'Error: File \"' + scan.name + \
                            '" is not a valid picture.',
                   'issue' : issue,
                   'display_cover' : display_cover,
                   'upload_type' : upload_type,
-                  'media_url' : settings.MEDIA_URL
-                  })
-        else:
+                  'style' : style,
+                  },
+                  context_instance=RequestContext(request))
+        else: # there is a pretty good chance we never end up here
             return render_to_response(upload_template, { 
-              'form': form.as_table(), 
+              'form': form.as_ul(), 
               'issue' : issue,
               'style' : style},
               context_instance=RequestContext(request))
