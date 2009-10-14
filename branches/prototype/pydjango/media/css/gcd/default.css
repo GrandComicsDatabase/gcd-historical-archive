@@ -331,6 +331,10 @@ div.list_table_header {
     margin-top: 0;
 }
 
+.listing dl.credits {
+    margin-bottom: 0;
+}
+
 .listing dl.credits dt {
     float: left;
     clear: both;
@@ -338,7 +342,6 @@ div.list_table_header {
 }
 
 .listing dl.credits dd {
-    float: left;
     margin: 0;
 }
 
