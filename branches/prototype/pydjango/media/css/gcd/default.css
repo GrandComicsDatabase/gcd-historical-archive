@@ -415,3 +415,14 @@ dl.pub_data dd {
     clear: both;
 }
 
+.footer_disclaimer {
+    font-size: 0.8em;
+    color: #666;
+    margin-bottom: 0.5em; /* space to google ad */
+}
+
+a.new_window {
+    padding-right: 13px; 
+    background: transparent no-repeat right center url(external.png); 
+}
+
