@@ -82,6 +82,9 @@ class AdvancedSearch(forms.Form):
     issue_editor = forms.CharField(required=False)
     issue_date = forms.CharField(label='Cover Date', required=False)
 
+    cover_needed = forms.BooleanField(label="Cover is Needed", 
+                                       required=False)
+
 
     feature = forms.CharField(required=False)
     type = forms.MultipleChoiceField(
@@ -138,3 +141,12 @@ class AdvancedSearch(forms.Form):
       widget=forms.SelectMultiple(attrs={'size' : '4'}))
     alt_language = forms.CharField(label='', required=False, max_length=3)
 
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        if cleaned_data['cover_needed']:
+            # use of in since after distinction stuff is cleared add series
+            if cleaned_data['target'] not in ['issue']: 
+                raise forms.ValidationError(
+                  "Searching for covers which are missing or need to be"
+                  " replaced is valid only for issue searches.")
+        return cleaned_data

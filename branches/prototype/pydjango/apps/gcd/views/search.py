@@ -516,6 +516,9 @@ def search_issues(data, op, stories_q=None):
     if data['issue_date']:
         q_objs.append(
           Q(**{ '%spublication_date__%s' % (prefix, op) : data['issue_date'] }))
+    if data['cover_needed']:
+        q_objs.append(Q(**{ '%scover__has_image' % prefix : False }) | 
+                      Q(**{ '%scover__marked' % prefix : True }))
 
     return compute_qobj(data, q_and_only, q_objs)
 
@@ -704,8 +707,6 @@ def compute_order(data):
                 terms.append('year_began')
             elif order == 'country':
                 terms.append('country__code')
-            elif order == 'language':
-                terms.append('language__code')
 
         elif target == 'series':
             if order == 'date':

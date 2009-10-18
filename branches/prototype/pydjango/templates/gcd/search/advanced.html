@@ -50,7 +50,7 @@ and limitations:
 {{ error_text }}
 </div>
 {% endif %}
-
+{{ form.non_field_errors }}
 <form id="advanced_search_form"
       action="{% url apps.gcd.views.search.process_advanced %}"
       method="get">
@@ -168,6 +168,7 @@ and limitations:
     {{ form.issue_editor|show_form }}
     {{ form.issue_notes|show_form }}
     {{ form.issue_reprints|show_form }}
+    {{ form.cover_needed|show_form }} 
   </ol>
 </fieldset>
 </div>
