@@ -324,7 +324,7 @@ def process_advanced(request):
             filter = Publisher.objects.filter(query)
         else:
             filter = Publisher.objects.all()
-        items = filter.order_by(*terms).select_related('country')
+        items = filter.order_by(*terms).select_related('country').distinct()
         template = 'gcd/search/publisher_list.html'
 
     elif data['target'] == 'series':
@@ -332,7 +332,7 @@ def process_advanced(request):
             filter = Series.objects.filter(query)
         else:
             filter = Series.objects.all()
-        items = filter.order_by(*terms).select_related('publisher')
+        items = filter.order_by(*terms).select_related('publisher').distinct()
 
         template = 'gcd/search/series_list.html'
 
@@ -341,7 +341,8 @@ def process_advanced(request):
             filter = Issue.objects.filter(query)
         else:
             filter = Issue.objects.all()
-        items = filter.order_by(*terms).select_related('series__publisher')
+        items = filter.order_by(*terms).select_related(
+          'series__publisher').distinct()
         template = 'gcd/search/issue_list.html',
 
     elif data['target'] == 'sequence':
@@ -350,7 +351,7 @@ def process_advanced(request):
         else:
             filter = Story.objects.all()
         items = filter.order_by(*terms).select_related(
-          'issue__series__publisher')
+          'issue__series__publisher').distinct()
         template = 'gcd/search/content_list.html'
 
     item_name = data['target']

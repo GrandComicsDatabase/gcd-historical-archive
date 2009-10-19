@@ -50,10 +50,11 @@ class AdvancedSearch(forms.Form):
 
     order1 = forms.ChoiceField(choices=ORDERINGS,
                                required=False,
-                               initial='name',
+                               initial='series',
                                label='First By')
     order2 = forms.ChoiceField(choices=ORDERINGS,
                                required=False,
+                               initial='date',
                                label='Second By')
     order3 = forms.ChoiceField(choices=ORDERINGS,
                                required=False,
@@ -145,8 +146,8 @@ class AdvancedSearch(forms.Form):
         cleaned_data = self.cleaned_data
         if cleaned_data['cover_needed']:
             # use of in since after distinction stuff is cleared add series
-            if cleaned_data['target'] not in ['issue']: 
+            if cleaned_data['target'] not in ['issue','series']: 
                 raise forms.ValidationError(
                   "Searching for covers which are missing or need to be"
-                  " replaced is valid only for issue searches.")
+                  " replaced is valid only for issue or series searches.")
         return cleaned_data
