@@ -327,9 +327,17 @@ def cover_upload(request, issue_id, add_variant=False):
                                             _local_scans + suffix
                         # check for existence, otherwise get from server
                         if not os.path.exists(current_im_name):
-                            img_url = _server_prefixes[cover.server_version] \
-                                      + suffix
-                            urlretrieve(img_url,current_im_name)
+                            info_text = "Problem with existing file for series " + \
+                              "'%s', id #%d, please contact webmaster." \
+                              % (issue.series, issue.id)
+                            return render_to_response(error_template, {
+                                'error_text' : info_text,
+                                },
+                                context_instance=RequestContext(request))
+                            # use this for debugging locally
+                            # img_url = _server_prefixes[cover.server_version] \
+                            #          + suffix
+                            # urlretrieve(img_url,current_im_name)
                         im_old = Image.open(current_im_name)
 
                         # backup current scan

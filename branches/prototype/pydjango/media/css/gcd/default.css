@@ -230,6 +230,7 @@ table#covers td.marked {
 
 .cover_links {
     font-size: 0.7em;
+    white-space: nowrap;
 }
 
 .cover_caption {
