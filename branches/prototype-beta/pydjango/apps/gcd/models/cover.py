@@ -12,6 +12,9 @@ class Cover(models.Model):
         db_table = 'covers'
         app_label = 'gcd'
         ordering = ['code']
+        permissions = (
+            ('can_upload_cover', 'can upload cover'),
+        )
 
     class Admin:
         pass

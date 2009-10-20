@@ -22,10 +22,16 @@
 <body>
 <div id="sizing_base">
 
+
 <!-- 3 column layout with two fixed width sidebars from
 http://matthewjamestaylor.com/blog/ultimate-3-column-holy-grail-ems.htm -->
 
 <div id="main_body"> 
+  {% if BETA %}
+    <div id="front_page_beta">
+      {% include "gcd/bits/beta_banner.html" %}
+    </div>
+  {% endif %}
     <div id="colmid"> 
         <div id="colleft">
             <div id="col1wrap"> 

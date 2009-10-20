@@ -1,0 +1,90 @@
+fieldset {
+    margin: 1em 0;
+    padding: 0;
+    pudding: vannila;
+    overflow: hidden;
+    border: solid black 1px;
+}
+
+ol {
+    /* padding: 1em 1em 0 1em; */
+    list-style: none;
+    padding-left: 1em;
+}
+
+ol li {
+    margin-bottom: 0.5em;
+}
+
+div .fake_label {
+    width: 9em;
+    margin-right: 1em;
+    text-align: right;
+    float: left;
+    clear: left;
+}
+label {
+    width: 9em;
+    margin-right: 1em;
+    text-align: right;
+    float: left;
+}
+
+input {
+    margin-bottom: 0.2em;
+}
+
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+ul ul {
+    padding-left: 2em;
+}
+
+.profile_table {
+    margin-bottom: 1em;
+}
+
+.profile_table th {
+    text-align: right;
+    vertical-align: top;
+}
+
+.profile_table td {
+    vertical-align: top;
+}
+
+.errorlist li {
+    list-style: disc;
+    color: red;
+    font-weight: bold;
+}
+
+.errorlist {
+    margin-bottom: 1em;
+    margin-left: 10em;
+    padding-left: 0;
+}
+
+.error_message {
+    width: 100%;
+    margin-bottom: 1em;
+    float: none;
+}
+
+.instructions {
+    font-weight: bold;
+    margin: 1em 0 1em 0;
+    padding-left: 1em;
+}
+
+.data_value {
+    font-weight: bold;
+}
+
+#inline_login {
+    display: inline;
+}
+

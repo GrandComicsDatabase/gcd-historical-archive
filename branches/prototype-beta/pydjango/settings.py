@@ -29,6 +29,7 @@ DATABASE_PORT     = ''
 
 # middleware settings, LocalMiddleware is for internationalisation
 MIDDLEWARE_CLASSES = (
+   'django.contrib.csrf.middleware.CsrfMiddleware',
    'django.contrib.sessions.middleware.SessionMiddleware',
    'django.contrib.auth.middleware.AuthenticationMiddleware',
    'django.middleware.locale.LocaleMiddleware',
@@ -41,7 +42,7 @@ ROOT_URLCONF = 'urls'
 
 # Email these if there's a site exception and debug isn't on.
 ADMINS = (
-    ('Henry Andrews', 'andrews_henry at yahoo.com'),
+    ('GCD Admins', 'sysadmin@comics.org'),
 )
 MANAGERS = ADMINS
 
@@ -69,6 +70,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.i18n',
     'django.core.context_processors.media',
     'django.core.context_processors.request',
+    'apps.gcd.context_processors.beta',
 )
 
 AUTH_PROFILE_MODULE = 'gcd.Indexer'
@@ -81,6 +83,9 @@ SITE_ID = 1
 # Local time zone for this installation. Choices can be found here:
 # http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
 TIME_ZONE = 'GMT'
+
+EMAIL_NEW_ACCOUNTS_FROM = 'new.accounts@comics.org'
+EMAIL_EDITORS = 'gcd-editor@googlegroups.com'
 
 # get local settings, will override settings from here
 try:
