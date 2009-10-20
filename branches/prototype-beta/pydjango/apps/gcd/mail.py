@@ -19,7 +19,7 @@ def send_email(from_addr, to_addrs, subject, body):
 
     try:
         server = smtplib.SMTP('localhost')
-        msg = MIMEText(body)
+        msg = MIMEText(body.encode('UTF-8'))
         msg['To'] = ', '.join(to_addrs)
         msg['From'] = from_addr
         msg['Subject'] = subject
