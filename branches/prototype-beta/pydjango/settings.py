@@ -6,6 +6,8 @@ from os import environ # helps determine MEDIA_URL.
 DEBUG          = True
 TEMPLATE_DEBUG = DEBUG
 
+BETA = False
+
 # Set to True to avoid hitting comics.org for every cover image.
 # If True, the same cover image will be used for every issue.
 FAKE_COVER_IMAGES = False

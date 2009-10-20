@@ -120,7 +120,7 @@ def profile(request, user_id=None, edit=False):
     if user_id is None:
         if request.user.is_authenticated():
             return HttpResponseRedirect(
-              urlresolvers.reverse(profile,
+              urlresolvers.reverse('view_profile',
                                    kwargs={'user_id': request.user.id}))
         else:
             return HttpResponseRedirect(
@@ -155,7 +155,6 @@ def profile(request, user_id=None, edit=False):
 
 def update_profile(request, user_id=None):
     if request.user.id != int(user_id):
-        raise Exception, "%d != %d" % (request.user.id, int(user_id))
         # Should never get here, which of course means we will.
         # TODO: Should redirect, not render.
         return render_to_response(
@@ -205,7 +204,7 @@ def update_profile(request, user_id=None):
     indexer.save()
 
     return HttpResponseRedirect(
-      urlresolvers.reverse('apps.gcd.views.accounts.profile',
+      urlresolvers.reverse('view_profile',
                            kwargs={'user_id': request.user.id}))
 
 def mentor(request, indexer_id):

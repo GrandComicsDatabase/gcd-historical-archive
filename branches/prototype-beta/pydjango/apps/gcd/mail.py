@@ -26,8 +26,9 @@ def send_email(from_addr, to_addrs, subject, body):
         server.sendmail(from_addr, to_addrs, msg.as_string())
         server.quit()
     except socket.error:
-        # No local mail.  Fail silently.
-        pass
+        # No local mail.  Fail silently unless we're in BETA mode.
+        if settings.BETA:
+            raise
 
 def email_editors(from_addr, subject, body):
     return send_email(from_addr=from_addr,
