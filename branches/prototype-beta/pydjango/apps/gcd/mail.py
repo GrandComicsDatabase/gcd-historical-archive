@@ -30,7 +30,8 @@ def send_email(from_addr, to_addrs, subject, body):
         pass
 
 def email_editors(from_addr, subject, body):
-    return send_email(to_addrs=[settings.EMAIL_EDITORS],
+    return send_email(from_addr=from_addr,
+                      to_addrs=[settings.EMAIL_EDITORS],
                       subject=subject,
                       body=body)
 
