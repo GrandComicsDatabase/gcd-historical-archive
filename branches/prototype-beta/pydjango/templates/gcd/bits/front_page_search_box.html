@@ -1,0 +1,14 @@
+<div id="search_box">
+  <form action="{% url apps.gcd.views.search.search %}" method="get">
+    <div class="first_line">
+        Search {% include "gcd/bits/search_for.html" %}
+        <input type="text" name="query" id="query" size="15">
+    </div>
+    <div class="second_line">
+        Sort by
+        {% include "gcd/bits/search_order.html" %}
+        <input type="submit" name="submit" id="submit" value="Search">
+        |&nbsp;<span id="advanced_link"><a href="{% url apps.gcd.views.search.advanced_search %}">Advanced&nbsp;Search</a></span>
+    </div>
+  </form> 
+</div>

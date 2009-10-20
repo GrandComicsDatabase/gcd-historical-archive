@@ -1,0 +1,185 @@
+/* ***************************************
+ * issue.css
+ * CSS specific to the issue details page.
+ * ***************************************/
+
+/*
+ * Common elements
+ */
+
+.credit_header {
+    clear: both;
+}
+
+.single_story dl.credits {
+    margin-bottom: 0.5em;
+}
+
+.single_story dt {
+    padding-left: 6px;
+}
+
+dl.credits dt {
+    clear: left;
+    padding-right: 0.5em;
+}
+dl.credits dd {
+    float: none;
+    margin: 0;
+    padding: 0;
+}
+
+.content_header {
+    clear: both;
+}
+
+.single_story dl.contents {
+    margin-bottom: 0.15em;
+}
+
+dl.contents dt {
+    clear: left;
+}
+
+dl.contents dd {
+    clear: left;
+    margin-bottom: 0.5em;
+    padding-left: 6px;
+}
+
+dl.contents dd.short {
+    clear: none;
+    padding-left: 0;
+}
+
+.title {
+    /* font-style: italic; */
+}
+
+/*
+ * Story layout elements
+ */
+
+#story_data {
+    clear: left;
+    margin-bottom: 1em;
+    margin-right: 15.5em;
+}
+
+.offset_one_back {
+    position: relative;
+    left: -1px;
+}
+
+div.single_story {
+    border: solid black 1px;
+    float: left;
+    width: 100%;
+    margin-bottom: 1em;
+}
+
+
+.single_story h2 {
+    clear: both;
+    padding: 0.2em 6px;
+    float: left;
+}
+
+.single_story h3 {
+    clear: both;
+    background-color: #DDD;
+    padding: 0.2em 6px;
+    margin-top: 0;
+    margin-bottom: 0.15em;
+    border-top: solid black 1px;
+}
+
+.single_story h4 {
+    clear: both;
+    padding: 0.2em 6px;
+}
+
+.single_story dl {
+    padding: 0.2em 0; 
+    margin: 0;
+}
+
+.single_story a {
+    color: white;
+    font-size: 0.8em;
+    font-weight: normal;
+}
+
+.single_story p {
+    padding: 0.2em 6px;
+    margin: 0 0 0.5em 0;
+}
+
+.single_story .left {
+    padding-left: 6px;
+}
+
+.single_story .right {
+    padding-right: 6px;
+}
+
+.sequence_header {
+    background-color: #DDD;
+}
+
+h3.feature {
+    margin-bottom: 0;
+    margin-top: 0;
+    width: 100%;
+    float: left;
+    padding: 0.2em 0;
+}
+
+h3.feature a {
+    color: #000;
+}
+
+h2.title {
+    background-color: #444;
+    color: white;
+    margin-top: 0;
+    margin-bottom: 0;
+    font-weight: normal;
+    padding: 0.2em 0;
+    width: 100%;
+}
+
+span.feature {
+    font-weight: bold;
+}
+
+span.seq_no {
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+span.type {
+    font-weight: normal;
+}
+
+p.type_page {
+    margin-top: 0.5em;
+}
+
+span.linkify {
+    border: solid #666 1px;
+    padding: 0 0.2em;
+    color: #888;
+    font-size: 0.9em;
+}
+
+span.linkify :link {
+    color: #888;
+    text-decoration: none;
+}
+
+span.linkify :visited {
+    color: #888;
+    text-decoration: none;
+}
+

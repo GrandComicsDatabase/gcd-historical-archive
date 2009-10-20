@@ -1,0 +1,170 @@
+# German translations for the GCD website.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Jochen Garcke <gcdmail@garcke.de>, 2008.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-01-04 00:33+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: apps/gcd/templatetags/credits.py:59
+msgid "Job Number:"
+msgstr ""
+
+#: apps/gcd/templatetags/credits.py:68
+msgid "search and link"
+msgstr ""
+
+#: apps/gcd/templatetags/migration/reprints.py:490
+#: apps/gcd/templatetags/migration/reprints.py:583
+msgid "Reprints"
+msgstr ""
+
+#: apps/inducks/templatetags/flatfile.py:29
+#: apps/inducks/templatetags/flatfile.py:113
+msgid "translation"
+msgstr "Übersetzung"
+
+#: apps/inducks/templatetags/flatfile.py:100
+#, fuzzy
+msgid "script"
+msgstr "Szenario"
+
+#: apps/inducks/templatetags/flatfile.py:105
+msgid "plot"
+msgstr ""
+
+#: templates/gcd/covers_to_replace.html:19
+msgid "Covers marked for replacement"
+msgstr ""
+
+#: templates/gcd/daily_covers.html:19
+msgid "Covers for "
+msgstr ""
+
+#: templates/gcd/daily_covers.html:22
+msgid "day before"
+msgstr ""
+
+#: templates/gcd/daily_covers.html:24
+msgid "day after"
+msgstr ""
+
+#: templates/gcd/daily_covers.html:31
+msgid " covers posted"
+msgstr ""
+
+#: templates/gcd/issue.html:52 templates/inducks/issue.html:19
+msgid "Price"
+msgstr "Preis"
+
+#: templates/gcd/issue.html:54
+msgid "Pages"
+msgstr "Seiten"
+
+#: templates/gcd/issue.html:112
+msgid "Issues in this series have been indexed by:"
+msgstr "Diese Serie wurde erfasst von:"
+
+#: templates/gcd/one_issue_series.html:5
+msgid "Publication Notes"
+msgstr ""
+
+#: templates/gcd/one_issue_series.html:10
+msgid "Tracking"
+msgstr ""
+
+#: templates/gcd/one_issue_series.html:15
+#, fuzzy
+msgid "Title Notes"
+msgstr "Titel"
+
+#: templates/gcd/pagination_bar.html:7 templates/gcd/pagination_bar.html:9
+#: templates/gcd/pagination_bar.html:12 templates/gcd/pagination_bar.html:37
+msgid "Previous"
+msgstr "zurück"
+
+#: templates/gcd/pagination_bar.html:29 templates/gcd/pagination_bar.html:31
+#: templates/gcd/pagination_bar.html:34 templates/gcd/pagination_bar.html:37
+msgid "Next"
+msgstr "vor"
+
+#: templates/gcd/series.html:74
+msgid "Indexed by:"
+msgstr "Erfasst von:"
+
+#: templates/gcd/series_issue_header.html:39
+msgid "Previous Issue"
+msgstr "Vorherige Ausgabe"
+
+#: templates/gcd/series_issue_header.html:45
+msgid "Next Issue"
+msgstr "Nächste Ausgabe"
+
+#: templates/gcd/single_story.html:23 templates/gcd/single_story.html.py:48
+#, python-format
+msgid ""
+"\n"
+"              page%(suffix)s\n"
+"            "
+msgstr ""
+
+#~ msgid "Country"
+#~ msgstr "Land"
+
+#~ msgid "Language"
+#~ msgstr "Sprache"
+
+#~ msgid "Pencils"
+#~ msgstr "Vorzeichnung"
+
+#~ msgid "Inks"
+#~ msgstr "Tuschzeichnung"
+
+#~ msgid "Colors"
+#~ msgstr "Farbe"
+
+#~ msgid "Letters"
+#~ msgstr "Schrift"
+
+#~ msgid " %(myvar)s Series "
+#~ msgstr "Serie von %(myvar)s"
+
+#~ msgid "coverprice"
+#~ msgstr "Preis"
+
+#~ msgid "pages"
+#~ msgstr "Seiten"
+
+#~ msgid "Editor"
+#~ msgstr "Redaktion"
+
+#~ msgid "Stories/features:"
+#~ msgstr "Geschichten/Feature"
+
+#~ msgid "*No title given or indexed*"
+#~ msgstr "*Kein Titel vorhanden oder erfasst*"
+
+#~ msgid "Series info"
+#~ msgstr "Informationen zur Serie"
+
+#~ msgid "View covergallery"
+#~ msgstr "Covergallerie betrachten"
+
+#~ msgid "Sequence %(seq_num)s "
+#~ msgstr "%(seq_num)s. Sequenz"
+
+#~ msgid "Credits"
+#~ msgstr "Mitwirkende"
+
+#~ msgid "Sequence"
+#~ msgstr "Sequenz"

@@ -1,0 +1,30 @@
+{% extends "gcd/base_view.html" %}
+
+{% block css %}
+  <link rel="stylesheet" type="text/css"
+        href="{{ MEDIA_URL }}/css/gcd/default.css"/>
+{% endblock %}
+
+{% block view_body %}
+
+<p class="message">
+Please note:  Online Indexing is currently disabled while we complete the new implementation.  It is expected to return by the end of the month (October, 2009).
+</p>
+
+<p>
+Username: {{ user.username }}<br/>
+Name: {{ user.indexer }}<br/>
+Email: {{ user.email }}<br/>
+Country: {{ user.indexer.country_code }} <img src="{{ MEDIA_URL }}/img/gcd/flags/{{ user.indexer.country_code|lower }}.png" alt="{{ country }}" class="embedded_flag"><br>
+Groups: {% for group in user.groups.all %}{{ group }} {% endfor %}<br>
+
+{% comment %}
+<a href="/queues/reserved/">My reservations</a><br>
+{% if perms.oi.can_approve %}
+<a href="/queues/pending/">Pending queue</a><br>
+<a href="/queues/reviews/">My reviews</a><br>
+{% endif %}
+{% endcomment %}
+</p>
+
+{% endblock %}
