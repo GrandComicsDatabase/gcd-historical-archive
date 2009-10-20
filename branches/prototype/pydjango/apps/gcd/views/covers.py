@@ -289,7 +289,7 @@ def cover_upload(request, issue_id, add_variant=False):
                     os.mkdir(upload_dir)
                 except IOError:
                     info_text = "Problem with file storage for uploaded " + \
-                                "cover please contact GCD-admins." 
+                                "cover, please report an error." 
                     return render_to_response(error_template, {
                         'error_text' : info_text,
                         },
@@ -312,7 +312,7 @@ def cover_upload(request, issue_id, add_variant=False):
                     # generate the sizes we are using
                     if check_series_cover_dir(issue.series) == False:
                         info_text = "Problem with file storage for series " + \
-                          "'%s', id #%d, please contact webmaster." \
+                          "'%s', id #%d, please report an error." \
                           % (issue.series, issue.id)
                         return render_to_response(error_template, {
                             'error_text' : info_text,
@@ -328,7 +328,7 @@ def cover_upload(request, issue_id, add_variant=False):
                         # check for existence, otherwise get from server
                         if not os.path.exists(current_im_name):
                             info_text = "Problem with existing file for series " + \
-                              "'%s', id #%d, please contact webmaster." \
+                              "'%s', id #%d, please report an error." \
                               % (issue.series, issue.id)
                             return render_to_response(error_template, {
                                 'error_text' : info_text,
