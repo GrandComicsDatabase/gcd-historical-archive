@@ -254,7 +254,7 @@ def search(request):
 
     return HttpResponseRedirect(
       urlresolvers.reverse(view,
-                           kwargs = { param_type: quote(request.GET['query'] \
+                           kwargs = { param_type: quote(request.GET['query'].strip() \
                                                         .encode('utf-8')),
                                       'sort': request.GET['sort'] }))
 
