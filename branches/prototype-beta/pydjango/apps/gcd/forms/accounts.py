@@ -28,7 +28,7 @@ class AccountForm(forms.Form):
         cd = self.cleaned_data
         if ('email' in cd and
             User.objects.filter(username=cd['email']).count()):
-            self._errors['username'] = ErrorList(
+            raise forms.ValidationError(
               ['An account with email address "%s" as its login name '
                'is already in use.' % cd['email']])
             del cd['email']

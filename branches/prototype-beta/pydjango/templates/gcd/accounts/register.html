@@ -56,6 +56,8 @@ email address.  You will receive an email telling you how to do that
 within a few hours (often only a few minutes) of submitting this form.
 </p>
 
+{{ form.non_field_errors }}
+
 <form action="/accounts/register/" method="POST">
 <ol>
   {{ form.email|show_form }}
