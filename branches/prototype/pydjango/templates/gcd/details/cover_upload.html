@@ -56,9 +56,7 @@ GCD :: Cover upload for {{ issue.series.name }} #{{ issue.number }}
    <div id="display_cover">
     {{ display_cover }}
     <div class="issue_cover_links">
-      {% if issue.cover.has_large %}
       <a href="{{ issue.get_absolute_url }}cover/4/?style=default">Zoom</a>
-      {% endif %}
     </div>
     {% ifequal upload_type 'replacement' %}
     If you are replacing a cover, make sure the new cover is better than the one that is already there.
