@@ -15,7 +15,7 @@
 {% if user.is_authenticated %}
 <p>
 Please 
-<form id="inline_logout" action="{% url gcd_logout %}" method="POST">
+<form id="inline_logout" action="{% url logout %}" method="POST">
   <input type="submit" name="logout" value="Log Out" />
   <input type="hidden" name="next" value="{{ request.get_full_path }}" />
 </form>

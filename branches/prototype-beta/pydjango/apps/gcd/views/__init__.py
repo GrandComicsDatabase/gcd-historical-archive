@@ -63,3 +63,8 @@ def paginate_response(request, queryset, template, vars, page_size=100,
     return render_to_response(template, vars,
                               context_instance=RequestContext(request))
 
+def render_error(request, error_text):
+    return render_to_response('gcd/error.html',
+                              { 'error_text': error_text },
+                              context_instance=RequestContext(request))
+

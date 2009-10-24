@@ -37,7 +37,8 @@ class AccountForm(forms.Form):
         return cd
 
 class RegistrationForm(AccountForm):
-    username = forms.RegexField(regex=re.compile(r'^(?!_)[\w.]+$', re.UNICODE),
+    username = forms.RegexField(regex=re.compile(r'^(?!_)[\w.]+$',
+                                                 flags=re.UNICODE),
                                 max_length=30,
                                 error_messages={
                                   'invalid': 'Usernames may only contain '

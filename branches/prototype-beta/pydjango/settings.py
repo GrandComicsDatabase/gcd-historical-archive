@@ -88,6 +88,20 @@ TIME_ZONE = 'GMT'
 
 EMAIL_NEW_ACCOUNTS_FROM = 'new.accounts@comics.org'
 EMAIL_EDITORS = 'gcd-editor@googlegroups.com'
+EMAIL_CONTACT = 'gcd-contact@googlegroups.com'
+
+# Number of days for which a registraton confirmation token is valid.
+REGISTRATION_EXPIRATION_DELTA = 2
+RESERVE_MAX_INITIAL = 1
+RESERVE_MAX_PROBATION = 5
+RESERVE_MAX_DEFAULT = 20
+
+RESERVE_MAX_ONGOING_INITIAL = 0
+RESERVE_MAX_ONGOING_PROBATION = 2
+RESERVE_MAX_ONGOING_DEFAULT = 10
+
+SITE_URL = 'http://www.comics.org/'
+SITE_NAME = 'Grand Comic-Book Database'
 
 # get local settings, will override settings from here
 try:

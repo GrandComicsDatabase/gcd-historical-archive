@@ -28,8 +28,22 @@ class Indexer(models.Model):
 
     mentor = models.ForeignKey('self', related_name='mentees')
     is_new = models.BooleanField()
+    is_banned = models.BooleanField()
     deceased = models.BooleanField()
 
+    registration_key = models.CharField(max_length=40, null=True,
+                                        editable=False)
+    registration_expires = models.DateField(null=True)
+
     def __unicode__(self):
-        return unicode(self.user)
+        if self.user.first_name and self.user.last_name:
+            full_name = u'%s %s' % (self.user.first_name, self.user.last_name)
+        elif self.user.first_name:
+            full_name = self.user.first_name
+        else:   
+            full_name = self.user.last_name
+        if self.deceased:
+            full_name = full_name + u' (R.I.P.)'
+
+        return full_name
 

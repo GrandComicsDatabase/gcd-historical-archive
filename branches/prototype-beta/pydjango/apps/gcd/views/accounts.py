@@ -1,15 +1,58 @@
 # -*- coding: utf-8 -*-
+import re
+import sha
+from random import random
+from datetime import date, timedelta
+
 from django.core import urlresolvers
+from django.core.mail import send_mail
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User, Group
+from django.contrib.auth.views import login as standard_login
+from django.utils.safestring import mark_safe
 
+from apps.gcd.views import render_error
 from apps.gcd.models import Indexer, Language, Country
 from apps.gcd.forms.accounts import ProfileForm, RegistrationForm
-from apps.gcd.mail import send_email, email_editors
+
+def login(request, template_name):
+    """
+    Do some pre-checking before handing off to the standard login view.
+    If anything goes wrong just let the standard login handle it.
+    """
+    try:
+        if request.method == "POST":
+            user = User.objects.get(username=request.POST['username'])
+            if user.indexer.registration_key is not None:
+                if date.today() > (user.indexer.registration_expires +
+                                   timedelta(1)):
+                    return render_error(request,
+                      ('This account was never confirmed and has expired.  '
+                       'It will be deleted, after which you may re-register.  '
+                       'If you would like to re-register sooner, please email '
+                       '%s') % settings.EMAIL_CONTACT)
+                return render_error(request,
+                  ('This account has not yet been confirmed. You should '
+                   'receive an email that gives you a URL to visit '
+                   'to confirm your account.  After you have visited that URL '
+                   'you will be able to log in and use your account.  Please '
+                   'email %s if you do not receive the email within a few '
+                   'hours.') %
+                  settings.EMAIL_CONTACT)
+
+            if 'next' in request.POST:
+                next = request.POST['next']
+                if re.match(r'/accounts/confirm/', next, flags=re.I):
+                    post = request.POST.copy()
+                    post['next'] = urlresolvers.reverse('welcome')
+                    request.POST = post
+    except Exception:
+        pass
+    return standard_login(request, template_name=template_name)
 
 def register(request):
     """
@@ -34,84 +77,174 @@ def register(request):
                                   context_instance=RequestContext(request))
 
     cd = form.cleaned_data
+    if settings.BETA:
+        email_users = User.objects.filter(email=cd['email'])
+        if email_users.count():
+            return handle_existing_account(request, email_users)
 
     new_user = User.objects.create_user(cd['username'],
                                         cd['email'],
                                         cd['password'])
     new_user.first_name = cd['given_name']
     new_user.last_name = cd['family_name']
+    new_user.is_active = False
     new_user.save()
 
     new_user.groups.add(*Group.objects.filter(name='indexer'))
 
+    salt = sha.new(str(random())).hexdigest()[:5]
+    key = sha.new(salt + new_user.email).hexdigest()
+    expires = date.today() + timedelta(settings.REGISTRATION_EXPIRATION_DELTA)
     indexer = Indexer(is_new=True,
-                      max_reservations=1,
-                      max_ongoing=0,
+                      max_reservations=settings.RESERVE_MAX_INITIAL,
+                      max_ongoing=settings.RESERVE_MAX_ONGOING_INITIAL,
                       country=cd['country'],
                       interests=cd['interests'],
+                      registration_key=key,
+                      registration_expires=expires,
                       user=new_user)
     indexer.save()
 
     if cd['languages']:
         indexer.languages.add(*cd['languages'])
 
-    # We disply a logout page instead of the registration form
-    # if the user is logged in, so we *should* be able to rely
-    # on there being no logged in user at this point.
-    if request.user.is_authenticated():
-        return render_to_response(
-          'gcd/error.html',
-          { 'error_text': 'Registration successful but you were already '
-                          'logged in as another user.  You may want to '
-                          'log out and log in again as the new user.' },
-          context_instance=RequestContext(request))
-
-    if cd['given_name'] and cd['family_name']:
-        full_name = '%s %s' % (cd['given_name'], cd['family_name'])
-    elif cd['given_name']:
-        full_name = cd['given_name']
-    else:
-        full_name = cd['family_name']
-
     email_body = """
-    We have a new Indexer!
+Hello from the %s!
 
-    Username: %s
-    Name: %s
-    Email: %s
-    Country: %s
-    Languages: %s
-    Interests:
-      %s
+  We've received a request for an account with username "%s" using this
+email address.  If you did indeed register an account with us,
+please confirm your account by going to:
 
-    Mentor this indexer: %s
-    """ % (new_user.username,
-           full_name,
-           new_user.email,
-           indexer.country.name,
-           ', '.join([lang.name for lang in indexer.languages.all()]),
-           indexer.interests,
-           'http://' + request.get_host() +
-           urlresolvers.reverse('mentor', kwargs={ 'indexer_id': indexer.id }))
+%s
 
-    email_editors(from_addr=settings.EMAIL_NEW_ACCOUNTS_FROM,
-                  subject='New Indexer: %s' % full_name,
-                  body=email_body)
-    authenticated_user = authenticate(username=cd['username'],
-                                      password=cd['password'])
-    if authenticated_user is None:
-        return render_to_response(
-          'gcd/error.html',
-          { 'error_text': 'Could not log in new user.  If you cannot log in '
-                          'using the button in the search bar at the top of '
-                          'the page, please '
-                          '<a href="mailto:gcd-contact@googlegroups.com">email '
-                          'us</a> with your attempted username.' },
+within the next %d days.
+
+  If you did not register for an account, then someone else is trying to
+user your email address.  In that case, simply do not confirm the account
+and it will expire after %d days.
+
+  If you want to confirm your account after it expires, please email
+%s
+and we will look into it for you.
+
+thanks,
+-the %s team
+%s
+""" % (settings.SITE_NAME,
+       new_user.username,
+       settings.SITE_URL.rstrip('/') +
+         urlresolvers.reverse('confirm', kwargs={ 'key': key }),
+       settings.REGISTRATION_EXPIRATION_DELTA,
+       settings.REGISTRATION_EXPIRATION_DELTA,
+       settings.EMAIL_CONTACT,
+       settings.SITE_NAME,
+       settings.SITE_URL)
+
+    send_mail(from_email=settings.EMAIL_NEW_ACCOUNTS_FROM,
+              recipient_list=[new_user.email],
+              subject='GCD new account confirmation',
+              message=email_body,
+              fail_silently=(not settings.BETA))
+
+    return HttpResponseRedirect(urlresolvers.reverse('confirm_instructions'))
+
+def confirm_account(request, key):
+    try:
+        indexer = Indexer.objects.get(registration_key=key)
+        if date.today() > indexer.registration_expires:
+            return render_error(request,
+              mark_safe(('Your confirmation key has expired.  Please email '
+                         '<a href="mailto:%s">%s</a> if you would still '
+                         'like to activate this account.') %
+                        (settings.EMAIL_CONTACT, settings.EMAIL_CONTACT)))
+
+        indexer.user.is_active = True
+        indexer.user.save()
+        indexer.registration_key = None
+        indexer.registration_expires = None
+        indexer.save()
+
+        email_body = """
+We have a new Indexer!
+
+Username: %s
+Name: %s
+Email: %s
+Country: %s
+Languages: %s
+Interests:
+   %s
+
+Mentor this indexer: %s
+        """ % (indexer.user.username,
+               indexer,
+               indexer.user.email,
+               indexer.country.name,
+               ', '.join([lang.name for lang in indexer.languages.all()]),
+               indexer.interests,
+               'http://' + request.get_host() +
+               urlresolvers.reverse('mentor',
+                                    kwargs={ 'indexer_id': indexer.id }))
+
+        send_mail(from_email=settings.EMAIL_NEW_ACCOUNTS_FROM,
+                  recipient_list=[settings.EMAIL_EDITORS],
+                  subject='New Indexer: %s' % indexer,
+                  message=email_body,
+                  fail_silently=(not settings.BETA))
+
+        return HttpResponseRedirect(urlresolvers.reverse('welcome'))
+
+    except Indexer.DoesNotExist:
+        return render_error(request,
+          ('Invalid confirmation URL.  Please make certain that you copied '
+           'the URL from the email correctly.  If it has been more than %d '
+           'days, the confirmation code has expired and the account may have '
+           'been deleted due to lack of confirmation.') %
+          (settings.REGISTRATION_EXPIRATION_DELTA + timedelta(1)))
+
+    except Indexer.MultipleObjectsReturned:
+        return render_error(request,
+          ('There is a problem with your confirmation key.  Please email %s '
+           'for assistance.') % settings.EMAIL_CONTACT)
+
+def handle_existing_account(request, users):
+    if users.count() > 1:
+        # There are only a few people in this situation, all of whom are
+        # either editors themselves or definitely know how to easily get
+        # in touch with an editor.
+        return render_to_response('gcd/error.html',
+          { 'error_text': 'You already have multiple accounts with this email '
+                          'address.  Please contact an editor to get your '
+                          'personal and/or shared accounts sorted out before '
+                          'adding a new one.' },
           context_instance=RequestContext(request))
-    login(request, authenticated_user)
+    user = users[0]
+    if user.is_active:
+        return render_to_response('gcd/error.html',
+          { 'error_text': mark_safe(
+            'You already have an active account with this email address.  If '
+            'you have forgotten your password, you may <a href="' +
+             urlresolvers.reverse('forgot_password') + '">reset '
+            'it</a>.  If you feel you need a second account with this email, '
+            'please '
+            '<a href="mailto:gcd-contact@googlegroups.com">contact us</a>.') },
+          context_instance=RequestContext(request))
 
-    return HttpResponseRedirect(urlresolvers.reverse('welcome'))
-
+    elif not user.is_banned:
+        # TODO: automatic reactivation, but have to merge fields?  Complicated.
+        return render_to_response('gcd/error.html',
+          { 'error_text': mark_safe(
+            'An account with this email address already exists, '
+            'but is deactivated.  Please '
+            '<a href="mailto:gcd-contact@googlegroups.com">contact us</a> '
+            'if you would like to reactivate it.') },
+          context_instance=RequestContext(request))
+    else:
+        return render_to_response('gcd/error.html',
+          { 'error_text': 'A prior account with this email address has been '
+                          'shut down.  Please contact an Editor if you believe '
+                          'this was done in error.' },
+          context_instance=RequestContext(request))
 
 def profile(request, user_id=None, edit=False):
     if request.method == 'POST':
@@ -162,7 +295,6 @@ def update_profile(request, user_id=None):
           { 'error_text' : 'You may only edit your own profile.' },
           context_instance=RequestContext(request))
 
-    # TODO: Much duplicaton with the register view in the form validation.
     errors = []
     form = ProfileForm(request.POST)
     if not form.is_valid():
