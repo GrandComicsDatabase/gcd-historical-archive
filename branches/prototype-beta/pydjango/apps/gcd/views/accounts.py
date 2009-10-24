@@ -10,13 +10,13 @@ from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, logout
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.views import login as standard_login
 from django.utils.safestring import mark_safe
 
 from apps.gcd.views import render_error
-from apps.gcd.models import Indexer, Language, Country
+from apps.gcd.models import Indexer, Language, Country, Reservation, IndexCredit
 from apps.gcd.forms.accounts import ProfileForm, RegistrationForm
 
 def login(request, template_name):
@@ -257,7 +257,7 @@ def profile(request, user_id=None, edit=False):
                                    kwargs={'user_id': request.user.id}))
         else:
             return HttpResponseRedirect(
-              urlresolvers.reverse('django.contrib.auth.views.login'))
+              urlresolvers.reverse('login'))
         profile_user = request.user
     else:
         profile_user = get_object_or_404(User, id=user_id)
