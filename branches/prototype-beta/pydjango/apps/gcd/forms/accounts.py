@@ -26,6 +26,13 @@ class AccountForm(forms.Form):
 
     def clean(self):
         cd = self.cleaned_data
+        if ('email' in cd and
+            User.objects.filter(username=cd['email']).count()):
+            self._errors['username'] = ErrorList(
+              ['An account with email address "%s" as its login name '
+               'is already in use.' % cd['email']])
+            del cd['email']
+
         if ('given_name' in cd and 'family_name' in cd and
             not cd['given_name'] and not cd['family_name']):
             error_msg = (
@@ -37,16 +44,6 @@ class AccountForm(forms.Form):
         return cd
 
 class RegistrationForm(AccountForm):
-    username = forms.RegexField(regex=re.compile(r'^(?!_)[\w.]+$',
-                                                 flags=re.UNICODE),
-                                max_length=30,
-                                error_messages={
-                                  'invalid': 'Usernames may only contain '
-                                             'letters (in any language), '
-                                             'numbers and underscores ("_"), '
-                                             'and may not start with an '
-                                             'underscore.'
-                                })
     password = forms.CharField(widget=forms.PasswordInput,
                                min_length=6,
                                max_length=128)
@@ -57,12 +54,6 @@ class RegistrationForm(AccountForm):
         AccountForm.clean(self)
 
         cd = self.cleaned_data
-        if ('username' in cd and
-            User.objects.filter(username=cd['username']).count()):
-            self._errors['username'] = ErrorList(
-              ['Username "%s" is already in use.' % cd['username']])
-            del cd['username']
-
         if ('password' in cd and 'confirm_password' in cd and
             cd['password'] != cd['confirm_password']):
             self._errors['password'] = ErrorList(

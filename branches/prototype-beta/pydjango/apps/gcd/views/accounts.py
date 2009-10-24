@@ -82,7 +82,7 @@ def register(request):
         if email_users.count():
             return handle_existing_account(request, email_users)
 
-    new_user = User.objects.create_user(cd['username'],
+    new_user = User.objects.create_user(cd['email'],
                                         cd['email'],
                                         cd['password'])
     new_user.first_name = cd['given_name']
@@ -230,7 +230,7 @@ def handle_existing_account(request, users):
             '<a href="mailto:gcd-contact@googlegroups.com">contact us</a>.') },
           context_instance=RequestContext(request))
 
-    elif not user.is_banned:
+    elif not user.indexer.is_banned:
         # TODO: automatic reactivation, but have to merge fields?  Complicated.
         return render_to_response('gcd/error.html',
           { 'error_text': mark_safe(
@@ -266,7 +266,6 @@ def profile(request, user_id=None, edit=False):
     if edit is True:
         if profile_user == request.user:
             form = ProfileForm(auto_id=True, initial={
-              'username': profile_user.username,
               'email': profile_user.email,
               'given_name': profile_user.first_name,
               'family_name': profile_user.last_name,

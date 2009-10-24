@@ -10,7 +10,7 @@
         href="{{ MEDIA_URL }}/css/gcd/default/accounts.css"/>
 {% endblock %}
 
-{% block title %} GCD User :: {{ profile_user.username }} {% endblock %}
+{% block title %} GCD User :: {{ profile_user }} {% endblock %}
 
 {% block view_body %}
 
@@ -45,8 +45,6 @@ Please note:  Online Indexing is currently disabled while we complete the new im
 <fieldset>
 <legend>Personal Information</legend>
 <ol>
-  <li> <div class="fake_label">Username</div>
-       <span class="data_value">{{ profile_user.username }}</span>
   {{ form.email|show_form }}
   {{ form.given_name|show_form }}
   {{ form.family_name|show_form }}
@@ -72,7 +70,6 @@ Leave all three fields blank to leave your password unchanged.
 </form>
 {% else %}
 <ul>
-  <li> Username: {{ profile_user.username }}<br/>
   <li> Given Name: {{ profile_user.first_name }}<br/>
   <li> Family Name: {{ profile_user.last_name }}
 {% ifequal profile_user user %}
