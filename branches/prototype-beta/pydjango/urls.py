@@ -61,7 +61,7 @@ urlpatterns = patterns('',
         auth_views.password_reset_complete,
         { 'template_name' : 'gcd/accounts/password_reset_complete.html'}),
 
-    url(r'error/$', error_view, name='error'),
+    url(r'gcd-error/$', error_view, name='error'),
 
     url(r'^donate/$', direct_to_template,
         { 'template': 'gcd/donate/donate.html' }, name='donate'),
