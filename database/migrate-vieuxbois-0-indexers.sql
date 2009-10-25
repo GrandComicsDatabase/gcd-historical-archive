@@ -109,10 +109,8 @@ INSERT INTO auth_group_permissions (group_id, permission_id)
 -- for each user if necessary.  Delete the extras.
 UPDATE IndexCredit SET IndexerID=369 WHERE IndexerID = 190;
 UPDATE auth_user SET last_name='Løvstad'WHERE username = 'jonal';
-UPDATE IndexCredit SET IndexerID=319 WHERE IndexerID = 412;
-UPDATE Reservations SET IndexerID=319 WHERE IndexerID = 412;
 
 DELETE Indexers, auth_user
     FROM Indexers INNER JOIN auth_user ON Indexers.user_id = auth_user.id
-    WHERE Indexers.ID IN (190, 299, 332, 412);
+    WHERE Indexers.ID IN (190, 299, 332);
 
