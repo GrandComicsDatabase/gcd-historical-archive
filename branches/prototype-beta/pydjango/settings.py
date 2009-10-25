@@ -86,6 +86,7 @@ SITE_ID = 1
 # http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
 TIME_ZONE = 'GMT'
 
+DEFAULT_FROM_EMAIL = 'GCD Contact <gcd-contact@googlegroups.com>'
 EMAIL_NEW_ACCOUNTS_FROM = 'GCD New Accounts <new.accounts@comics.org>'
 EMAIL_EDITORS = 'gcd-editor@googlegroups.com'
 EMAIL_CONTACT = 'gcd-contact@googlegroups.com'
