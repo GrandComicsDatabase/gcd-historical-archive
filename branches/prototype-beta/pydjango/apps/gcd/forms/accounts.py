@@ -1,10 +1,12 @@
 import re
+from datetime import date, timedelta
 
 from django import forms
 from django.forms.util import ErrorList
 from django.contrib.auth.models import User
+from django.conf import settings
 
-from apps.gcd.models import Indexer, Country, Language
+from apps.gcd.models import Indexer, Country, Language, Reservation, IndexCredit
 
 class AccountForm(forms.Form):
     email = forms.EmailField(max_length=75, help_text=(
@@ -42,10 +44,36 @@ class AccountForm(forms.Form):
         cd = self.cleaned_data
         if ('email' in cd and
             User.objects.filter(username=cd['email']).count()):
-            raise forms.ValidationError(
-              ['An account with email address "%s" as its login name '
-               'is already in use.' % cd['email']])
-            del cd['email']
+            user = User.objects.get(username=cd['email'])
+            if user.indexer.registration_key is not None:
+                if date.today() > (user.indexer.registration_expires +
+                                   timedelta(1)):
+                    legacy_reservations = Reservation.objects.filter( 
+                        indexer=user.indexer)
+                    index_credits = IndexCredit.objects.filter(indexer=\
+                                                        user.indexer)
+                    if legacy_reservations.count() == 0 and \
+                        index_credits.count() == 0:
+                        user.delete()
+                    else:
+                        raise forms.ValidationError(
+                          ['A registration with email %s was never confirmed, ' 
+                           'has expired, but has data attached. Please '
+                           'contact %s if this is your email.'
+                           % (cd['email'], settings.EMAIL_CONTACT)])
+                else:
+                    raise forms.ValidationError(
+                      [('The account with email %s has not yet been confirmed. '
+                       'You should receive an email that gives you a URL to visit '
+                       'to confirm your account.  After you have visited that URL '
+                       'you will be able to log in and use your account.  Please '
+                       'email %s if you do not receive the email within a few '
+                       'hours.') %
+                       (cd['email'], settings.EMAIL_CONTACT)])
+            else:
+                raise forms.ValidationError(
+                  ['An account with email address "%s" as its login name '
+                   'is already in use.' % cd['email']])
 
         if ('first_name' in cd and 'last_name' in cd and
             not cd['first_name'] and not cd['last_name']):

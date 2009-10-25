@@ -142,12 +142,8 @@ please confirm your account by going to:
 within the next %d days.
 
   If you did not register for an account, then someone else is trying to
-user your email address.  In that case, simply do not confirm the account
+use your email address.  In that case, simply do not confirm the account
 and it will expire after %d days.
-
-  If you want to confirm your account after it expires, please email
-%s
-and we will look into it for you.
 
 thanks,
 -the %s team
@@ -158,7 +154,6 @@ thanks,
          urlresolvers.reverse('confirm', kwargs={ 'key': key }),
        settings.REGISTRATION_EXPIRATION_DELTA,
        settings.REGISTRATION_EXPIRATION_DELTA,
-       settings.EMAIL_CONTACT,
        settings.SITE_NAME,
        settings.SITE_URL)
 
