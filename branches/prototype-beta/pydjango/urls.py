@@ -6,6 +6,7 @@ from django.views.generic.simple import direct_to_template
 
 from apps.gcd.views import accounts as account_views
 from apps.gcd.views import error_view
+from apps.gcd.forms.accounts import PasswordResetForm
 
 urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
@@ -48,18 +49,19 @@ urlpatterns = patterns('',
         name='mentor'),
     url(r'^accounts/forgot/$',
         auth_views.password_reset, 
-        { 'post_reset_redirect' : 'done',
-          'template_name' : 'gcd/accounts/password_reset_form.html'},
+        { 'post_reset_redirect': 'done',
+          'template_name': 'gcd/accounts/password_reset_form.html'},
         name='forgot_password'),
     url(r'^accounts/forgot/done/$', auth_views.password_reset_done,
-        { 'template_name' : 'gcd/accounts/password_reset_done.html'}),
+        { 'template_name': 'gcd/accounts/password_reset_done.html'}),
     url(r'^accounts/reset/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)/$', 
 	auth_views.password_reset_confirm,
-        { 'template_name' : 'gcd/accounts/password_reset_confirm.html',
-          'post_reset_redirect' : '/accounts/reset/done' }),
+        { 'template_name': 'gcd/accounts/password_reset_confirm.html',
+          'set_password_form': PasswordResetForm,
+          'post_reset_redirect': '/accounts/reset/done' }),
     url(r'^accounts/reset/done/$', 
         auth_views.password_reset_complete,
-        { 'template_name' : 'gcd/accounts/password_reset_complete.html'}),
+        { 'template_name': 'gcd/accounts/password_reset_complete.html'}),
 
     url(r'gcd-error/$', error_view, name='error'),
 

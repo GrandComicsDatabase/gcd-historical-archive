@@ -229,39 +229,34 @@ def handle_existing_account(request, users):
         # There are only a few people in this situation, all of whom are
         # either editors themselves or definitely know how to easily get
         # in touch with an editor.
-        return render_to_response('gcd/error.html',
-          { 'error_text': 'You already have multiple accounts with this email '
-                          'address.  Please contact an editor to get your '
-                          'personal and/or shared accounts sorted out before '
-                          'adding a new one.' },
-          context_instance=RequestContext(request))
+        return render_error(request,
+          ('You already have multiple accounts with this email '
+           'address.  Please contact an editor to get your '
+           'personal and/or shared accounts sorted out before '
+           'adding a new one.'))
+
     user = users[0]
     if user.is_active:
-        return render_to_response('gcd/error.html',
-          { 'error_text': mark_safe(
-            'You already have an active account with this email address.  If '
-            'you have forgotten your password, you may <a href="' +
-             urlresolvers.reverse('forgot_password') + '">reset '
-            'it</a>.  If you feel you need a second account with this email, '
-            'please '
-            '<a href="mailto:gcd-contact@googlegroups.com">contact us</a>.') },
-          context_instance=RequestContext(request))
+        return render_error(request, mark_safe(
+          'You already have an active account with this email address.  If '
+          'you have forgotten your password, you may <a href="' +
+           urlresolvers.reverse('forgot_password') + '">reset '
+          'it</a>.  If you feel you need a second account with this email, '
+          'please <a href="mailto:%s">contact us</a>.' %
+          settings.EMAIL_CONTACT))
 
     elif not user.indexer.is_banned:
         # TODO: automatic reactivation, but have to merge fields?  Complicated.
-        return render_to_response('gcd/error.html',
-          { 'error_text': mark_safe(
-            'An account with this email address already exists, '
-            'but is deactivated.  Please '
-            '<a href="mailto:gcd-contact@googlegroups.com">contact us</a> '
-            'if you would like to reactivate it.') },
-          context_instance=RequestContext(request))
+        return render_error(request, mark_safe(
+          ('An account with this email address already exists, '
+           'but is deactivated.  Please '
+           '<a href="mailto:%s">contact us</a> '
+           'if you would like to reactivate it.') % settings.EMAIL_CONTACT))
     else:
-        return render_to_response('gcd/error.html',
-          { 'error_text': 'A prior account with this email address has been '
-                          'shut down.  Please contact an Editor if you believe '
-                          'this was done in error.' },
-          context_instance=RequestContext(request))
+        return render_error(request,
+          'A prior account with this email address has been '
+          'shut down.  Please contact an Editor if you believe '
+          'this was done in error.')
 
 def profile(request, user_id=None, edit=False):
     if request.method == 'POST':
@@ -293,10 +288,8 @@ def profile(request, user_id=None, edit=False):
             })
             context['form'] = form
         else:
-            return render_to_response(
-              'gcd/error.html',
-              { 'error_text': "You may not edit other users' profiles" },
-              context_instance=RequestContext(request))
+            return render_error(request,
+              "You may not edit other users' profiles")
 
     return render_to_response('gcd/accounts/profile.html',
                               context,
@@ -304,12 +297,7 @@ def profile(request, user_id=None, edit=False):
 
 def update_profile(request, user_id=None):
     if request.user.id != int(user_id):
-        # Should never get here, which of course means we will.
-        # TODO: Should redirect, not render.
-        return render_to_response(
-          'gcd/error.html',
-          { 'error_text' : 'You may only edit your own profile.' },
-          context_instance=RequestContext(request))
+        return render_error(request, 'You may only edit your own profile.')
 
     errors = []
     form = ProfileForm(request.POST)

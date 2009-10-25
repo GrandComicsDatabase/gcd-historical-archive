@@ -4,9 +4,13 @@ from datetime import date, timedelta
 from django import forms
 from django.forms.util import ErrorList
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import SetPasswordForm
 from django.conf import settings
 
 from apps.gcd.models import Indexer, Country, Language, Reservation, IndexCredit
+
+MIN_PASSWORD_LENGTH = 6
+MAX_PASSWORD_LENGTH = 20
 
 class AccountForm(forms.Form):
     email = forms.EmailField(max_length=75, help_text=(
@@ -64,11 +68,11 @@ class AccountForm(forms.Form):
                 else:
                     raise forms.ValidationError(
                       [('The account with email %s has not yet been confirmed. '
-                       'You should receive an email that gives you a URL to visit '
-                       'to confirm your account.  After you have visited that URL '
-                       'you will be able to log in and use your account.  Please '
-                       'email %s if you do not receive the email within a few '
-                       'hours.') %
+                       'You should receive an email that gives you a URL to '
+                       'visit to confirm your account.  After you have visited '
+                       'that URL you will be able to log in and use your '
+                       'account.  Please email %s if you do not receive the '
+                       'email within a few hours.') %
                        (cd['email'], settings.EMAIL_CONTACT)])
             else:
                 raise forms.ValidationError(
@@ -87,11 +91,11 @@ class AccountForm(forms.Form):
 
 class RegistrationForm(AccountForm):
     password = forms.CharField(widget=forms.PasswordInput,
-                               min_length=6,
-                               max_length=128)
+                               min_length=MIN_PASSWORD_LENGTH,
+                               max_length=MAX_PASSWORD_LENGTH)
     confirm_password = forms.CharField(widget=forms.PasswordInput,
-                                       min_length=6,
-                                       max_length=128)
+                                       min_length=MIN_PASSWORD_LENGTH,
+                                       max_length=MAX_PASSWORD_LENGTH)
     def __init__(self, *args, **kwargs):
         AccountForm.__init__(self, *args, **kwargs)
         
@@ -110,16 +114,16 @@ class RegistrationForm(AccountForm):
 
 class ProfileForm(AccountForm):
     old_password = forms.CharField(widget=forms.PasswordInput,
-                                   min_length=6,
-                                   max_length=128,
+                                   min_length=MIN_PASSWORD_LENGTH,
+                                   max_length=MAX_PASSWORD_LENGTH,
                                    required=False)
     new_password = forms.CharField(widget=forms.PasswordInput,
-                                   min_length=6,
-                                   max_length=128,
+                                   min_length=MIN_PASSWORD_LENGTH,
+                                   max_length=MAX_PASSWORD_LENGTH,
                                    required=False)
     confirm_new_password = forms.CharField(widget=forms.PasswordInput,
-                                           min_length=6,
-                                           max_length=128,
+                                           min_length=MIN_PASSWORD_LENGTH,
+                                           max_length=MAX_PASSWORD_LENGTH,
                                            required=False)
 
     def clean(self):
@@ -158,3 +162,20 @@ class ProfileForm(AccountForm):
         del cd['new_password']
         del cd['confirm_new_password']
         return cd
+
+class PasswordResetForm(SetPasswordForm):
+    def clean(self):
+        cleaned_data = SetPasswordForm.clean(self)
+        if 'new_password1' in cleaned_data:
+            if (len(cleaned_data['new_password1']) < MIN_PASSWORD_LENGTH or
+                len(cleaned_data['new_password1']) > MAX_PASSWORD_LENGTH):
+
+                self._errors['new_password1'] = ErrorList(
+                  ['New password must be between %d and %d characters long.' %
+                   (MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH)])
+                del cleaned_data['new_password1']
+                if 'new_password2' in cleaned_data:
+                    del cleaned_data['new_password2']
+
+        return cleaned_data
+
