@@ -5,6 +5,7 @@ from django.contrib.auth import views as auth_views
 from django.views.generic.simple import direct_to_template
 
 from apps.gcd.views import accounts as account_views
+from apps.gcd.views import error_view
 
 urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
@@ -15,8 +16,7 @@ urlpatterns = patterns('',
     # GET requests should not have side effects so use a wrapper to
     # pull from POST.
     url(r'^accounts/logout/$',
-        lambda request: auth_views.logout(request,
-                                          next_page=request.POST['next']),
+        account_views.logout,
         name='logout'),
     url(r'^accounts/login/$', account_views.login, 
         {'template_name': 'gcd/accounts/login.html'},
@@ -60,6 +60,8 @@ urlpatterns = patterns('',
     url(r'^accounts/reset/done/$', 
         auth_views.password_reset_complete,
         { 'template_name' : 'gcd/accounts/password_reset_complete.html'}),
+
+    url(r'error/$', error_view, name='error'),
 
     url(r'^donate/$', direct_to_template,
         { 'template': 'gcd/donate/donate.html' }, name='donate'),

@@ -43,17 +43,14 @@ ul ul {
     padding-left: 2em;
 }
 
-.profile_table {
-    margin-bottom: 1em;
-}
-
-.profile_table th {
+th {
     text-align: right;
     vertical-align: top;
 }
 
-.profile_table td {
-    vertical-align: top;
+tr.last_row_for_field td,
+tr.last_row_for_field th {
+    padding-bottom: 1em;
 }
 
 .errorlist li {
@@ -62,10 +59,24 @@ ul ul {
     font-weight: bold;
 }
 
-.errorlist {
+ul .errorlist,
+ol .errorlist {
     margin-bottom: 1em;
     margin-left: 10em;
     padding-left: 0;
+}
+
+table {
+    width: 100%;
+}
+
+td {
+    white-space: normal;
+}
+
+td .errorlist {
+    margin: 0;
+    padding: 0;
 }
 
 .error_message {

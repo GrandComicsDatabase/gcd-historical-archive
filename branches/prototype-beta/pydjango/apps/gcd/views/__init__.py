@@ -1,5 +1,6 @@
 from urllib import quote
 from django.conf import settings
+from django.core import urlresolvers
 from django.core.paginator import QuerySetPaginator
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
@@ -64,6 +65,15 @@ def paginate_response(request, queryset, template, vars, page_size=100,
                               context_instance=RequestContext(request))
 
 def render_error(request, error_text):
+    return HttpResponseRedirect(
+      urlresolvers.reverse('error') +
+      u'?error_text=' + error_text)
+
+def error_view(request):
+    if 'error_text' not in request.GET:
+        error_text = 'Unknown error.'
+    else:
+        error_text = request.GET['error_text']
     return render_to_response('gcd/error.html',
                               { 'error_text': error_text },
                               context_instance=RequestContext(request))

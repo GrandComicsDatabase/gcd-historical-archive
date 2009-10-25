@@ -1,7 +1,6 @@
 {% extends "gcd/base_view.html" %}
 
-{# show_form is in "credits", which should be fixed at some point. #}
-{% load credits %}
+{% load forms %}
 
 {% block css %}
   <link rel="stylesheet" type="text/css"
@@ -46,8 +45,8 @@ Please note:  Online Indexing is currently disabled while we complete the new im
 <legend>Personal Information</legend>
 <ol>
   {{ form.email|show_form }}
-  {{ form.given_name|show_form }}
-  {{ form.family_name|show_form }}
+  {{ form.first_name|show_form }}
+  {{ form.last_name|show_form }}
   {{ form.country|show_form }}
   {{ form.languages|show_form }}
   {{ form.interests|show_form }}
@@ -70,8 +69,8 @@ Leave all three fields blank to leave your password unchanged.
 </form>
 {% else %}
 <ul>
-  <li> Given Name: {{ profile_user.first_name }}<br/>
-  <li> Family Name: {{ profile_user.last_name }}
+  <li> First Name: {{ profile_user.first_name }}<br/>
+  <li> Last Name: {{ profile_user.last_name }}
 {% ifequal profile_user user %}
   <li> Email: {{ profile_user.email }}<br/>
 {% endifequal %}

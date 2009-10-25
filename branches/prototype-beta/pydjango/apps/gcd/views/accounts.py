@@ -10,9 +10,10 @@ from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.contrib.auth import authenticate, logout
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.views import login as standard_login
+from django.contrib.auth.views import logout as standard_logout
 from django.utils.safestring import mark_safe
 
 from apps.gcd.views import render_error
@@ -24,6 +25,9 @@ def login(request, template_name):
     Do some pre-checking before handing off to the standard login view.
     If anything goes wrong just let the standard login handle it.
     """
+    if request.user.is_authenticated():
+        return HttpResponseRedirect(urlresolvers.reverse('default_profile'))
+
     try:
         if request.method == "POST":
             user = User.objects.get(username=request.POST['username'])
@@ -53,6 +57,24 @@ def login(request, template_name):
     except Exception:
         pass
     return standard_login(request, template_name=template_name)
+
+def logout(request):
+    """
+    Handle logout.  Prevent GET requests from having side effects (such as
+    logging the user out).  Don't leave the site on a user's error message
+    after the user logs out.
+    """
+    if request.method == 'POST':
+        next_page = request.POST['next']
+        if re.match(urlresolvers.reverse('error'), next_page):
+            next_page = '/'
+        return standard_logout(request, next_page=next_page)
+
+    elif request.user.is_authenticated():
+        return render_error(request,
+                            'Please use the logout button to log out.')
+    return render_error(request,
+      'Cannot logout because you are not logged in.')
 
 def register(request):
     """
@@ -85,8 +107,8 @@ def register(request):
     new_user = User.objects.create_user(cd['email'],
                                         cd['email'],
                                         cd['password'])
-    new_user.first_name = cd['given_name']
-    new_user.last_name = cd['family_name']
+    new_user.first_name = cd['first_name']
+    new_user.last_name = cd['last_name']
     new_user.is_active = False
     new_user.save()
 
@@ -267,8 +289,8 @@ def profile(request, user_id=None, edit=False):
         if profile_user == request.user:
             form = ProfileForm(auto_id=True, initial={
               'email': profile_user.email,
-              'given_name': profile_user.first_name,
-              'family_name': profile_user.last_name,
+              'first_name': profile_user.first_name,
+              'last_name': profile_user.last_name,
               'country': profile_user.indexer.country.id,
               'languages':
                 [ lang.id for lang in profile_user.indexer.languages.all() ],
@@ -321,8 +343,8 @@ def update_profile(request, user_id=None):
                                   { 'form': form, 'error_list': errors },
                                   context_instance=RequestContext(request))
 
-    request.user.first_name = form.cleaned_data['given_name']
-    request.user.last_name = form.cleaned_data['family_name']
+    request.user.first_name = form.cleaned_data['first_name']
+    request.user.last_name = form.cleaned_data['last_name']
     request.user.email = form.cleaned_data['email']
     if set_password is True:
         request.user.set_password(new)

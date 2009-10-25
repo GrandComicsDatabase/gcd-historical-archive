@@ -1,7 +1,7 @@
 {% extends "gcd/base_view.html" %}
 
 {# show_form is in "credits", which should be fixed at some point. #}
-{% load credits %}
+{% load forms %}
 
 {% block css %}
   <link rel="stylesheet" type="text/css"
@@ -40,16 +40,6 @@ the new Indexing system is released.
 </ul>
 {% endif %}
 
-<p class="message">
-Your email address will be your login name!
-</p>
-
-<p>
-Your email address will not be publicly displayed on the site.  It will only
-be used to contact you about your contributions to the site or notify you of
-site changes.
-</p>
-
 <p>
 Once you register, you will not be able to log in until you confirm your
 email address.  You will receive an email telling you how to do that
@@ -59,17 +49,17 @@ within a few hours (often only a few minutes) of submitting this form.
 {{ form.non_field_errors }}
 
 <form action="/accounts/register/" method="POST">
-<ol>
-  {{ form.email|show_form }}
-  {{ form.password|show_form }}
-  {{ form.confirm_password|show_form }}
-  {{ form.given_name|show_form }}
-  {{ form.family_name|show_form }}
-  {{ form.country|show_form }}
-  {{ form.languages|show_form }}
-  {{ form.interests|show_form }}
-  <li><input type="submit" value="Register"></td>
-</ol>
+<table>
+  {{ form.email|show_form_as_row }}
+  {{ form.password|show_form_as_row }}
+  {{ form.confirm_password|show_form_as_row }}
+  {{ form.first_name|show_form_as_row }}
+  {{ form.last_name|show_form_as_row }}
+  {{ form.country|show_form_as_row }}
+  {{ form.languages|show_form_as_row }}
+  {{ form.interests|show_form_as_row }}
+  <tr><td>&nbsp;</td><td><input type="submit" value="Register"></td></tr>
+</table>
 </form>
 
 {% endif %}

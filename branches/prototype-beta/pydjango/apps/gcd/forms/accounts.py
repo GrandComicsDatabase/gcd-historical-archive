@@ -7,22 +7,36 @@ from django.contrib.auth.models import User
 from apps.gcd.models import Indexer, Country, Language
 
 class AccountForm(forms.Form):
-    email = forms.EmailField(max_length=75)
+    email = forms.EmailField(max_length=75, help_text=(
+      u'Your email address is your login name.  It will not be '
+      u'publicly displayed on the site.'))
     
-    given_name = forms.CharField(max_length=30,
-                                 required=False)
-    family_name = forms.CharField(max_length=30,
-                                  required=False)
+    _name_help =(u'You must provide at least one name (first, last or both). ' 
+                 u'You do not have to give your real name, but please do '
+                 u'not use someone else\'s real name. '
+                 u'Your contributions will be credited under the name(s) you '
+                 u'provide.')
+    first_name = forms.CharField(max_length=30, required=False,
+                                 help_text=_name_help)
+    last_name = forms.CharField(max_length=30, required=False,
+                                help_text=_name_help)
     country = forms.ModelChoiceField(
         queryset=Country.objects.exclude(name='-- FIX ME --').order_by('name'),
         empty_label='--- Please Select a Country ---')
 
     languages = forms.ModelMultipleChoiceField(
-        queryset=Language.objects.exclude(code='zxx').order_by('name'),
-        required=False,
-        widget=forms.SelectMultiple(attrs={'size' : '6'}))
+      queryset=Language.objects.exclude(code='zxx').order_by('name'),
+      required=False,
+      widget=forms.SelectMultiple(attrs={'size' : '6'}),
+      help_text=(u'Please let us know what languages you read so we know what '
+                 u'language(s) to use when contacting you.  Hold down your '
+                 u'Control (ctrl) key to select multiple languages (Command '
+                 u'key on the Macintosh).'))
 
-    interests = forms.CharField(widget=forms.Textarea, required=False)
+    interests = forms.CharField(widget=forms.Textarea, required=False,
+      help_text=(u'Please tell us a bit about your comic book interests. '
+                 u'This helps us connect you with an Editor knowledgeable in '
+                 u'your area to help you learn our indexing system.'))
 
     def clean(self):
         cd = self.cleaned_data
@@ -33,14 +47,14 @@ class AccountForm(forms.Form):
                'is already in use.' % cd['email']])
             del cd['email']
 
-        if ('given_name' in cd and 'family_name' in cd and
-            not cd['given_name'] and not cd['family_name']):
+        if ('first_name' in cd and 'last_name' in cd and
+            not cd['first_name'] and not cd['last_name']):
             error_msg = (
               'Please fill in either family name or given name, or '
               'both. You may use an alias if you do not wish your '
               'real name to appear on the site.')
-            self._errors['given_name'] = ErrorList([error_msg])
-            self._errors['family_name'] = ErrorList([error_msg])
+            self._errors['first_name'] = ErrorList([error_msg])
+            self._errors['last_name'] = ErrorList([error_msg])
         return cd
 
 class RegistrationForm(AccountForm):
@@ -50,6 +64,9 @@ class RegistrationForm(AccountForm):
     confirm_password = forms.CharField(widget=forms.PasswordInput,
                                        min_length=6,
                                        max_length=128)
+    def __init__(self, *args, **kwargs):
+        AccountForm.__init__(self, *args, **kwargs)
+        
     def clean(self):
         AccountForm.clean(self)
 
