@@ -1,3 +1,6 @@
+import sha
+from random import random
+
 from urllib import quote
 from django.conf import settings
 from django.core import urlresolvers
@@ -5,8 +8,11 @@ from django.core.paginator import QuerySetPaginator
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
 from django.shortcuts import render_to_response
+from django.utils.safestring import mark_safe
 
 from pagination import DiggPaginator
+
+from apps.gcd.models import Errors
 
 ORDER_ALPHA = "alpha"
 ORDER_CHRONO = "chrono"
@@ -65,21 +71,37 @@ def paginate_response(request, queryset, template, vars, page_size=100,
                               context_instance=RequestContext(request))
 
 
-def render_error(request, error_text, redirect=True):
+def render_error(request, error_text, redirect=True, is_safe = False):
     if redirect:
-        return HttpResponseRedirect(
-          urlresolvers.reverse('error') +
-          u'?error_text=' + error_text)
+        if error_text != '':
+            salt = sha.new(str(random())).hexdigest()[:5]
+            key = sha.new(salt + error_text).hexdigest()
+            Errors.objects.create(error_key=key, is_safe=is_safe,
+                                  error_text=error_text,)
+            return HttpResponseRedirect(
+              urlresolvers.reverse('error') +
+              u'?error_key=' + key)
+
+        else:
+            return HttpResponseRedirect(urlresolvers.reverse('error'))
     else:
         return error_view(request, error_text)
 
 
 def error_view(request, error_text = ''):
     if error_text == '':
-        if 'error_text' not in request.GET:
+        if 'error_key' not in request.GET:
             error_text = 'Unknown error.'
         else:
-            error_text = request.GET['error_text']
+            key = request.GET['error_key']
+            errors = Errors.objects.filter(error_key=key)
+            if errors.count() == 1:
+                error_text = unicode(errors[0])
+                if errors[0].is_safe:
+                     error_text = mark_safe(error_text)
+                errors[0].delete()
+            else:
+                error_text = 'Unknown error.'
     return render_to_response('gcd/error.html',
                               { 'error_text': error_text },
                               context_instance=RequestContext(request))

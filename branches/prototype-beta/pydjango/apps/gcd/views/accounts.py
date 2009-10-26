@@ -17,6 +17,7 @@ from django.contrib.auth.views import login as standard_login
 from django.contrib.auth.views import logout as standard_logout
 from django.contrib.auth.decorators import login_required
 from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape as esc
 
 from apps.gcd.views import render_error
 from apps.gcd.models import Indexer, Language, Country, Reservation, IndexCredit
@@ -27,6 +28,7 @@ def login(request, template_name):
     Do some pre-checking before handing off to the standard login view.
     If anything goes wrong just let the standard login handle it.
     """
+
     if request.user.is_authenticated():
         return HttpResponseRedirect(urlresolvers.reverse('default_profile'))
 
@@ -37,18 +39,18 @@ def login(request, template_name):
                 if date.today() > (user.indexer.registration_expires +
                                    timedelta(1)):
                     return render_error(request,
-                      ('This account was never confirmed and has expired.  '
-                       'It will be deleted, after which you may re-register.  '
-                       'If you would like to re-register sooner, please email '
-                       '%s') % settings.EMAIL_CONTACT)
+                      ('The account with the email "%s" was never confirmed '
+                       'and has expired.  You may <a href="' + \
+                       urlresolvers.reverse('register') + \
+                       '">re-register</a>.  ') % esc(user.email), is_safe=True )
                 return render_error(request,
-                  ('This account has not yet been confirmed. You should '
-                   'receive an email that gives you a URL to visit '
+                  ('The account with email "%s" has not yet been confirmed. '
+                   'You should receive an email that gives you a URL to visit '
                    'to confirm your account.  After you have visited that URL '
                    'you will be able to log in and use your account.  Please '
-                   'email %s if you do not receive the email within a few '
-                   'hours.') %
-                  settings.EMAIL_CONTACT)
+                   '<a href="mailto:%s">contact us</a> if you do not receive '
+                   'the email within a few hours.') %
+                  (esc(user.email), settings.EMAIL_CONTACT), is_safe=True)
 
             if 'next' in request.POST:
                 next = request.POST['next']
@@ -137,12 +139,12 @@ def register(request):
                 raise
 
     if new_user is None:
-        return render_error(request, mark_safe(
+        return render_error(request, 
           ('Could not create unique internal account name.  This is a very '
            'unlikely error, and it will probably go away if you try to '
            'register again.  We apologize for the inconvenience.  If it '
            'does not go away, please email <a href="mailto:%s">%s</a>.') %
-          (settings.EMAIL_CONTACT, settings.EMAIL_CONTACT)))
+          (settings.EMAIL_CONTACT, settings.EMAIL_CONTACT),is_safe=True)
 
     new_user.first_name = cd['first_name']
     new_user.last_name = cd['last_name']
@@ -205,11 +207,9 @@ def confirm_account(request, key):
     try:
         indexer = Indexer.objects.get(registration_key=key)
         if date.today() > indexer.registration_expires:
-            return render_error(request,
-              mark_safe(('Your confirmation key has expired.  Please email '
-                         '<a href="mailto:%s">%s</a> if you would still '
-                         'like to activate this account.') %
-                        (settings.EMAIL_CONTACT, settings.EMAIL_CONTACT)))
+            return render_error(request, 'Your confirmation key has expired. '
+                     'You may <a href="' + urlresolvers.reverse('register') + \
+                     '">re-register</a>.  ', is_safe=True )
 
         indexer.user.is_active = True
         indexer.user.save()
@@ -271,21 +271,22 @@ def handle_existing_account(request, users):
 
     user = users[0]
     if user.is_active:
-        return render_error(request, mark_safe(
+        return render_error(request, 
           'You already have an active account with this email address.  If '
           'you have forgotten your password, you may <a href="' +
            urlresolvers.reverse('forgot_password') + '">reset '
           'it</a>.  If you feel you need a second account with this email, '
           'please <a href="mailto:%s">contact us</a>.' %
-          settings.EMAIL_CONTACT))
+          settings.EMAIL_CONTACT, is_safe=True)
 
     elif not user.indexer.is_banned:
         # TODO: automatic reactivation, but have to merge fields?  Complicated.
-        return render_error(request, mark_safe(
+        return render_error(request, 
           ('An account with this email address already exists, '
            'but is deactivated.  Please '
            '<a href="mailto:%s">contact us</a> '
-           'if you would like to reactivate it.') % settings.EMAIL_CONTACT))
+           'if you would like to reactivate it.') % settings.EMAIL_CONTACT,
+           is_safe=True)
     else:
         return render_error(request,
           'A prior account with this email address has been '
