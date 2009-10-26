@@ -25,18 +25,7 @@ Please note:  Online Indexing is currently disabled while we complete the new im
 </ul>
 {% endif %}
 
-{% ifequal profile_user user %}
-<ul>
-  <li> Maximum individual changes (a.k.a. reservations) you can make at once:
-    <span class="data_value">{{ profile_user.indexer.max_reservations }}</span>
-  <li> Maximum ongoing series reservations you can hold at once:
-    <span class="data_value">{{ profile_user.indexer.max_ongoing }}</span>
-  <li> Changes awaiting approval count towards your maximums?
-    <span class="data_value">
-      {% if profile_user.indexer.is_new %}Yes{% else %}No{% endif %}
-    </span>
-</ul>
-{% endifequal %}
+{% include 'gcd/bits/profile_limits.html' %}
 
 {% if form %}
 </form>
@@ -68,31 +57,7 @@ Leave all three fields blank to leave your password unchanged.
 </p>
 </form>
 {% else %}
-<ul>
-  <li> First Name: {{ profile_user.first_name }}<br/>
-  <li> Last Name: {{ profile_user.last_name }}
-{% ifequal profile_user user %}
-  <li> Email: {{ profile_user.email }}<br/>
-{% endifequal %}
-  <li> Country: <img src="{{ MEDIA_URL }}/img/gcd/flags/{{ profile_user.indexer.country.code|lower }}.png" alt="{{ country }}" class="embedded_flag">
-       {{ profile_user.indexer.country }} <br>
-  <li> Languages:
-    {% with profile_user.indexer.languages.all as languages %}
-      {% if languages.count %}
-        <ul>
-          {% for language in languages %}
-            <li> {{ language }}
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-  <li> Groups:
-    <ul>
-      {% for group in profile_user.groups.all %}
-        <li> {{ group }}
-      {% endfor %}
-    </ul>
-</ul>
+{% include 'gcd/bits/profile_display.html' %}
 
 {% ifequal profile_user user %}
 <form action="{% url edit_profile user_id=profile_user.id %}" method="GET">

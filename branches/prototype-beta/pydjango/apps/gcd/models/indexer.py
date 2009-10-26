@@ -11,6 +11,9 @@ class Indexer(models.Model):
         db_table = 'Indexers'
         app_label = 'gcd'
         ordering = ['user__last_name', 'user__first_name']
+        permissions = (
+            ('can_mentor', 'Can mentor new indexers'),
+        )
 
     class Admin:
         pass
@@ -26,7 +29,7 @@ class Indexer(models.Model):
     max_reservations = models.IntegerField()
     max_ongoing = models.IntegerField()
 
-    mentor = models.ForeignKey('self', related_name='mentees')
+    mentor = models.ForeignKey(User, related_name='mentees')
     is_new = models.BooleanField()
     is_banned = models.BooleanField()
     deceased = models.BooleanField()

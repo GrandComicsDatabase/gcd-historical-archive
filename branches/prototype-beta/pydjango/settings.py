@@ -76,7 +76,10 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 AUTH_PROFILE_MODULE = 'gcd.Indexer'
-
+AUTHENTICATION_BACKENDS = (
+    'apps.gcd.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 # Corresponds to the django_site database table. As far
 # as I know, we won't be using this for the GCD.

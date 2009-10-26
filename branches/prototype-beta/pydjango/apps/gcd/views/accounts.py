@@ -4,6 +4,7 @@ import sha
 from random import random
 from datetime import date, timedelta
 
+from django.db import IntegrityError
 from django.core import urlresolvers
 from django.core.mail import send_mail
 from django.conf import settings
@@ -14,6 +15,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.views import login as standard_login
 from django.contrib.auth.views import logout as standard_logout
+from django.contrib.auth.decorators import login_required
 from django.utils.safestring import mark_safe
 
 from apps.gcd.views import render_error
@@ -104,9 +106,44 @@ def register(request):
         if email_users.count():
             return handle_existing_account(request, email_users)
 
-    new_user = User.objects.create_user(cd['email'],
-                                        cd['email'],
-                                        cd['password'])
+    # To make a unique username, take the first 20 characters before the "@"
+    # in the email address, and tack on a number if that username is already
+    # in use.  These usernames will not ever be shown except by accident
+    # or possibly in corners of the admin UI that insist on displaying them,
+    # but only admins and possibly editors will have access to that if we
+    # use it at all.  20 characters just to give plenty of room in 30-character
+    # username field for a disambiguating number, and maybe some other stuff
+    # if we ever need to change this algorithm.
+
+    # NOTE: We just go ahead and attempt to insert the user and then catch
+    # the integrity error because any other strategy involves race conditions
+    # so we'd have to catch it anyway.  We limit this to 10 tries to prevent
+    # some other condition that raises the exception from trapping us in
+    # an infinite loop.
+
+    username_base = re.sub('@.*$', '', cd['email'])[:20]
+    user_count = User.objects.count()
+    new_user = None
+    last_delta = 10
+    for delta in range(1, last_delta):
+        username = '%s_%d' % (username_base, user_count + delta)
+        try:
+            new_user = User.objects.create_user(username,
+                                                cd['email'],
+                                                cd['password'])
+            break
+        except IntegrityError:
+            if delta == last_delta:
+                raise
+
+    if new_user is None:
+        return render_error(request, mark_safe(
+          ('Could not create unique internal account name.  This is a very '
+           'unlikely error, and it will probably go away if you try to '
+           'register again.  We apologize for the inconvenience.  If it '
+           'does not go away, please email <a href="mailto:%s">%s</a>.') %
+          (settings.EMAIL_CONTACT, settings.EMAIL_CONTACT)))
+
     new_user.first_name = cd['first_name']
     new_user.last_name = cd['last_name']
     new_user.is_active = False
@@ -343,9 +380,18 @@ def update_profile(request, user_id=None):
       urlresolvers.reverse('view_profile',
                            kwargs={'user_id': request.user.id}))
 
+@login_required
 def mentor(request, indexer_id):
-    return render_to_response(
-          'gcd/error.html',
-          { 'error_text' : 'This page is not yet written' },
-          context_instance=RequestContext(request))
+    if not request.user.has_perm('gcd.can_mentor'):
+        return render_error(request,
+          'You are not allowed to mentor new Indexers')
+
+    indexer = get_object_or_404(Indexer, id=indexer_id)
+    if request.method == 'POST':
+        indexer.mentor = request.user
+        indexer.save()
+    
+    return render_to_response('gcd/accounts/mentor.html',
+                              { 'indexer' : indexer },
+                              context_instance=RequestContext(request))
 
