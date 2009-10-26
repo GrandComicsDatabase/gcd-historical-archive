@@ -170,8 +170,8 @@ def register(request):
     email_body = """
 Hello from the %s!
 
-  We've received a request for an account with username "%s" using this
-email address.  If you did indeed register an account with us,
+  We've received a request for an account using this email
+address.  If you did indeed register an account with us,
 please confirm your account by going to:
 
 %s
@@ -186,7 +186,6 @@ thanks,
 -the %s team
 %s
 """ % (settings.SITE_NAME,
-       new_user.username,
        settings.SITE_URL.rstrip('/') +
          urlresolvers.reverse('confirm', kwargs={ 'key': key }),
        settings.REGISTRATION_EXPIRATION_DELTA,
@@ -221,7 +220,6 @@ def confirm_account(request, key):
         email_body = """
 We have a new Indexer!
 
-Username: %s
 Name: %s
 Email: %s
 Country: %s
@@ -230,8 +228,7 @@ Interests:
    %s
 
 Mentor this indexer: %s
-        """ % (indexer.user.username,
-               indexer,
+        """ % (indexer,
                indexer.user.email,
                indexer.country.name,
                ', '.join([lang.name for lang in indexer.languages.all()]),
@@ -384,7 +381,7 @@ def update_profile(request, user_id=None):
 def mentor(request, indexer_id):
     if not request.user.has_perm('gcd.can_mentor'):
         return render_error(request,
-          'You are not allowed to mentor new Indexers')
+          'You are not allowed to mentor new Indexers', redirect=False)
 
     indexer = get_object_or_404(Indexer, id=indexer_id)
     if request.method == 'POST':
