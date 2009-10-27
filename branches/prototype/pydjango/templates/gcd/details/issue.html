@@ -37,18 +37,18 @@
 <div id="index_status_inner">
 <span>
 {% ifequal issue.index_status 0 %}
-   This issue has not been indexed yet.  You can help when our new indexing system comes online in late October!
+   This issue has not been indexed yet.  You can help when our new indexing system comes online in mid-November!
 {% endifequal %}
 {% ifequal issue.index_status 1 %}
    This issue is currently being edited by
    {{ issue.reserver|default:"[no one, please contact the editors to fix this reservation]" }},
-   although no changes can be made until our new indexing system comes online in late October.
+   although no changes can be made until our new indexing system comes online in mid-November.
 {% comment %}
    (since {{ issue.reservation_set.all.0.created }}, last edit {{ issue.reservation_set.all.0.modified|default:"[not recorded]" }})
 {% endcomment %}
 {% endifequal %}
 {% ifequal issue.index_status 2 %}
-   The index for this issue is awaiting editorial approval once our indexing system is rewritten and deployed in late October.
+   The index for this issue is awaiting editorial approval once our indexing system is rewritten and deployed in mid-November.
 {% endifequal %}
 </span>
 </div>
