@@ -427,10 +427,6 @@ dl.pub_data dd {
     clear: both;
 }
 
-td {
-    white-space: nowrap;
-}
-
 .footer_disclaimer {
     font-size: 0.8em;
     color: #666;
