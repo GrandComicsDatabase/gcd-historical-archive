@@ -251,7 +251,7 @@ Mentor this indexer: %s
            'the URL from the email correctly.  If it has been more than %d '
            'days, the confirmation code has expired and the account may have '
            'been deleted due to lack of confirmation.') %
-          (settings.REGISTRATION_EXPIRATION_DELTA + timedelta(1)))
+          (settings.REGISTRATION_EXPIRATION_DELTA + 1))
 
     except Indexer.MultipleObjectsReturned:
         return render_error(request,
