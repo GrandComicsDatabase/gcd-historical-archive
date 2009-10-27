@@ -175,7 +175,5 @@ urlpatterns += patterns('django.views.generic.simple',
     ('^covers_for_replacement.lasso/$', 'redirect_to', 
      {'url' : '/covers_to_replace/' }),
     ('^index.lasso/$', 'redirect_to', {'url' : '/' }),
-    ('^donate.lasso/$', 'redirect_to', {'url' : '/donate/' }),
-    (r'^graphics/covers/', 'redirect_to', {'url' : None}),
-    ('^coversubmit/index.lasso/$', 'redirect_to', {'url' : None})
+    ('^donate.lasso/$', 'redirect_to', {'url' : '/donate/' })
 )

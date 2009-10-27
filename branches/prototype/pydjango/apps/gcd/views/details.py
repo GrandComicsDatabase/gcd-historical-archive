@@ -96,7 +96,7 @@ def series(request, series_id):
     covers = series.cover_set.select_related('issue')
     
     try:
-        cover = covers.filter(has_image = True)[0]
+        cover = covers.filter(has_medium = True)[0]
         image_tag = get_image_tag(series_id = int(series_id),
                                   cover = cover,
                                   zoom_level = ZOOM_MEDIUM,

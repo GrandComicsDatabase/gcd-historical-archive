@@ -127,7 +127,7 @@
       <a href="{{ issue.cover.get_status_url }}">{{ image_tag }}</a>
     {% endif %}
     <div class="issue_cover_links">
-      {% if issue.cover.has_image %}
+      {% if issue.cover.has_large %}
         View: <a href="{{ issue.get_absolute_url }}cover/2/?style={{ style }}">Medium</a>
         <a href="{{ issue.get_absolute_url }}cover/4/?style={{ style }}">Large</a>
       <br>

@@ -42,13 +42,6 @@ def show_credit(story, credit):
     else:
         return ""
 
-def show_form(field):
-    """
-    For showing form fields for credits and similar fields.
-    """
-    return mark_safe('<li>' + field.label_tag() + unicode(field) + \
-                     unicode(field.errors))
-
 def __credit_visible(value):
     """
     Check if credit exists and if we want to show it.
@@ -118,7 +111,6 @@ def show_issue_number(issue_number):
             esc(issue_number) + '</span>')
 
 register.filter(show_credit)
-register.filter(show_form)
 register.filter(show_country)
 register.filter(show_language)
 register.filter(show_issue_number)

@@ -216,6 +216,10 @@ body {
     font-size: small;
 }
 
+#register {
+    font-size: small;
+}
+
 .instructions {
     border: solid 4px #77E;
     padding: 0.5em;
@@ -234,5 +238,15 @@ body {
 
 #advanced_link a {
     color: black;
+}
+
+/*
+ * This doesn't quite line up with the column margins,
+ * but that's OK.  It's not actually supposed to be pretty,
+ * it's supposed to be glaringly obvious/ugly so you notice it.
+ */
+#front_page_beta {
+    margin-left: 1em;
+    margin-right: 1em;
 }
 
