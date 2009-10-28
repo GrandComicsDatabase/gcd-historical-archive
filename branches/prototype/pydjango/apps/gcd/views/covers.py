@@ -467,7 +467,7 @@ def cover_upload(request, issue_id, add_variant=False):
                    'email' : request.session['gcd_uploader_email'],
                    'remember_me' : True}
         elif request.user.is_authenticated():
-            vars = {'name' : request.user.indexer.name,
+            vars = {'name' : unicode(request.user.indexer),
                    'email' : request.user.email,
                    'remember_me' : True}            
         else:
