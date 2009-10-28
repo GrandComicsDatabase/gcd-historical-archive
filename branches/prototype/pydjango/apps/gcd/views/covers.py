@@ -19,6 +19,7 @@ from django.utils.html import conditional_escape as esc
 from django.http import HttpResponseRedirect
 
 from apps.gcd.models import Cover, Series, Issue
+from apps.gcd.views import render_error
 
 ZOOM_SMALL = 1
 ZOOM_MEDIUM = 2
@@ -127,10 +128,8 @@ def backup_scans(request, series_id):
           'covers' : backup_files},
           context_instance=RequestContext(request))
     else:
-        return render_to_response('gcd/error.html', {
-          'error_text' : 'You are not allowed to access this page.',
-          },
-          context_instance=RequestContext(request))
+        return render_error(request,
+          'You are not allowed to access this page.', redirect=False)
 
 def check_series_cover_dir(series):
     """
@@ -177,36 +176,23 @@ def cover_upload(request, issue_id, add_variant=False):
 
     upload_template = 'gcd/details/cover_upload.html'
     uploaded_template = 'gcd/details/cover_uploaded.html'
-    error_template = 'gcd/error.html'
     style = 'default'
 
     # check for issue and cover
-    # TODO might do get_object_or_404 instead of own error check
-    issue = Issue.objects.filter(id=int(issue_id))
-    if len(issue) == 0:
-        return render_to_response(error_template, {
-            'error_text': 'Issue ID #' + issue_id  + ' does not exist.',
-          },
-          context_instance=RequestContext(request))    
-    else:
-        issue = issue[0]
-
+    issue = get_object_or_404(Issue, id=issue_id)
     cover = Cover.objects.filter(issue=issue)
     if len(cover) == 0:
-        return render_to_response(error_template, {
-          'error_text' : 'Something wrong with issue ID #' + issue_id  + \
-                        ' and its cover table, please contact the admins.',
-          },
-          context_instance=RequestContext(request))
+        return render_error(request,
+          'Something wrong with issue ID #' + issue_id  + \
+          ' and its cover table, please contact the admins.')
     else:
         cover = cover[0]
 
+
     if add_variant and not cover.has_image:
-        info_text = "No cover present for %s. You cannot upload a variant." % cover.issue
-        return render_to_response(error_template, {
-            'error_text' : info_text,
-            },
-            context_instance=RequestContext(request))
+        error_text = "No cover present for %s. You cannot upload a variant." \
+                     % cover.issue
+        return render_error(request, error_text, redirect=False)
 
     # check that we are actually allowed to upload
     if cover.has_image and not cover.marked and not add_variant:
@@ -244,12 +230,10 @@ def cover_upload(request, issue_id, add_variant=False):
         try:
             form = UploadScanForm(request.POST,request.FILES)
         except IOError: # sometimes uploads misbehave. connection dropped ?
-            info_text = 'Something went wrong with the upload. ' + \
-                       'Please <a href="' + request.path + '">try again</a>.'
-            return render_to_response(error_template, {
-                'error_text' : mark_safe(info_text),
-                },
-                context_instance=RequestContext(request))
+            error_text = 'Something went wrong with the upload. ' + \
+                         'Please <a href="' + request.path + '">try again</a>.'
+            return render_error(request, error_text, redirect=False, 
+                is_safe=True)
 
         if form.is_valid():
             # user has to change defaults and enter something valid
@@ -288,12 +272,9 @@ def cover_upload(request, issue_id, add_variant=False):
                 try:
                     os.mkdir(upload_dir)
                 except IOError:
-                    info_text = "Problem with file storage for uploaded " + \
-                                "cover please contact GCD-admins." 
-                    return render_to_response(error_template, {
-                        'error_text' : info_text,
-                        },
-                        context_instance=RequestContext(request))
+                    error_text = "Problem with file storage for uploaded " + \
+                                 "cover, please report an error." 
+                    return render_error(request, error_text, redirect=False)
 
             # arguably a bit unlikely to happen with the current naming scheme
             if os.path.exists(destination_name):
@@ -311,13 +292,10 @@ def cover_upload(request, issue_id, add_variant=False):
                 if im.size[0] >= 400:
                     # generate the sizes we are using
                     if check_series_cover_dir(issue.series) == False:
-                        info_text = "Problem with file storage for series " + \
-                          "'%s', id #%d, please contact webmaster." \
+                        error_text = "Problem with file storage for series " + \
+                          "'%s', id #%d, please report an error." \
                           % (issue.series, issue.id)
-                        return render_to_response(error_template, {
-                            'error_text' : info_text,
-                            },
-                            context_instance=RequestContext(request))
+                        return render_error(request, error_text, redirect=False)
 
                     if add_variant or upload_type == 'replacement':
                         suffix = "%d/400/" % issue.series_id
@@ -327,9 +305,15 @@ def cover_upload(request, issue_id, add_variant=False):
                                             _local_scans + suffix
                         # check for existence, otherwise get from server
                         if not os.path.exists(current_im_name):
-                            img_url = _server_prefixes[cover.server_version] \
-                                      + suffix
-                            urlretrieve(img_url,current_im_name)
+                            error_text = "Problem with existing file for series " + \
+                              "'%s', id #%d, please report an error." \
+                              % (issue.series, issue.id)
+                            return render_error(request, error_text, 
+                                                redirect=False)
+                            # use this for debugging locally
+                            # img_url = _server_prefixes[cover.server_version] \
+                            #          + suffix
+                            # urlretrieve(img_url,current_im_name)
                         im_old = Image.open(current_im_name)
 
                         # backup current scan
@@ -499,23 +483,14 @@ def mark_cover(request, issue_id):
     if request.user.is_authenticated() and \
       request.user.groups.filter(name='editor'):
         # check for issue and cover
-        # TODO might do get_object_or_404 instead of own error check
-        issue = Issue.objects.filter(id=int(issue_id))
-        if len(issue) == 0:
-            return render_to_response(error_template, {
-              'error_text' : 'Issue ID #' + issue_id  + ' does not exist.',
-              },
-              context_instance=RequestContext(request))
-        else:
-            issue = issue[0]
+        issue = get_object_or_404(Issue, id=issue_id)
 
         cover = Cover.objects.filter(issue=issue)
         if len(cover) == 0:
-            return render_to_response(error_template, {
-              'error_text' : 'Something wrong with issue ID #' + issue_id  + \
-                            ' and its cover table, please contact the admins.',
-              },
-              context_instance=RequestContext(request))
+            return render_error(request, 
+              'Something wrong with issue ID #' + issue_id  + \
+              ' and its cover table, please contact the admins.', 
+              redirect=False)
         else:
             cover = cover[0]
         
@@ -539,10 +514,8 @@ def mark_cover(request, issue_id):
               context_instance=RequestContext(request)
             )        
     else:
-        return render_to_response('gcd/error.html',
-          {
-            'error_text': 'You are not allowed to mark covers for replacement.',
-          },
-          context_instance=RequestContext(request))
+        return render_error(request,
+          'You are not allowed to mark covers for replacement.', 
+          redirect=False)
 
 

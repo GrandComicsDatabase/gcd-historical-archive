@@ -176,7 +176,6 @@ urlpatterns += patterns('django.views.generic.simple',
      {'url' : '/covers_to_replace/' }),
     ('^index.lasso/$', 'redirect_to', {'url' : '/' }),
     ('^donate.lasso/$', 'redirect_to', {'url' : '/donate/' }),
-    ('^donate.html/$', 'redirect_to', {'url' : '/donate/' }),
-    ('^docs/.*$', 'redirect_to', {'url' : 'http://docs.comics.org/' }),
-    ('^about.html/$', 'redirect_to', {'url' : 'http://docs.comics.org/wiki/General_FAQ' })
+    (r'^graphics/covers/', 'redirect_to', {'url' : None}),
+    ('^coversubmit/index.lasso/$', 'redirect_to', {'url' : None})
 )
