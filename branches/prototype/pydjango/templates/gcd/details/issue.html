@@ -106,14 +106,14 @@
       <div id="indexers_header">{% trans "This issue was most recently indexed by:" %}</div>
       <ul>
         {% for credit in oi_indexers %}
-          <li> {{ credit.name }}
+          <li> {{ credit }}
         {% endfor %}
       </ul>
       {% endif %}
       <div id="indexers_header">{% trans "Issues in this series have been indexed by:" %}</div>
       <ul>
         {% for credit in issue.series.index_credit_set.all.select_related %}
-          <li> {{ credit.indexer.name }}
+          <li> {{ credit.indexer }}
         {% endfor %}
       </ul>
     </div> <!-- index_credits -->

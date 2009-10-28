@@ -29,7 +29,7 @@ class Indexer(models.Model):
     max_reservations = models.IntegerField()
     max_ongoing = models.IntegerField()
 
-    mentor = models.ForeignKey(User, related_name='mentees')
+    mentor = models.ForeignKey(User, related_name='mentees', null=True)
     is_new = models.BooleanField()
     is_banned = models.BooleanField()
     deceased = models.BooleanField()
