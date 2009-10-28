@@ -44,10 +44,6 @@ class Cover(models.Model):
     marked = models.NullBooleanField(db_column = 'Marked')
     variant_text = models.CharField(max_length = 255, null = True)
 
-    has_small = models.BooleanField(db_column = 'c1')
-    has_medium = models.BooleanField(db_column = 'c2')
-    has_large = models.BooleanField(db_column = 'c4')
-
     # Probably want to rename this.  "num_covers" to match usage elsewhere?
     covers_this_title = models.IntegerField(db_column = 'CoversThisTitle',
                                             null = True)
@@ -77,10 +73,6 @@ class Cover(models.Model):
         import logging
         if self.marked:
             return 4
-        if self.has_large != 0:
+        if self.has_image:
             return 3
-        if self.has_medium != 0:
-            return 2
-        if self.has_small != 0:
-            return 1
         return 0

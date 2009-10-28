@@ -213,10 +213,10 @@ def cover_upload(request, issue_id, add_variant=False):
         tag = get_image_tag(issue.series.id, cover, "existing cover", 2)
         covers_needed = Cover.objects.filter(issue__series=issue.series)
         covers_needed = covers_needed.exclude(marked=False, 
-                                              has_large=True)
+                                              has_image=True)
         # TODO: make the 15 an option
         covers_needed = covers_needed.exclude(marked=None, 
-                                              has_large=True)[:15]
+                                              has_image=True)[:15]
         return render_to_response(uploaded_template, {
                                   'cover' : cover,
                                   'covers_needed' :  covers_needed,
@@ -387,9 +387,6 @@ def cover_upload(request, issue_id, add_variant=False):
 
                     # set cover table values
                     cover.server_version = 1
-                    cover.has_small = True
-                    cover.has_medium = True
-                    cover.has_large = True
                     cover.has_image = True
                     cover.marked = False
                     cover.contributor = contributor
@@ -432,9 +429,9 @@ def cover_upload(request, issue_id, add_variant=False):
 
                 # what else do we need
                 covers_needed = Cover.objects.filter(issue__series = \
-                  issue.series).exclude(marked = False, has_large = True)
+                  issue.series).exclude(marked = False, has_image = True)
                 covers_needed = covers_needed.exclude(marked = None,
-                                                      has_large = True)[:15]
+                                                      has_image = True)[:15]
 
                 return render_to_response(uploaded_template, {
                   'cover' : cover,
