@@ -470,10 +470,14 @@ def countries_in_use(request):
     if request.user.is_authenticated() and \
       request.user.groups.filter(name='admin'):
         codes_from_series = list(set(Series.objects.all().\
-                                values_list('country_code', flat='True')))
+                                values_list('country_code', flat=True)))
         codes_from_indexers = list(set(Indexer.objects.all().\
-                                values_list('country_code', flat='True')))
-        used_country_codes = list(set(codes_from_indexers+codes_from_series))
+                                values_list('country__code', flat=True)))
+        codes_from_publishers = list(set(Publisher.objects.all().\
+                                values_list('country__code', flat=True)))
+        used_country_codes = list(set(codes_from_indexers + \
+                                      codes_from_series + \
+                                      codes_from_publishers))
         used_countries = []
         for i in used_country_codes:
             try: # there is none
