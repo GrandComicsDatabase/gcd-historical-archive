@@ -47,6 +47,7 @@ class Cover(models.Model):
     # Probably want to rename this.  "num_covers" to match usage elsewhere?
     covers_this_title = models.IntegerField(db_column = 'CoversThisTitle',
                                             null = True)
+    file_extension = models.CharField(max_length = 10)
 
     # This is probably a NullBoolean, but not 100% certain.  Only 0 and NULL.
     coverage = models.IntegerField(db_column = 'Coverage', null= True)

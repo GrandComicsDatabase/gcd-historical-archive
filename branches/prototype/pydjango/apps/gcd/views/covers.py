@@ -263,7 +263,7 @@ def cover_upload(request, issue_id, add_variant=False):
             # name <issue_id>_<series_name>_#<issue_number>_<date>_<time>.<ext>
             scan_name = str(issue.series.id) + "_" + str(issue.id) + "_" + \
                         uni(issue).replace(' ','_').replace('/','-') + \
-                        "_" + datetime.today().strftime('%Y%m%d_%H%M%S')
+                        "_" + upload_datetime.strftime('%Y%m%d_%H%M%S')
             upload_dir = settings.MEDIA_ROOT + _local_new_scans + \
                          upload_datetime.strftime('%B_%Y/').lower()
             destination_name = upload_dir + scan_name + \
