@@ -20,6 +20,7 @@ from apps.gcd.models import Publisher, Series, Issue, Story, \
                             Country, Language, Indexer, IndexCredit, Cover
 from apps.gcd.views import paginate_response, ORDER_ALPHA, ORDER_CHRONO
 from apps.gcd.views.covers import get_image_tag, \
+                                  get_image_tags_per_issue, \
                                   get_image_tags_per_page, \
                                   ZOOM_SMALL, \
                                   ZOOM_MEDIUM, \
@@ -93,12 +94,11 @@ def series(request, series_id):
     """
     
     series = get_object_or_404(Series, id = series_id)
-    covers = series.cover_set.select_related('issue')
+    covers = series.cover_set.select_related('issue').exclude(variant_code = '1')
     
     try:
         cover = covers.filter(has_image = True)[0]
-        image_tag = get_image_tag(series_id = int(series_id),
-                                  cover = cover,
+        image_tag = get_image_tag(cover = cover,
                                   zoom_level = ZOOM_MEDIUM,
                                   alt_text = 'First Issue Cover')
     except IndexError:
@@ -144,7 +144,7 @@ def status(request, series_id):
     series = get_object_or_404(Series, id = series_id)
     # Cover sort codes are more reliable than issue key dates,
     # and the 'select_related' optimization only works in this direction.
-    covers = series.cover_set.select_related('issue')
+    covers = series.cover_set.select_related('issue').exclude(variant_code = '1')
 
     # TODO: Figure out optimal table width and/or make it user controllable.
     table_width = 12
@@ -298,11 +298,11 @@ def cover(request, issue_id, size):
     """
 
     issue = get_object_or_404(Issue, id = issue_id)
-    cover = issue.cover
+    cover = issue.cover_set.all()[0]
     [prev_issue, next_issue] = get_prev_next_issue(issue.series, cover)
 
-    cover_tag = get_image_tag(issue.series_id, cover,
-                              "Cover Image", int(size))
+    cover_tag = get_image_tags_per_issue(issue, "Cover Image", 
+                                         int(size))
     style = get_style(request)
 
     extra = 'cover/' + size + '/' # TODO: remove abstraction-breaking hack.
@@ -415,11 +415,10 @@ def issue(request, issue_id):
     Display the issue details page, including story details.
     """
     issue = get_object_or_404(Issue, id = issue_id)
-    cover = issue.cover
-    image_tag = get_image_tag(series_id=issue.series.id,
-                              cover=cover,
-                              zoom_level=ZOOM_SMALL,
-                              alt_text='Cover Thumbnail')
+    image_tag = get_image_tags_per_issue(issue=issue,
+                                         zoom_level=ZOOM_SMALL,
+                                         alt_text='Cover Thumbnail')
+    cover = issue.cover_set.all()[0]
     style = get_style(request)
 
     series = issue.series

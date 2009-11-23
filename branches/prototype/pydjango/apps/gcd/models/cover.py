@@ -11,7 +11,8 @@ class Cover(models.Model):
     class Meta:
         db_table = 'covers'
         app_label = 'gcd'
-        ordering = ['code']
+        ordering = ['code', 'id']
+        get_latest_by = "created"
         permissions = (
             ('can_upload_cover', 'can upload cover'),
         )
@@ -34,7 +35,7 @@ class Cover(models.Model):
     year_began = models.IntegerField(db_column = 'Yr_Began', null = True)
 
     # Issue attributes
-    issue = models.OneToOneField(Issue,
+    issue = models.ForeignKey(Issue,
                                  db_column = 'IssueID')
     issue_number = models.CharField(max_length = 50, db_column = 'Issue')
 
@@ -66,7 +67,7 @@ class Cover(models.Model):
         if self.marked or not self.has_image:
             return urlresolvers.reverse(
                 'apps.gcd.views.covers.cover_upload',
-                kwargs={'issue_id': self.issue.id} )
+                kwargs={'cover_id': self.id} )
         else:
             return self.issue.get_absolute_url()
 
