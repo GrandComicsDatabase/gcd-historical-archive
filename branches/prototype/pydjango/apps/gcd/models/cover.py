@@ -12,7 +12,7 @@ class Cover(models.Model):
         db_table = 'covers'
         app_label = 'gcd'
         ordering = ['code', 'id']
-        get_latest_by = "created"
+        get_latest_by = "id"
         permissions = (
             ('can_upload_cover', 'can upload cover'),
         )

@@ -2,6 +2,7 @@ import os
 import Image
 import shutil
 import stat
+import time
 from urllib import urlretrieve
 from datetime import timedelta, datetime
 
@@ -43,7 +44,7 @@ def check_cover_dir(cover):
 
 
 def copy_covers_old():
-    series=Series.objects.all().order_by('id')
+    series=Series.objects.all().order_by('id').filter(id=13589)
 
     for serie in series:
         covers=Cover.objects.filter(has_image=True).filter(modified__lt='2009-10-02 14:00').filter(issue__series=serie)
@@ -103,7 +104,11 @@ def find_original_cover(old_filename):
     return extension, old_filename
 
 def copy_covers_new():
-    covers=Cover.objects.filter(has_image=True).filter(modified__gte='2009-10-02 14:00')
+    #covers=Cover.objects.filter(has_image=True).filter(modified__gte='2009-10-02 14:00').filter(modified__lt='2009-11-15 00:00')
+    #covers=Cover.objects.filter(has_image=True).filter(modified__gte='2009-11-15 00:00').filter(modified__lt='2009-11-23 00:00')
+    covers=Cover.objects.filter(has_image=True).filter(modified__gte='2009-11-23 00:00')
+
+    cnt = 0
     for cover in covers:
         issue = cover.issue
         scan_name = str(issue.series.id) + "_" + str(issue.id) + "_" + \
@@ -158,6 +163,9 @@ def copy_covers_new():
 
         cover.file_extension = extension
         cover.save()
+        cnt+=1
+        if cnt % 100 == 0:
+            print cnt
 
 def generate_sizes(cover, filename):
     im = Image.open(filename)
@@ -217,28 +225,31 @@ def add_variants(for_real=False):
     file = open('sorted_variants')
     lines = file.readlines()
     issue_old = -1
-    for line in lines[8:]:
+    for line in lines:
         content = line.split('; ')
         series = int(content[0])
         issue = int(content[1])
-        modified = datetime.strptime(content[2], '%Y%m%d_%H%M%S')
+        #modified = datetime.strptime(content[2], '%Y%m%d_%H%M%S')
+        modified = datetime(*(time.strptime(content[2], '%Y%m%d_%H%M%S')[0:6]))
         backup_filename = content[3]
         next_filename = content[4]
         contributor = content[5].split('\n')[0]
         cur_cover = Cover.objects.filter(issue__id = issue).latest()
-        copy_cover_content(cur_cover, for_real)
         if issue_old == issue: # we only the old datetime for the first file from the old db,
                                # the datetime in the case of more than one variant we need to get
                                # from the last used filename (that's why they are sorted by issue.id)
             if for_real and cur_cover == cover_old: # this shouldn't happen
-                modified = datetime.strptime(os.path.splitext(last_uploaded)[0][-15:], '%Y%m%d_%H%M%S')
+                #modified = datetime.strptime(os.path.splitext(last_uploaded)[0][-15:], '%Y%m%d_%H%M%S')
+                modified = datetime(*(time.strptime(os.path.splitext(last_uploaded)[0][-15:], '%Y%m%d_%H%M%S')[0:6]))
                 print last_uploaded, modified
                 print cur_cover.issue, backup_filename, next_filename
                 raise ValueError
             else:
-                modified = datetime.strptime(os.path.splitext(last_uploaded)[0][-15:], '%Y%m%d_%H%M%S')
+                #modified = datetime.strptime(os.path.splitext(last_uploaded)[0][-15:], '%Y%m%d_%H%M%S')
+                modified = datetime(*(time.strptime(os.path.splitext(last_uploaded)[0][-15:], '%Y%m%d_%H%M%S')[0:6]))
                 print last_uploaded, modified
                 print cur_cover.issue, backup_filename, next_filename
+        copy_cover_content(cur_cover, for_real)
 
         # series, issues, code, has_image, server_version stays the same
         if for_real:
@@ -289,6 +300,6 @@ def add_variants(for_real=False):
         last_uploaded = next_filename
         cover_old = cur_cover
 
-#add_variants(for_real=True)
+add_variants(for_real=True)
 #copy_covers_new()
-copy_covers_old()
+#copy_covers_old()
