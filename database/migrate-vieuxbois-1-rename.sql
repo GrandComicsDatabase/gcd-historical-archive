@@ -1,7 +1,5 @@
 SET SESSION sql_mode='STRICT_ALL_TABLES';
 
-BEGIN;
-
 -- BEGIN Table restructuring statements
 -- And yes, reording columns in mysql is somewhat pointless, but this just
 -- makes things show up much nicer in test queries of the SELECT(*) form and
@@ -33,6 +31,8 @@ INSERT INTO imprints (id, publisher_id)
 UPDATE publishers SET ImprintCount=
     (SELECT COUNT(*) FROM imprints WHERE imprints.publisher_id=publishers.ID);
 
+UPDATE publishers SET Notes='' WHERE Notes IS NULL;
+UPDATE publishers SET web='' WHERE web IS NULL;
 ALTER TABLE publishers RENAME gcd_publisher,
     CHANGE COLUMN ID id int(11) NOT NULL auto_increment FIRST,
     CHANGE COLUMN PubName name varchar(255) NOT NULL AFTER id,
@@ -40,11 +40,10 @@ ALTER TABLE publishers RENAME gcd_publisher,
     CHANGE COLUMN YearBegan year_began int(11) default NULL AFTER country_id,
     CHANGE COLUMN YearEnded year_ended int(11) default NULL
         AFTER year_began,
-    CHANGE COLUMN Notes notes mediumtext AFTER year_ended,
-    CHANGE COLUMN web url varchar(255) default NULL AFTER notes,
+    CHANGE COLUMN Notes notes longtext NOT NULL AFTER year_ended,
+    CHANGE COLUMN web url varchar(255) NOT NULL default '' AFTER notes,
     CHANGE COLUMN Master is_master tinyint(1) NOT NULL AFTER url,
     CHANGE COLUMN ParentID parent_id int(11) default NULL
-        -- KEY -- REFERENCES gcd_publisher (id)
         AFTER is_master,
     CHANGE COLUMN ImprintCount imprint_count int(11) NOT NULL default 0
         AFTER parent_id,
@@ -60,16 +59,63 @@ ALTER TABLE publishers RENAME gcd_publisher,
     ADD FOREIGN KEY (country_id) REFERENCES gcd_country (id),
     ADD FOREIGN KEY (parent_id) REFERENCES gcd_publisher (id);
 
+UPDATE gcd_publisher SET url=CONCAT('http://', url)
+    WHERE url IS NOT NULL AND url != '' AND url NOT LIKE 'http://%';
+
+CREATE TABLE gcd_indicia_publisher (
+    id int(11) NOT NULL auto_increment,
+    name varchar(255) NOT NULL,
+    parent_id int(11) NOT NULL,
+    country_id int(11) NOT NULL,
+    year_began int(11) default NULL,
+    year_ended int(11) default NULL,
+    is_surrogate tinyint(1) NOT NULL default 0,
+    notes longtext,
+    url varchar(255) NOT NULL default '',
+    created datetime NOT NULL,
+    modified datetime NOT NULL,
+    reserved tinyint(1) NOT NULL default 0,
+    PRIMARY KEY (id),
+    KEY (name),
+    KEY (parent_id),
+    KEY (country_id),
+    KEY (year_began),
+    KEY (is_surrogate),
+    KEY (reserved),
+    FOREIGN KEY (parent_id) REFERENCES gcd_publisher (id),
+    FOREIGN KEY (country_id) REFERENCES gcd_country (id)
+);
+
+CREATE TABLE gcd_brand (
+    id int(11) NOT NULL auto_increment,
+    name varchar(255) NOT NULL,
+    parent_id int(11) NOT NULL,
+    year_began int(11) default NULL,
+    year_ended int(11) default NULL,
+    notes longtext,
+    url varchar(255) default NULL,
+    created datetime NOT NULL,
+    modified datetime NOT NULL,
+    reserved tinyint(1) NOT NULL default 0,
+    PRIMARY KEY (id),
+    KEY (name),
+    KEY (parent_id),
+    KEY (year_began),
+    KEY (reserved),
+    FOREIGN KEY (parent_id) REFERENCES gcd_publisher (id)
+);
+
+UPDATE series SET Pub_Note='' WHERE Pub_Note IS NULL;
 ALTER TABLE series RENAME gcd_series,
                    DROP COLUMN Pub_Name,
                    DROP COLUMN Frst_Iss,
                    DROP COLUMN Last_Iss,
     CHANGE COLUMN ID id int(11) NOT NULL auto_increment FIRST,
     CHANGE COLUMN Bk_Name name varchar(255) NOT NULL AFTER id,
-    CHANGE COLUMN Format format varchar(255) default NULL AFTER name,
+    CHANGE COLUMN Format format varchar(255) NOT NULL default '' AFTER name,
     CHANGE COLUMN Yr_Began year_began int(11) NOT NULL AFTER format,
     CHANGE COLUMN Yr_Ended year_ended int(11) default NULL AFTER year_began,
-    CHANGE COLUMN PubDates publication_dates varchar(255) default NULL
+    CHANGE COLUMN PubDates publication_dates varchar(255) NOT NULL default ''
         AFTER year_ended,
     ADD COLUMN first_issue_id int(11) default NULL AFTER publication_dates,
     ADD COLUMN last_issue_id int(11) default NULL AFTER first_issue_id,
@@ -80,9 +126,9 @@ ALTER TABLE series RENAME gcd_series,
     ADD COLUMN country_id int(11) NOT NULL AFTER country_code,
     CHANGE COLUMN LangCode language_code varchar(3) default NULL AFTER country_id,
     ADD COLUMN language_id int(11) NOT NULL AFTER language_code,
-    CHANGE COLUMN Tracking tracking_notes mediumtext AFTER language_id,
-    CHANGE COLUMN Notes notes mediumtext AFTER tracking_notes,
-    CHANGE COLUMN Pub_Note publication_notes mediumtext AFTER notes,
+    CHANGE COLUMN Tracking tracking_notes longtext NOT NULL AFTER language_id,
+    CHANGE COLUMN Notes notes longtext NOT NULL AFTER tracking_notes,
+    CHANGE COLUMN Pub_Note publication_notes longtext NOT NULL AFTER notes,
     CHANGE COLUMN HasGallery has_gallery tinyint(1) NOT NULL default 0
         AFTER publication_notes,
     CHANGE COLUMN OpenReserve open_reserve int(11) default NULL AFTER has_gallery,
@@ -92,14 +138,6 @@ ALTER TABLE series RENAME gcd_series,
         default '1901-01-01 00:00:00' AFTER issue_count,
     CHANGE COLUMN Modified modified datetime NOT NULL
         default '1901-01-01 00:00:00' AFTER created,
-    ADD INDEX (country_id),
-    ADD INDEX (language_id),
-    ADD INDEX (first_issue_id),
-    ADD INDEX (last_issue_id),
-    ADD FOREIGN KEY (first_issue_id) REFERENCES gcd_issue(id),
-    ADD FOREIGN KEY (last_issue_id) REFERENCES gcd_issue(id),
-    ADD FOREIGN KEY (country_id) REFERENCES gcd_country (id),
-    ADD FOREIGN KEY (language_id) REFERENCES gcd_language (id),
     ADD FOREIGN KEY (imprint_id) REFERENCES gcd_publisher (id),
     ADD FOREIGN KEY (publisher_id) REFERENCES gcd_publisher (id);
 
@@ -117,25 +155,41 @@ UPDATE gcd_series s INNER JOIN gcd_country c ON s.country_code = c.code
     SET s.country_id = c.id;
 ALTER TABLE gcd_series DROP COLUMN country_code, DROP COLUMN language_code;
 
+UPDATE issues SET Pub_Date='' WHERE Pub_Date IS NULL;
+UPDATE issues SET Key_Date='' WHERE Key_Date IS NULL;
+UPDATE issues SET Price='' WHERE Price IS NULL;
 ALTER TABLE issues RENAME gcd_issue,
                    DROP COLUMN Bk_Name,
                    DROP COLUMN Yr_Began,
                    DROP COLUMN Pub_Name,
+                   DROP COLUMN storycount,
     CHANGE COLUMN ID id int(11) NOT NULL auto_increment FIRST,
     CHANGE COLUMN Issue `number` varchar(50) NOT NULL AFTER id,
     CHANGE COLUMN VolumeNum volume int(11) default NULL AFTER `number`,
+    ADD COLUMN no_volume tinyint(1) NOT NULL default 0 AFTER volume,
     ADD COLUMN display_volume_with_number tinyint(1) NOT NULL default 0
-        AFTER volume,
+        AFTER no_volume,
     CHANGE COLUMN SeriesID series_id int(11) NOT NULL
         AFTER display_volume_with_number,
+    ADD COLUMN indicia_publisher_id int(11) default NULL AFTER series_id,
+    ADD COLUMN brand_id int(11) default NULL AFTER indicia_publisher_id,
     CHANGE COLUMN Pub_Date publication_date varchar(255) default NULL
-        AFTER series_id,
-    CHANGE COLUMN Key_Date key_date varchar(10) default NULL AFTER publication_date,
+        AFTER brand_id,
+    CHANGE COLUMN Key_Date key_date varchar(10) default NULL
+        AFTER publication_date,
     ADD COLUMN sort_code int(11) unsigned NOT NULL default 0 AFTER key_date,
     CHANGE COLUMN Price price varchar(255) default NULL AFTER sort_code,
-    CHANGE COLUMN storycount story_count int(11) NOT NULL default 0 AFTER price,
-    CHANGE COLUMN IndexStatus index_status int(11) NOT NULL default 0
-        AFTER story_count,
+    ADD COLUMN page_count decimal(10, 3) default NULL AFTER price,
+    ADD COLUMN page_count_uncertain tinyint(1) NOT NULL default 0 AFTER page_count,
+    ADD COLUMN size varchar(255) NOT NULL default '' AFTER page_count_uncertain,
+    ADD COLUMN paper_stock varchar(255) NOT NULL default '' AFTER size,
+    ADD COLUMN binding varchar(255) NOT NULL default '' AFTER paper_stock,
+    ADD COLUMN printing_process varchar(255) NOT NULL default '' AFTER binding,
+    ADD COLUMN indicia_frequency varchar(255) NOT NULL default ''
+        AFTER printing_process,
+    ADD COLUMN editing longtext NOT NULL AFTER indicia_frequency,
+    ADD COLUMN notes longtext NOT NULL AFTER editing,
+    CHANGE COLUMN IndexStatus index_status int(11) NOT NULL default 0 AFTER notes,
     CHANGE COLUMN ReserveStatus reserve_status int(11) NOT NULL default 0
         AFTER index_status,
     CHANGE COLUMN ReserveCheck reserve_check int(11) default NULL
@@ -144,35 +198,56 @@ ALTER TABLE issues RENAME gcd_issue,
         default '1901-01-01 00:00:00' AFTER reserve_check,
     CHANGE COLUMN Modified modified datetime NOT NULL
         default '1901-01-01 00:00:00' AFTER created,
+    ADD INDEX (no_volume),
     ADD INDEX (display_volume_with_number),
+    ADD INDEX (indicia_publisher_id),
+    ADD INDEX (brand_id),
     ADD INDEX (reserve_check),
-    ADD FOREIGN KEY (series_id) REFERENCES gcd_series (id);
+    ADD FOREIGN KEY (series_id) REFERENCES gcd_series (id),
+    ADD FOREIGN KEY (indicia_publisher_id) REFERENCES gcd_indicia_publisher (id),
+    ADD FOREIGN KEY (brand_id) REFERENCES gcd_brand (id);
 
+ALTER TABLE gcd_series
+    ADD FOREIGN KEY (country_id) REFERENCES gcd_country (id),
+    ADD FOREIGN KEY (language_id) REFERENCES gcd_language (id),
+    ADD FOREIGN KEY (first_issue_id) REFERENCES gcd_issue (id),
+    ADD FOREIGN KEY (last_issue_id) REFERENCES gcd_issue (id);
+
+Drop indexes we're not using for search (because they don't help the kind of
+searching we do) because they are quite expensive.
 ALTER TABLE stories RENAME gcd_story,
+                    DROP INDEX Seq_No,
+                    DROP INDEX Title,
+                    DROP INDEX Feature,
+                    DROP INDEX JobNo,
     CHANGE COLUMN ID id int(11) NOT NULL auto_increment FIRST,
-    CHANGE COLUMN Title title varchar(255) default NULL AFTER id,
-    CHANGE COLUMN Feature feature varchar(255) default NULL AFTER title,
+    CHANGE COLUMN Title title varchar(255) NOT NULL default '' AFTER id,
+    ADD COLUMN title_inferred tinyint(1) NOT NULL default 0 AFTER title,
+    CHANGE COLUMN Feature feature varchar(255) NOT NULL AFTER title_inferred,
     CHANGE COLUMN Seq_No sequence_number int(11) NOT NULL AFTER feature,
-    CHANGE COLUMN Pg_Cnt page_count decimal(10, 4) default NULL
+    CHANGE COLUMN Pg_Cnt page_count decimal(10, 3) default NULL
         AFTER sequence_number,
-    CHANGE COLUMN `Type` `type` varchar(50) default NULL AFTER page_count,
-    CHANGE COLUMN JobNo job_number varchar(25) default NULL AFTER `type`,
+    CHANGE COLUMN `Type` `type` varchar(50) default NULL AFTER page_count_uncertain,
+    ADD COLUMN type_id int(11) NOT NULL AFTER `type`,
+    CHANGE COLUMN JobNo job_number varchar(25) NOT NULL default '' AFTER `type_id`,
     CHANGE COLUMN IssueID issue_id int(11) NOT NULL,
-    CHANGE COLUMN Script script mediumtext AFTER issue_id,
-    CHANGE COLUMN Pencils pencils mediumtext AFTER script,
-    CHANGE COLUMN Inks inks mediumtext AFTER pencils,
-    CHANGE COLUMN Colors colors mediumtext AFTER inks,
-    CHANGE COLUMN Letters letters mediumtext AFTER colors,
-    CHANGE COLUMN Editing editing mediumtext AFTER letters,
-    CHANGE COLUMN Genre genre varchar(255) default NULL AFTER editing,
-    CHANGE COLUMN Char_App characters mediumtext AFTER genre,
-    CHANGE COLUMN Synopsis synopsis mediumtext AFTER characters,
-    CHANGE COLUMN Reprints reprint_notes mediumtext AFTER synopsis,
-    CHANGE COLUMN Notes notes mediumtext AFTER reprint_notes,
+    CHANGE COLUMN Script script longtext NOT NULL AFTER issue_id,
+    CHANGE COLUMN Pencils pencils longtext NOT NULL AFTER script,
+    CHANGE COLUMN Inks inks longtext NOT NULL AFTER pencils,
+    CHANGE COLUMN Colors colors longtext NOT NULL AFTER inks,
+    CHANGE COLUMN Letters letters longtext NOT NULL AFTER colors,
+    CHANGE COLUMN Editing editing longtext NOT NULL AFTER letters,
+    ADD COLUMN no_editing tinyint(1) NOT NULL default 0 AFTER no_letters,
+    CHANGE COLUMN Genre genre varchar(255) NOT NULL default '' AFTER editing,
+    CHANGE COLUMN Char_App characters longtext NOT NULL AFTER genre,
+    CHANGE COLUMN Synopsis synopsis longtext NOT NULL AFTER characters,
+    CHANGE COLUMN Reprints reprint_notes longtext NOT NULL AFTER synopsis,
+    CHANGE COLUMN Notes notes longtext NOT NULL AFTER reprint_notes,
     CHANGE COLUMN Created created datetime NOT NULL
         default '1901-01-01 00:00:00' AFTER reprint_notes,
     CHANGE COLUMN Modified modified datetime NOT NULL
         default '1901-01-01 00:00:00' AFTER created,
+    ADD INDEX (no_editing),
     ADD FOREIGN KEY (issue_id) REFERENCES gcd_issue (id);
 
 ALTER TABLE covers RENAME gcd_cover,
@@ -270,7 +345,7 @@ ALTER TABLE IndexCredit RENAME gcd_series_indexers,
     CHANGE COLUMN IndexerID indexer_id int(11) NOT NULL,
     CHANGE COLUMN SeriesID series_id int(11) NOT NULL,
     CHANGE COLUMN Run run varchar(255) default NULL,
-    CHANGE COLUMN Notes notes mediumtext AFTER run,
+    CHANGE COLUMN Notes notes longtext AFTER run,
     CHANGE COLUMN DateMod modified datetime NOT NULL
         default '1901-01-01 00:00:00' AFTER notes,
     ADD FOREIGN KEY (series_id) REFERENCES gcd_series (id),
@@ -284,7 +359,182 @@ DELETE FROM auth_group_permissions WHERE permission_id =
     (SELECT id FROM auth_permission WHERE codename='can_upload_cover');
 DELETE FROM auth_permission WHERE codename='can_upload_cover';
 
-SET foreign_key_checks = 1;
+-- ----------------------------------------------------------------------------
+-- Fix issue-wide editor credits and notes.
+-- Must be done after initial ALTER TABLEs because old
+-- issues.Editing field is smaller.
+-- This duplicates the notes in the issue and covers story fields, as debate
+-- on the mailing lists determined that the notes can easily apply to either,
+-- or both, and that no usage was sufficiently prevalent to enforce.
+-- GCD contributors will just have to adjust the notes manually to remove
+-- duplication.
+--
+-- Note that while we're technically not ceratain about all cover page counts
+-- being "1" (in fact, wraparounds and gatefolds are definitely not "1"), it's
+-- not worth flagging the whole database as uncertain.  We'll just fix those
+-- as we go along manually.
+-- ----------------------------------------------------------------------------
+UPDATE gcd_issue INNER JOIN gcd_story
+                         ON gcd_story.issue_id=gcd_issue.id
+    SET gcd_issue.page_count=gcd_story.page_count,
+        gcd_issue.page_count_uncertain=gcd_story.page_count_uncertain,
+        gcd_issue.editing=gcd_story.editing,
+        gcd_issue.notes=gcd_story.notes
+    WHERE gcd_story.sequence_number = 0;
+UPDATE gcd_story SET page_count=1, page_count_uncertain=0,
+                     editing='', no_editing=1
+    WHERE sequence_number = 0;
 
-COMMIT;
+UPDATE gcd_story SET editing='', no_editing=1
+    WHERE editing IS NULL OR editing IN ('', 'none', 'n/a', 'NA', 'nessuno');
+
+-- ----------------------------------------------------------------------------
+-- Factor out sequence type and set up inferred title flag.
+-- ----------------------------------------------------------------------------
+
+CREATE TABLE gcd_story_type (
+    id int(11) auto_increment NOT NULL,
+    name varchar(50) NOT NULL UNIQUE,
+    PRIMARY KEY (id),
+    KEY type_name (name)
+);
+
+INSERT INTO gcd_story_type (name) SELECT DISTINCT `type` FROM gcd_story;
+
+UPDATE gcd_story_type t INNER JOIN gcd_story q ON t.name=q.`type`
+    SET q.type_id=t.id;
+UPDATE gcd_story_type SET name='advertisement' WHERE name='ad';
+UPDATE gcd_story_type SET name='biography (nonfictional)' WHERE name='bio';
+UPDATE gcd_story_type SET name='character profile' WHERE name='profile';
+UPDATE gcd_story_type SET name='cover reprint (on interior page)'
+    WHERE name='cover reprint';
+UPDATE gcd_story_type SET name='foreword, introduction, preface, afterword'
+    WHERE name='foreword';
+UPDATE gcd_story_type SET name='illustration' WHERE name='pinup';
+UPDATE gcd_story_type SET name='insert or dust jacket' WHERE name='insert';
+UPDATE gcd_story_type SET name='letters page' WHERE name='letters';
+UPDATE gcd_story_type SET name='promo (by the publisher)'
+    WHERE name='promo';
+UPDATE gcd_story_type SET name='public service announcement'
+    WHERE name='psa';
+UPDATE gcd_story_type SET name='(backcovers) *do not use* / *please fix*'
+    WHERE name='backcovers';
+
+ALTER TABLE gcd_story DROP COLUMN `type`,
+    ADD INDEX (type_id),
+    ADD FOREIGN KEY (type_id) REFERENCES gcd_story_type (id);
+
+UPDATE gcd_story SET title_inferred = 1,
+    title=TRIM(LEADING '[' FROM (SELECT TRIM(TRAILING ']' FROM title)))
+    WHERE title LIKE '[%]';
+
+-- ----------------------------------------------------------------------------
+-- Proper reprint tables!
+-- ----------------------------------------------------------------------------
+
+CREATE TABLE gcd_reprint (
+    id int(11) NOT NULL auto_increment,
+    source_id int(11) NOT NULL,
+    target_id int(11) NOT NULL,
+    notes longtext,
+    reserved tinyint(1) NOT NULL default 0,
+    PRIMARY KEY (id),
+    KEY reprint_from (`source_id`),
+    KEY reprint_to (`target_id`),
+    KEY (reserved),
+    FOREIGN KEY (source_id) REFERENCES gcd_story(id),
+    FOREIGN KEY (target_id) REFERENCES gcd_story(id)
+);
+
+CREATE TABLE gcd_reprint_to_issue (
+    id int(11) NOT NULL auto_increment,
+    source_id int(11) NOT NULL,
+    target_issue_id int(11) NOT NULL,
+    notes longtext,
+    reserved tinyint(1) NOT NULL default 0,
+    PRIMARY KEY (id),
+    KEY reprint_to_issue_from (`source_id`),
+    KEY reprint_to_issue_to (`target_issue_id`),
+    KEY (reserved),
+    FOREIGN KEY (source_id) REFERENCES gcd_story(id),
+    FOREIGN KEY (target_issue_id) REFERENCES gcd_issue(id)
+);
+
+CREATE TABLE gcd_reprint_from_issue (
+    id int(11) NOT NULL auto_increment,
+    source_issue_id int(11) NOT NULL,
+    target_id int(11) NOT NULL,
+    notes longtext,
+    reserved tinyint(1) NOT NULL default 0,
+    PRIMARY KEY (id),
+    KEY reprint_to_issue_from (`source_issue_id`),
+    KEY reprint_to_issue_to (`target_id`),
+    KEY (reserved),
+    FOREIGN KEY (source_issue_id) REFERENCES gcd_issue(id),
+    FOREIGN KEY (target_id) REFERENCES gcd_story(id)
+);
+
+CREATE TABLE gcd_issue_reprint (
+    id int(11) NOT NULL auto_increment,
+    source_issue_id int(11) NOT NULL,
+    target_issue_id int(11) NOT NULL,
+    notes longtext,
+    reserved tinyint(1) NOT NULL default 0,
+    PRIMARY KEY (id),
+    KEY issue_from (`source_issue_id`),
+    KEY issue_to (`target_issue_id`),
+    KEY (reserved)
+);
+
+-- Add the first Migration data table, and populate it so we can use
+-- -- a proper OneToOne field in Django.
+
+CREATE TABLE migration_story_status (
+    id int(11) NOT NULL auto_increment,
+    story_id int(11) NOT NULL,
+    reprint_needs_inspection tinyint(1) default NULL,
+    reprint_confirmed tinyint(1) default NULL,
+    reprint_original_notes longtext,
+    PRIMARY KEY (id),
+    KEY key_reprint_needs_inspection (`reprint_needs_inspection`),
+    KEY key_reprint_confirmed (`reprint_confirmed`),
+    KEY key_reprint_notes (`reprint_original_notes`(255))
+);
+
+INSERT INTO migration_story_status (story_id)
+    SELECT id FROM gcd_story;
+
+-- ----------------------------------------------------------------------------
+-- Series to series linking
+-- ----------------------------------------------------------------------------
+
+CREATE TABLE gcd_series_relationship_type (
+    id int(11) auto_increment NOT NULL,
+    name varchar(100) NOT NULL,
+    description longtext,
+    reserved tinyint(1) NOT NULL default 0,
+    notes longtext,
+    PRIMARY KEY (id),
+    KEY key_name (name)
+);
+
+INSERT INTO gcd_series_relationship_type (name)
+    VALUES ('numbering');
+
+CREATE TABLE gcd_series_relationship (
+    id int(11) auto_increment NOT NULL,
+    source_id int(11) NOT NULL,
+    target_id int(11) NOT NULL,
+    source_issue_id int(11) default NULL,
+    target_issue_id int(11) default NULL,
+    link_type_id int(11) NOT NULL,
+    notes longtext,
+    PRIMARY KEY (id),
+    KEY key_source (source_id),
+    KEY key_target (target_id),
+    KEY key_issue_source (source_issue_id),
+    KEY key_issue_target (target_issue_id)
+);
+
+SET foreign_key_checks = 1;
 
