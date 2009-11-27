@@ -188,7 +188,8 @@ ALTER TABLE issues RENAME gcd_issue,
     ADD COLUMN indicia_frequency varchar(255) NOT NULL default ''
         AFTER printing_process,
     ADD COLUMN editing longtext NOT NULL AFTER indicia_frequency,
-    ADD COLUMN notes longtext NOT NULL AFTER editing,
+    ADD COLUMN no_editing tinyint(1) NOT NULL default 0 AFTER editing,
+    ADD COLUMN notes longtext NOT NULL AFTER no_editing,
     CHANGE COLUMN IndexStatus index_status int(11) NOT NULL default 0 AFTER notes,
     CHANGE COLUMN ReserveStatus reserve_status int(11) NOT NULL default 0
         AFTER index_status,
@@ -202,6 +203,7 @@ ALTER TABLE issues RENAME gcd_issue,
     ADD INDEX (display_volume_with_number),
     ADD INDEX (indicia_publisher_id),
     ADD INDEX (brand_id),
+    ADD INDEX (no_editing),
     ADD INDEX (reserve_check),
     ADD FOREIGN KEY (series_id) REFERENCES gcd_series (id),
     ADD FOREIGN KEY (indicia_publisher_id) REFERENCES gcd_indicia_publisher (id),
@@ -213,8 +215,8 @@ ALTER TABLE gcd_series
     ADD FOREIGN KEY (first_issue_id) REFERENCES gcd_issue (id),
     ADD FOREIGN KEY (last_issue_id) REFERENCES gcd_issue (id);
 
-Drop indexes we're not using for search (because they don't help the kind of
-searching we do) because they are quite expensive.
+-- Drop indexes we're not using for search (because they don't help the kind of
+-- searching we do) because they are quite expensive.
 ALTER TABLE stories RENAME gcd_story,
                     DROP INDEX Seq_No,
                     DROP INDEX Title,
@@ -339,6 +341,10 @@ ALTER TABLE Reservations RENAME gcd_reservation,
     ADD FOREIGN KEY (issue_id) REFERENCES gcd_issue (id),
     ADD FOREIGN KEY (indexer_id) REFERENCES gcd_indexer (id);
 
+-- We apparently have numerous issues reserved that don't actually exist.
+DELETE r FROM gcd_reservation r LEFT OUTER JOIN gcd_issue i ON i.id=r.issue_id
+    WHERE i.id IS NULL;
+
 ALTER TABLE IndexCredit RENAME gcd_series_indexers,
                         DROP COLUMN `Comment`,
     CHANGE COLUMN ID id int(11) NOT NULL auto_increment,
@@ -387,6 +393,9 @@ UPDATE gcd_story SET page_count=1, page_count_uncertain=0,
 
 UPDATE gcd_story SET editing='', no_editing=1
     WHERE editing IS NULL OR editing IN ('', 'none', 'n/a', 'NA', 'nessuno');
+UPDATE gcd_issue SET editing='', no_editing=1
+    WHERE editing IN ('none', 'n/a', 'NA', 'nessuno');
+UPDATE gcd_issue SET editing='' WHERE editing IS NULL;
 
 -- ----------------------------------------------------------------------------
 -- Factor out sequence type and set up inferred title flag.
