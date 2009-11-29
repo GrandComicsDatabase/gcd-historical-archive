@@ -47,8 +47,10 @@ ALTER TABLE publishers RENAME gcd_publisher,
         AFTER is_master,
     CHANGE COLUMN ImprintCount imprint_count int(11) NOT NULL default 0
         AFTER parent_id,
+    ADD COLUMN brand_count int(11) NOT NULL default 0 AFTER imprint_count,
+    ADD COLUMN indicia_publisher_count int(11) NOT NULL default 0 AFTER brand_count,
     CHANGE COLUMN BookCount series_count int(11) NOT NULL default 0
-        AFTER imprint_count,
+        AFTER indicia_publisher_count,
     CHANGE COLUMN IssueCount issue_count int(11) NOT NULL default 0
         AFTER series_count,
     CHANGE COLUMN Created created datetime NOT NULL
@@ -56,6 +58,8 @@ ALTER TABLE publishers RENAME gcd_publisher,
     CHANGE COLUMN Modified modified datetime NOT NULL
         default '1901-01-01 00:00:00' AFTER created,
     ADD INDEX (country_id),
+    ADD INDEX (brand_count),
+    ADD INDEX (indicia_publisher_count),
     ADD FOREIGN KEY (country_id) REFERENCES gcd_country (id),
     ADD FOREIGN KEY (parent_id) REFERENCES gcd_publisher (id);
 
@@ -190,7 +194,9 @@ ALTER TABLE issues RENAME gcd_issue,
     ADD COLUMN editing longtext NOT NULL AFTER indicia_frequency,
     ADD COLUMN no_editing tinyint(1) NOT NULL default 0 AFTER editing,
     ADD COLUMN notes longtext NOT NULL AFTER no_editing,
-    CHANGE COLUMN IndexStatus index_status int(11) NOT NULL default 0 AFTER notes,
+    ADD COLUMN story_type_count int(11) NOT NULL default 0 AFTER notes,
+    CHANGE COLUMN IndexStatus index_status int(11) NOT NULL default 0
+        AFTER story_type_count,
     CHANGE COLUMN ReserveStatus reserve_status int(11) NOT NULL default 0
         AFTER index_status,
     CHANGE COLUMN ReserveCheck reserve_check int(11) default NULL
@@ -204,6 +210,7 @@ ALTER TABLE issues RENAME gcd_issue,
     ADD INDEX (indicia_publisher_id),
     ADD INDEX (brand_id),
     ADD INDEX (no_editing),
+    ADD INDEX (story_type_count),
     ADD INDEX (reserve_check),
     ADD FOREIGN KEY (series_id) REFERENCES gcd_series (id),
     ADD FOREIGN KEY (indicia_publisher_id) REFERENCES gcd_indicia_publisher (id),
@@ -436,6 +443,11 @@ ALTER TABLE gcd_story DROP COLUMN `type`,
 UPDATE gcd_story SET title_inferred = 1,
     title=TRIM(LEADING '[' FROM (SELECT TRIM(TRAILING ']' FROM title)))
     WHERE title LIKE '[%]';
+
+SET @story_type=(SELECT id FROM gcd_story_type WHERE name = 'story');
+UPDATE gcd_issue SET story_type_count=(
+    SELECT COUNT(*) FROM gcd_story
+        WHERE (issue_id = gcd_issue.id AND type_id = @story_type));
 
 -- ----------------------------------------------------------------------------
 -- Proper reprint tables!
