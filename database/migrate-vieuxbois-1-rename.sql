@@ -76,6 +76,7 @@ CREATE TABLE gcd_indicia_publisher (
     is_surrogate tinyint(1) NOT NULL default 0,
     notes longtext,
     url varchar(255) NOT NULL default '',
+    issue_count int(11) NOT NULL default 0,
     created datetime NOT NULL,
     modified datetime NOT NULL,
     reserved tinyint(1) NOT NULL default 0,
@@ -98,6 +99,7 @@ CREATE TABLE gcd_brand (
     year_ended int(11) default NULL,
     notes longtext,
     url varchar(255) default NULL,
+    issue_count int(11) NOT NULL default 0,
     created datetime NOT NULL,
     modified datetime NOT NULL,
     reserved tinyint(1) NOT NULL default 0,
@@ -185,12 +187,8 @@ ALTER TABLE issues RENAME gcd_issue,
     CHANGE COLUMN Price price varchar(255) default NULL AFTER sort_code,
     ADD COLUMN page_count decimal(10, 3) default NULL AFTER price,
     ADD COLUMN page_count_uncertain tinyint(1) NOT NULL default 0 AFTER page_count,
-    ADD COLUMN size varchar(255) NOT NULL default '' AFTER page_count_uncertain,
-    ADD COLUMN paper_stock varchar(255) NOT NULL default '' AFTER size,
-    ADD COLUMN binding varchar(255) NOT NULL default '' AFTER paper_stock,
-    ADD COLUMN printing_process varchar(255) NOT NULL default '' AFTER binding,
     ADD COLUMN indicia_frequency varchar(255) NOT NULL default ''
-        AFTER printing_process,
+        AFTER page_count_uncertain,
     ADD COLUMN editing longtext NOT NULL AFTER indicia_frequency,
     ADD COLUMN no_editing tinyint(1) NOT NULL default 0 AFTER editing,
     ADD COLUMN notes longtext NOT NULL AFTER no_editing,
@@ -309,7 +307,7 @@ UPDATE gcd_issue i INNER JOIN sort_helper h ON i.id = h.issue_id
     SET i.sort_code=h.id;
 
 ALTER TABLE gcd_issue ADD INDEX (sort_code),
-                      ADD UNIQUE (series_id, sort_code);
+                      ADD UNIQUE series_id_sort_code (series_id, sort_code);
 
 -- ----------------------------------------------------------------------------
 -- OI and Account Management tables.  Leave in gcd app for simplicity.
@@ -406,11 +404,13 @@ UPDATE gcd_issue SET editing='' WHERE editing IS NULL;
 
 -- ----------------------------------------------------------------------------
 -- Factor out sequence type and set up inferred title flag.
+-- Leave sort code not null and not unique until after it's populated.
 -- ----------------------------------------------------------------------------
 
 CREATE TABLE gcd_story_type (
     id int(11) auto_increment NOT NULL,
     name varchar(50) NOT NULL UNIQUE,
+    sort_code int(11),
     PRIMARY KEY (id),
     KEY type_name (name)
 );
@@ -419,23 +419,40 @@ INSERT INTO gcd_story_type (name) SELECT DISTINCT `type` FROM gcd_story;
 
 UPDATE gcd_story_type t INNER JOIN gcd_story q ON t.name=q.`type`
     SET q.type_id=t.id;
-UPDATE gcd_story_type SET name='advertisement' WHERE name='ad';
-UPDATE gcd_story_type SET name='biography (nonfictional)' WHERE name='bio';
-UPDATE gcd_story_type SET name='character profile' WHERE name='profile';
-UPDATE gcd_story_type SET name='cover reprint (on interior page)'
+UPDATE gcd_story_type SET sort_code=1 WHERE name='story';
+UPDATE gcd_story_type SET sort_code=2 WHERE name='text story';
+UPDATE gcd_story_type SET sort_code=3 WHERE name='text article';
+UPDATE gcd_story_type SET sort_code=4 WHERE name='photo story';
+UPDATE gcd_story_type SET sort_code=5 WHERE name='cover';
+UPDATE gcd_story_type SET sort_code=6, name='cover reprint (on interior page)'
     WHERE name='cover reprint';
-UPDATE gcd_story_type SET name='foreword, introduction, preface, afterword'
-    WHERE name='foreword';
-UPDATE gcd_story_type SET name='illustration' WHERE name='pinup';
-UPDATE gcd_story_type SET name='insert or dust jacket' WHERE name='insert';
-UPDATE gcd_story_type SET name='letters page' WHERE name='letters';
-UPDATE gcd_story_type SET name='promo (by the publisher)'
+UPDATE gcd_story_type SET sort_code=7 WHERE name='cartoon';
+UPDATE gcd_story_type SET sort_code=8, name='illustration' WHERE name='pinup';
+UPDATE gcd_story_type SET sort_code=9, name='advertisement' WHERE name='ad';
+UPDATE gcd_story_type SET sort_code=10, name='promo (ad from the publisher)'
     WHERE name='promo';
-UPDATE gcd_story_type SET name='public service announcement'
+UPDATE gcd_story_type SET sort_code=11, name='public service announcement'
     WHERE name='psa';
-UPDATE gcd_story_type SET name='(backcovers) *do not use* / *please fix*'
+UPDATE gcd_story_type SET sort_code=12 WHERE name='activity';
+UPDATE gcd_story_type SET sort_code=13, name='biography (nonfictional)'
+    WHERE name='bio';
+UPDATE gcd_story_type SET sort_code=14, name='character profile'
+    WHERE name='profile';
+UPDATE gcd_story_type SET sort_code=15,
+                          name='foreword, introduction, preface, afterword'
+    WHERE name='foreword';
+UPDATE gcd_story_type SET sort_code=16 WHERE name='credits';
+UPDATE gcd_story_type SET sort_code=17 WHERE name='recap';
+UPDATE gcd_story_type SET sort_code=18, name='letters page' WHERE name='letters';
+UPDATE gcd_story_type SET sort_code=19, name='insert or dust jacket'
+    WHERE name='insert';
+UPDATE gcd_story_tyep SET sort_code=20 WHERE name='filler';
+UPDATE gcd_story_type SET sort_code=21,
+                          name='(backcovers) *do not use* / *please fix*'
     WHERE name='backcovers';
 
+ALTER TABLE gcd_story_type
+    MODIFY COLUMN sort_code int(11) NOT NULL UNIQUE;
 ALTER TABLE gcd_story DROP COLUMN `type`,
     ADD INDEX (type_id),
     ADD FOREIGN KEY (type_id) REFERENCES gcd_story_type (id);
@@ -556,6 +573,28 @@ CREATE TABLE gcd_series_relationship (
     KEY key_issue_source (source_issue_id),
     KEY key_issue_target (target_issue_id)
 );
+
+-- ----------------------------------------------------------------------------
+-- Statistics
+-- ----------------------------------------------------------------------------
+
+CREATE TABLE gcd_count_stats (
+  id int(11) NOT NULL auto_increment,
+  name varchar(40) NOT NULL UNIQUE,
+  count int(11) default NULL,
+  PRIMARY KEY  (id),
+  KEY name_index (name)
+);
+
+INSERT INTO gcd_count_stats (name, count) VALUES
+    ('publishers', (SELECT COUNT(*) FROM gcd_publisher WHERE is_master = 1)),
+    ('brands', (SELECT COUNT(*) FROM gcd_brand)),
+    ('indicia publishers', (SELECT COUNT(*) FROM gcd_indicia_publisher)),
+    ('series', (SELECT COUNT(*) FROM gcd_series)),
+    ('issues', (SELECT COUNT(*) FROM gcd_issue)),
+    ('issue indexes', (SELECT COUNT(*) FROM gcd_issue WHERE story_type_count > 0)),
+    ('covers', (SELECT COUNT(*) FROM gcd_cover)),
+    ('stories', (SELECT COUNT(*) from gcd_story));
 
 SET foreign_key_checks = 1;
 
