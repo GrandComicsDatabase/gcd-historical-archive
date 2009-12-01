@@ -328,6 +328,11 @@ ALTER TABLE Indexers RENAME gcd_indexer,
     ADD FOREIGN KEY (user_id) REFERENCES auth_user (id),
     ADD FOREIGN KEY (mentor_id) REFERENCES auth_user (id);
 
+-- Set correct new indexer limits.  Set extremely high non-new indexer limits
+-- as the Board has not yet set official ones.
+UPDATE gcd_indexer SET max_reservations=1, max_ongoing=0 WHERE is_new = 1;
+UPDATE gcd_indexer SET max_reservations=500, max_ongoing=100 WHERE is_new = 0;
+
 ALTER TABLE Indexers_languages ENGINE=InnoDB;
 ALTER TABLE Indexers_languages RENAME gcd_indexer_languages,
     ADD FOREIGN KEY (indexer_id) REFERENCES gcd_indexer (id),
@@ -593,7 +598,7 @@ INSERT INTO gcd_count_stats (name, count) VALUES
     ('series', (SELECT COUNT(*) FROM gcd_series)),
     ('issues', (SELECT COUNT(*) FROM gcd_issue)),
     ('issue indexes', (SELECT COUNT(*) FROM gcd_issue WHERE story_type_count > 0)),
-    ('covers', (SELECT COUNT(*) FROM gcd_cover)),
+    ('covers', (SELECT COUNT(*) FROM gcd_cover WHERE has_image = 1)),
     ('stories', (SELECT COUNT(*) from gcd_story));
 
 SET foreign_key_checks = 1;
