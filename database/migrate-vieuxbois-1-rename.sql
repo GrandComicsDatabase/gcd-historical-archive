@@ -89,7 +89,7 @@ CREATE TABLE gcd_indicia_publisher (
     KEY (reserved),
     FOREIGN KEY (parent_id) REFERENCES gcd_publisher (id),
     FOREIGN KEY (country_id) REFERENCES gcd_country (id)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE gcd_brand (
     id int(11) NOT NULL auto_increment,
@@ -109,7 +109,7 @@ CREATE TABLE gcd_brand (
     KEY (year_began),
     KEY (reserved),
     FOREIGN KEY (parent_id) REFERENCES gcd_publisher (id)
-);
+) ENGINE=InnoDB;
 
 UPDATE series SET Pub_Note='' WHERE Pub_Note IS NULL;
 ALTER TABLE series RENAME gcd_series,
@@ -413,7 +413,7 @@ CREATE TABLE gcd_story_type (
     sort_code int(11),
     PRIMARY KEY (id),
     KEY type_name (name)
-);
+) ENGINE=InnoDB;
 
 INSERT INTO gcd_story_type (name) SELECT DISTINCT `type` FROM gcd_story;
 
@@ -446,7 +446,7 @@ UPDATE gcd_story_type SET sort_code=17 WHERE name='recap';
 UPDATE gcd_story_type SET sort_code=18, name='letters page' WHERE name='letters';
 UPDATE gcd_story_type SET sort_code=19, name='insert or dust jacket'
     WHERE name='insert';
-UPDATE gcd_story_tyep SET sort_code=20 WHERE name='filler';
+UPDATE gcd_story_type SET sort_code=20 WHERE name='filler';
 UPDATE gcd_story_type SET sort_code=21,
                           name='(backcovers) *do not use* / *please fix*'
     WHERE name='backcovers';
@@ -482,7 +482,7 @@ CREATE TABLE gcd_reprint (
     KEY (reserved),
     FOREIGN KEY (source_id) REFERENCES gcd_story(id),
     FOREIGN KEY (target_id) REFERENCES gcd_story(id)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE gcd_reprint_to_issue (
     id int(11) NOT NULL auto_increment,
@@ -496,7 +496,7 @@ CREATE TABLE gcd_reprint_to_issue (
     KEY (reserved),
     FOREIGN KEY (source_id) REFERENCES gcd_story(id),
     FOREIGN KEY (target_issue_id) REFERENCES gcd_issue(id)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE gcd_reprint_from_issue (
     id int(11) NOT NULL auto_increment,
@@ -510,7 +510,7 @@ CREATE TABLE gcd_reprint_from_issue (
     KEY (reserved),
     FOREIGN KEY (source_issue_id) REFERENCES gcd_issue(id),
     FOREIGN KEY (target_id) REFERENCES gcd_story(id)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE gcd_issue_reprint (
     id int(11) NOT NULL auto_increment,
@@ -522,7 +522,7 @@ CREATE TABLE gcd_issue_reprint (
     KEY issue_from (`source_issue_id`),
     KEY issue_to (`target_issue_id`),
     KEY (reserved)
-);
+) ENGINE=InnoDB;
 
 -- Add the first Migration data table, and populate it so we can use
 -- -- a proper OneToOne field in Django.
@@ -537,7 +537,7 @@ CREATE TABLE migration_story_status (
     KEY key_reprint_needs_inspection (`reprint_needs_inspection`),
     KEY key_reprint_confirmed (`reprint_confirmed`),
     KEY key_reprint_notes (`reprint_original_notes`(255))
-);
+) ENGINE=InnoDB;
 
 INSERT INTO migration_story_status (story_id)
     SELECT id FROM gcd_story;
@@ -554,7 +554,7 @@ CREATE TABLE gcd_series_relationship_type (
     notes longtext,
     PRIMARY KEY (id),
     KEY key_name (name)
-);
+) ENGINE=InnoDB;
 
 INSERT INTO gcd_series_relationship_type (name)
     VALUES ('numbering');
@@ -572,7 +572,7 @@ CREATE TABLE gcd_series_relationship (
     KEY key_target (target_id),
     KEY key_issue_source (source_issue_id),
     KEY key_issue_target (target_issue_id)
-);
+) ENGINE=InnoDB;
 
 -- ----------------------------------------------------------------------------
 -- Statistics
@@ -584,7 +584,7 @@ CREATE TABLE gcd_count_stats (
   count int(11) default NULL,
   PRIMARY KEY  (id),
   KEY name_index (name)
-);
+) ENGINE=InnoDB;
 
 INSERT INTO gcd_count_stats (name, count) VALUES
     ('publishers', (SELECT COUNT(*) FROM gcd_publisher WHERE is_master = 1)),
