@@ -601,5 +601,40 @@ INSERT INTO gcd_count_stats (name, count) VALUES
     ('covers', (SELECT COUNT(*) FROM gcd_cover WHERE has_image = 1)),
     ('stories', (SELECT COUNT(*) from gcd_story));
 
+-- Fix publisher and imprint count stuff that was ignored earlier when we
+-- had different plans for those fields.  Do imprints first because of the small
+-- number of publishers that are both master publishers and imprints.  We want
+-- those to have the numbers match thier publisher counts, not imprint counts.
+
+-- But first, set to NULL imprint_ids that point to nowhere.  How do we still have
+-- these in the DB?
+
+UPDATE gcd_series s LEFT OUTER JOIN gcd_publisher p ON s.imprint_id = p.id
+    SET s.imprint_id=NULL WHERE p.id IS NULL and s.imprint_id IS NOT NULL;
+
+UPDATE gcd_publisher p SET p.series_count=
+    (SELECT COUNT(*) FROM gcd_series s WHERE s.imprint_id = p.id)
+    WHERE p.parent_id IS NOT NULL;
+
+UPDATE gcd_publisher p SET p.issue_count=
+    (SELECT SUM(s.issue_count) FROM gcd_series s WHERE s.imprint_id = p.id)
+    WHERE p.parent_id IS NOT NULL;
+UPDATE gcd_publisher p SET p.issue_count=0
+    WHERE p.series_count = 0 AND p.parent_id IS NOT NULL;
+
+UPDATE gcd_publisher p SET p.series_count=
+    (SELECT COUNT(*) FROM gcd_series s WHERE s.publisher_id = p.id)
+    WHERE p.is_master = 1;
+
+UPDATE gcd_publisher p SET p.issue_count=
+    (SELECT SUM(s.issue_count) FROM gcd_series s WHERE s.publisher_id = p.id)
+    WHERE p.is_master = 1;
+UPDATE gcd_publisher p SET p.issue_count=0
+    WHERE p.series_count = 0 AND p.is_master = 1;
+
+SET @fixme=(SELECT id FROM gcd_country WHERE code='xx');
+UPDATE gcd_publisher i INNER JOIN gcd_publisher p ON i.parent_id = p.id
+    SET i.country_id=p.country_id WHERE i.country_id = @fixme;
+
 SET foreign_key_checks = 1;
 
