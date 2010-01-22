@@ -1,0 +1,41 @@
+.queues {
+    margin-bottom: 1em;
+}
+
+.queues table {
+    border: double black 2px;
+    border-collapse: collapse;
+}
+
+.queues th {
+    border: solid black 1px;
+    border-collapse: collapse;
+    padding: 0.4em;
+    background-color: #DDD;
+}
+
+.queues td {
+    border: solid black 1px;
+    border-collapse: collapse;
+    padding: 0.4em;
+}
+
+.queues form {
+    margin: 0;
+    padding: 0;
+    display: inline;
+}
+
+.queues input {
+    font-size: 0.8em;
+    margin: 0;
+}
+
+.label_binding {
+    white-space: nowrap;
+}
+
+input.comments {
+    width: 20em;
+}
+

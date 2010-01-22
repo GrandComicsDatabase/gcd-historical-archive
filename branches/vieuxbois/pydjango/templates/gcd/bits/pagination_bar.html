@@ -1,0 +1,58 @@
+{% load i18n %}
+  
+<div class="right pagination">
+    {% if page.has_other_pages %}
+    {% if page.has_previous %}
+        {% if extra_string %}
+            <a href="?{{ extra_string }}&amp;page={{ page.previous_page_number }}">&lt; {% trans "Previous" %}</a>
+        {% else %}
+            <a href="?style={{ style }}&amp;page={{ page.previous_page_number }}">&lt; {% trans "Previous" %}</a>
+        {% endif %}
+    {% else %}
+        &lt; {% trans "Previous" %}
+    {% endif %} <!-- has_previous -->
+    |
+    {% for number in page.page_range %}  
+        {% ifequal number page_number %}
+            {{ number }}
+        {% else %}
+            {% if not number %} 
+                ...  {# literally dots #}  
+            {% else %}{# pagelink num #}  
+                {% if extra_string %}
+                    <a href="?{{ extra_string }}&amp;page={{ number }}">{{ number }}</a>
+                {% else %}
+                    <a href="?style={{ style }}&amp;page={{ number }}">{{ number }}</a>
+                {% endif %}
+            {% endif %}  
+        {% endifequal %}
+        |
+    {% endfor %}  
+    {% if page.has_next %}
+        {% if extra_string %}
+            <a href="?{{ extra_string }}&amp;page={{ page.next_page_number }}">{% trans "Next" %} &gt;</a>
+        {% else %}
+            <a href="?style={{ style }}&amp;page={{ page.next_page_number }}">{% trans "Next" %} &gt;</a>
+        {% endif %}
+    {% else %}
+        {% trans "Next" %} &gt;
+    {% endif %} <!-- has_next -->
+    {% else %}
+    &lt; {% trans "Previous" %} | {{ page_number }} | {% trans "Next" %} &gt;
+    {% endif %}
+    <form method="GET" style="display:inline">
+        <label for="page">#</label>:
+        <input type="text" name="page" id="page" size="3"></input>
+        <input type="submit" value="{% trans 'Go' %}"></input>
+    {% if advanced_search %}
+      {% for field, value in request.GET.items %}
+        {% ifnotequal field "page" %}
+          {% ifnotequal field "submit" %}
+        <input type="hidden" name="{{ field }}" value="{{ value|default:'' }}">
+        </input>
+          {% endifnotequal %}
+        {% endifnotequal %}
+      {% endfor %}
+    {% endif %}
+    </form>
+</div>

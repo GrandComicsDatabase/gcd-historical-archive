@@ -1,0 +1,66 @@
+{% load i18n %}
+{% load credits %}
+{% load mathfilter %}
+
+    <div class="single_story">
+      <a name="{{ story.id }}"></a>
+      <h2 class="sequence header title">
+        <span class="title left">{{ story|show_title }}</span>
+        <span class="right"><a href="#toc">(Table of Contents)</a></span>
+      </h2>
+      <h3 class="sequence_header feature">
+        <span class="left">
+        {% if story.feature %}
+          <span class="feature">{{ story.feature }}</span>
+        {% endif %}
+        {% if story.type or story.page_count %}
+          <span class="type">
+          <!-- needs to be stuck together to get display spacing right. -->
+          {% if story.feature %} / {% endif %}
+          {% if story.type %}{{ story.type }} / {% endif %}
+          {{ story|show_page_count }}
+          {% blocktrans with story.page_count|default:0|ceil|pluralize as suffix %}
+            page{{ suffix }}
+          {% endblocktrans %}
+          </span>
+        {%endif %}
+        </span><span class="right"><a href="http://errors.comics.org/enter_bug.cgi?product=GCD&amp;bug_file_loc={{ request.build_absolute_uri }}%23{{ story.id }}&amp;short_desc={{ error_subject|urlencode }}%20-%20{{story|show_title|urlencode}}" target="_blank">(report information)</a></span>
+      </h3>
+
+      {% if story.has_credits %}
+      <h3 class="credit_header"> Credits </h3>
+      <dl class="credits">
+        {{ story|show_credit:"script" }}
+        {{ story|show_credit:"pencils" }}
+        {{ story|show_credit:"inks" }}
+        {{ story|show_credit:"colors" }}
+        {{ story|show_credit:"letters" }}
+        {{ story|show_credit:"editing" }}
+        {{ story|show_credit:"job_number" }}
+      </dl>
+      {% endif %}
+
+      {% if story.has_content %}
+        <h3 class="content_header"> Content Information </h3>
+        <dl class="contents">
+          {{ story|show_credit:"genre,short" }}
+          {{ story|show_credit:"characters"|linebreaksbr }}
+          {{ story|show_credit:"synopsis"|linebreaksbr }}
+          {{ story|show_credit:"reprint_notes"|linebreaksbr }}
+        </dl>
+      {% endif %}
+
+      {% if story.notes %}
+        <h3 class="notes_header"> Indexer Notes </h3>
+      {% ifequal issue.notes story.notes %}
+        <p> [Cover story notes are the same as the issue notes
+             (see Issue Notes above).  This may mean that
+             one or both set of notes need editing as a result of our recent
+             migration to having separate issue and cover notes.]
+      {% else %}
+        <p>{{ story.notes|linebreaksbr }}</p>
+      {% endifequal %}
+      {% endif %}
+
+    </div>
+

@@ -1,0 +1,93 @@
+input.wide {
+    width: 60em;
+}
+
+input.year{
+    width: 6em;
+}
+
+.edit {
+    margin-bottom: 1em;
+}
+
+table.add_issues,
+table.comparison,
+table.comments,
+table.story_list {
+    border: double black 2px;
+    border-collapse: collapse;
+    margin-bottom: 1em;
+}
+
+table.add_issues th,
+table.comparison th,
+table.comments th {
+    border: solid black 1px;
+    border-collapse: collapse;
+    padding: 0.4em;
+    background-color: #DDD;
+}
+
+th.comment_text {
+    width: 50%;
+}
+td.comment_text {
+    width: 50%;
+    background-color: yellow;
+}
+
+table.editing th {
+    text-align: right;
+}
+
+table.add_issues td,
+table.comparison td,
+table.comments td {
+    border: solid black 1px;
+    border-collapse: collapse;
+    padding: 0.4em;
+}
+
+/* Capital True and False because these values come from Python booleans. */
+table.comparison tr.True {
+    background-color: yellow;
+}
+
+table.comparison td.field_name {
+    font-weight: bold;    
+}
+
+.comparison_highlight {
+    border: solid black 1px;
+    padding: 0.2em;
+    background-color: yellow;
+}
+
+table.story_list td {
+    border-bottom: solid 1px;
+    padding-left: 0.5em;
+}
+
+form#review {
+    margin-bottom: 1em;
+}
+
+table.editing textarea,
+form#review textarea {
+    height: 10em;
+    width: 60em;
+    margin-bottom: 1em;
+}
+
+.no_data {
+    font-style: italic;
+}
+
+.complete {
+    color: green;
+}
+
+.incomplete {
+    color: red;
+}
+

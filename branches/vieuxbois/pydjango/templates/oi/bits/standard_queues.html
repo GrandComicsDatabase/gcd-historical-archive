@@ -1,0 +1,45 @@
+{% for section in data %}
+{% if section.changesets.count %}
+<h2>
+  {{ section.object_name }}
+  ({{ section.changesets.count }} change{{ section.changesets.count|pluralize }})
+</h2>
+<table>
+  <tr>
+    <th> Name {{ queue_name }}</th>
+  {% ifnotequal queue_name 'editing' %}
+    <th> Indexer</th>
+  {% endifnotequal %}
+  {% ifnotequal queue_name 'reviews' %}
+    <th> Approver</th>
+    <th> State </th>
+  {% endifnotequal %}
+    <th> Last Activity </th>
+    <th> Actions </th>
+  </tr>
+{% for changeset in section.changesets %}
+  <tr>
+  {% ifequal link_target 'preview' %}
+    <td> <a href="{% url compare id=changeset.id %}">{{ changeset.queue_name }}</a>
+  {% else %}
+    <td> <a href="{% url edit id=changeset.id %}">{{ changeset.queue_name }}</a>
+  {% endifequal %}
+  {% ifnotequal queue_name 'editing' %}
+    <td> {{ changeset.indexer.indexer }} </td>
+  {% endifnotequal %}
+  {% ifnotequal queue_name 'reviews' %}
+    <td> {{ changeset.approver.indexer|default:'None' }} </td>
+    <td> {{ changeset.display_state }} </td>
+  {% endifnotequal %}
+    <td> {{ changeset.modified }} </td>
+    <td> {% with changeset.id as action_id %}{% include actions %}{% endwith %} </td>
+  </tr>
+{% endfor %}
+</table>
+{% endif %}
+{% empty %}
+<p>
+All queues are empty.
+</p>
+{% endfor %}
+
