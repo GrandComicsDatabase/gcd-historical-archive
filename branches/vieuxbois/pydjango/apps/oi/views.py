@@ -396,7 +396,8 @@ def approve(request, id):
         new_change = _do_reserve(issue_revision.series.ongoing_reservation.indexer,
                                  issue_revision.issue, 'issue')
         if new_change is None:
-            _send_declined_reservation_email(changeset.indexer,
+            _send_declined_reservation_email(issue_revision.series.\
+                                             ongoing_reservation.indexer,
                                              issue_revision.issue)
             
     # Move brand new indexers to probationary status on first approval.
