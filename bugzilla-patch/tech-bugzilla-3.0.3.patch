@@ -1,0 +1,302 @@
+diff -burN bugzilla-3.0.3/Bugzilla/.htaccess tech-bugzilla/Bugzilla/.htaccess
+--- bugzilla-3.0.3/Bugzilla/.htaccess	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/Bugzilla/.htaccess	2008-07-02 00:57:58.000000000 -0500
+@@ -0,0 +1,3 @@
++# nothing in this directory is retrievable unless overridden by an .htaccess
++# in a subdirectory
++deny from all
+diff -burN bugzilla-3.0.3/.htaccess tech-bugzilla/.htaccess
+--- bugzilla-3.0.3/.htaccess	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/.htaccess	2008-07-02 00:57:58.000000000 -0500
+@@ -0,0 +1,4 @@
++# Don't allow people to retrieve non-cgi executable files or our private data
++<FilesMatch ^(.*\.pm|.*\.pl|.*localconfig.*)$>
++  deny from all
++</FilesMatch>
+diff -burN bugzilla-3.0.3/localconfig tech-bugzilla/localconfig
+--- bugzilla-3.0.3/localconfig	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/localconfig	2009-05-06 01:10:00.000000000 -0500
+@@ -0,0 +1,90 @@
++
++# If you are using Apache as your web server, Bugzilla can create .htaccess
++# files for you that will instruct Apache not to serve files that shouldn't
++# be accessed from the web (like your local configuration data and non-cgi
++# executable files).  For this to work, the directory your Bugzilla
++# installation is in must be within the jurisdiction of a <Directory> block
++# in the httpd.conf file that has 'AllowOverride Limit' in it.  If it has
++# 'AllowOverride All' or other options with Limit, that's fine.
++# (Older Apache installations may use an access.conf file to store these
++# <Directory> blocks.)
++# If this is set to 1, Bugzilla will create these files if they don't exist.
++# If this is set to 0, Bugzilla will not create these files.
++$create_htaccess = 1;
++
++# This is the group your web server runs as.
++# If you have a Windows box, ignore this setting.
++# If you do not have access to the group your web server runs under,
++# set this to "". If you do set this to "", then your Bugzilla installation
++# will be _VERY_ insecure, because some files will be world readable/writable,
++# and so anyone who can get local access to your machine can do whatever they
++# want. You should only have this set to "" if this is a testing installation
++# and you cannot set this up any other way. YOU HAVE BEEN WARNED!
++# If you set this to anything other than "", you will need to run checksetup.pl
++# asroot, or as a user who is a member of the specified group.
++$webservergroup = 'apache';
++
++# What SQL database to use. Default is mysql. List of supported databases
++# can be obtained by listing Bugzilla/DB directory - every module corresponds
++# to one supported database and the name corresponds to a driver name.
++$db_driver = 'mysql';
++
++# The DNS name of the host that the database server runs on.
++$db_host = 'localhost';
++
++# The name of the database
++$db_name = 'site_bugs';
++
++# Who we connect to the database as.
++$db_user = 'bugs';
++
++# Enter your database password here. It's normally advisable to specify
++# a password for your bugzilla database user.
++# If you use apostrophe (') or a backslash (\) in your password, you'll
++# need to escape it by preceding it with a '\' character. (\') or (\)
++# (Far simpler just not to use those characters.)
++$db_pass = '';
++
++# Sometimes the database server is running on a non-standard port. If that's
++# the case for your database server, set this to the port number that your
++# database server is running on. Setting this to 0 means "use the default
++# port for my database server."
++$db_port = 0;
++
++# MySQL Only: Enter a path to the unix socket for MySQL. If this is
++# blank, then MySQL's compiled-in default will be used. You probably
++# want that.
++$db_sock = '';
++
++# Should checksetup.pl try to verify that your database setup is correct?
++# (with some combinations of database servers/Perl modules/moonphase this
++# doesn't work)
++$db_check = 1;
++
++# With the introduction of a configurable index page using the
++# template toolkit, Bugzilla's main index page is now index.cgi.
++# Most web servers will allow you to use index.cgi as a directory
++# index, and many come preconfigured that way, but if yours doesn't
++# then you'll need an index.html file that provides redirection
++# to index.cgi. Setting $index_html to 1 below will allow
++# checksetup.pl to create one for you if it doesn't exist.
++# NOTE: checksetup.pl will not replace an existing file, so if you
++#       wish to have checksetup.pl create one for you, you must
++#       make sure that index.html doesn't already exist
++$index_html = 0;
++
++# For some optional functions of Bugzilla (such as the pretty-print patch
++# viewer), we need the cvs binary to access files and revisions.
++# Because it's possible that this program is not in your path, you can specify
++# its location here.  Please specify the full path to the executable.
++$cvsbin = '';
++
++# For some optional functions of Bugzilla (such as the pretty-print patch
++# viewer), we need the interdiff binary to make diffs between two patches.
++# Because it's possible that this program is not in your path, you can specify
++# its location here.  Please specify the full path to the executable.
++$interdiffbin = '';
++
++# The interdiff feature needs diff, so we have to have that path.
++# Please specify the directory name only; do not use trailing slash.
++$diffpath = '/usr/bin';
+diff -burN bugzilla-3.0.3/process_bug.cgi tech-bugzilla/process_bug.cgi
+--- bugzilla-3.0.3/process_bug.cgi	2007-08-09 07:56:14.000000000 -0500
++++ tech-bugzilla/process_bug.cgi	2008-07-03 18:08:10.000000000 -0500
+@@ -1113,6 +1113,30 @@
+         {
+             $requiremilestone = 1;
+         }
++
++        # The rest of this case is GCD-specific, and makes "acceptance"
++        # always mean accepting into the user's own queue, not on behalf
++        # of the current assignee.
++        DoComma();
++        $assignee = $whoid; 
++        if (Bugzilla->params->{"strict_isolation"}) {
++            $usercache{$assignee} ||= Bugzilla::User->new($assignee);
++            my $assign_user = $usercache{$assignee};
++            foreach my $product_id (@newprod_ids) {
++                if (!$assign_user->can_edit_product($product_id)) {
++                    my $product_name = Bugzilla::Product->new($product_id)->name;                    ThrowUserError('invalid_user_group',
++                                      {'users'   => $assign_user->login,
++                                       'product' => $product_name,
++                                       'bug_id' => (scalar(@idlist) > 1)
++                                                     ? undef : $idlist[0]
++                                      });                    
++                }                             
++            }           
++        }           
++        $::query .= "assigned_to = ?";
++        push(@values, $assignee);
++        $assignee_checked = 1;
++
+         last SWITCH;
+     };
+     /^clearresolution$/ && CheckonComment( "clearresolution" ) && do {
+diff -burN bugzilla-3.0.3/skins/custom/admin.css tech-bugzilla/skins/custom/admin.css
+--- bugzilla-3.0.3/skins/custom/admin.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/admin.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for admin.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/buglist.css tech-bugzilla/skins/custom/buglist.css
+--- bugzilla-3.0.3/skins/custom/buglist.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/buglist.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for buglist.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/create_attachment.css tech-bugzilla/skins/custom/create_attachment.css
+--- bugzilla-3.0.3/skins/custom/create_attachment.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/create_attachment.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for create_attachment.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/dependency-tree.css tech-bugzilla/skins/custom/dependency-tree.css
+--- bugzilla-3.0.3/skins/custom/dependency-tree.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/dependency-tree.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for dependency-tree.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/duplicates.css tech-bugzilla/skins/custom/duplicates.css
+--- bugzilla-3.0.3/skins/custom/duplicates.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/duplicates.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for duplicates.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/editusers.css tech-bugzilla/skins/custom/editusers.css
+--- bugzilla-3.0.3/skins/custom/editusers.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/editusers.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for editusers.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/global.css tech-bugzilla/skins/custom/global.css
+--- bugzilla-3.0.3/skins/custom/global.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/global.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for global.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/IE-fixes.css tech-bugzilla/skins/custom/IE-fixes.css
+--- bugzilla-3.0.3/skins/custom/IE-fixes.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/IE-fixes.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for IE-fixes.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/index.css tech-bugzilla/skins/custom/index.css
+--- bugzilla-3.0.3/skins/custom/index.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/index.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for index.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/panel.css tech-bugzilla/skins/custom/panel.css
+--- bugzilla-3.0.3/skins/custom/panel.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/panel.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for panel.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/params.css tech-bugzilla/skins/custom/params.css
+--- bugzilla-3.0.3/skins/custom/params.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/params.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for params.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/release-notes.css tech-bugzilla/skins/custom/release-notes.css
+--- bugzilla-3.0.3/skins/custom/release-notes.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/release-notes.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for release-notes.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/show_multiple.css tech-bugzilla/skins/custom/show_multiple.css
+--- bugzilla-3.0.3/skins/custom/show_multiple.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/show_multiple.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for show_multiple.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/summarize-time.css tech-bugzilla/skins/custom/summarize-time.css
+--- bugzilla-3.0.3/skins/custom/summarize-time.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/summarize-time.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for summarize-time.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/skins/custom/voting.css tech-bugzilla/skins/custom/voting.css
+--- bugzilla-3.0.3/skins/custom/voting.css	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/skins/custom/voting.css	2008-07-03 16:46:35.000000000 -0500
+@@ -0,0 +1,4 @@
++/*
++ * Custom rules for voting.css.
++ * The rules you put here override rules in that stylesheet.
++ */
+diff -burN bugzilla-3.0.3/template/en/default/bug/knob.html.tmpl tech-bugzilla/template/en/default/bug/knob.html.tmpl
+--- bugzilla-3.0.3/template/en/default/bug/knob.html.tmpl	2007-04-10 14:02:34.000000000 -0500
++++ tech-bugzilla/template/en/default/bug/knob.html.tmpl	2008-07-03 17:44:46.000000000 -0500
+@@ -47,8 +47,12 @@
+     <input type="radio" id="knob-accept" name="knob" value="accept">
+     <label for="knob-accept">
+       Accept [% terms.bug %] (
+-      [% IF bug.isunconfirmed %]confirm [% terms.bug %], and [% END %]change
+-      status to <b>[% status_descs.ASSIGNED FILTER html %]</b>)
++      [% IF bug.isunconfirmed %]confirm [% terms.bug %], and
++      [% END %]<b>ASSIGN</b> [% terms.bug %] to yourself)
++
++      <!-- In regular bugzilla, accept doesn't change assignment.
++      change
++      status to <b>[% status_descs.ASSIGNED FILTER html %]</b>) -->
+     </label>
+     <br>
+     [% knum = knum + 1 %]
+diff -burN bugzilla-3.0.3/template/en/default/index.html.tmpl tech-bugzilla/template/en/default/index.html.tmpl
+--- bugzilla-3.0.3/template/en/default/index.html.tmpl	2007-08-02 07:36:31.000000000 -0500
++++ tech-bugzilla/template/en/default/index.html.tmpl	2009-10-05 01:07:28.000000000 -0500
+@@ -111,6 +111,10 @@
+     [%- terms.Bugzilla %] User's Guide</a> to find out more about 
+     [%+ terms.Bugzilla %] and how to use it.</p>
+ 
++  <p>This is where you file bugs on technical aspects of the GCD's web site.
++     To report data errors, use our
++     <a href="http://errors.comics.org/">error reporting bugzilla</a>.
++
+   <p>Most common actions:</p>
+   <ul>
+     <li id="query"><a href="query.cgi">Search existing [% terms.bug %] reports</a></li>
+diff -burN bugzilla-3.0.3/template/.htaccess tech-bugzilla/template/.htaccess
+--- bugzilla-3.0.3/template/.htaccess	1969-12-31 18:00:00.000000000 -0600
++++ tech-bugzilla/template/.htaccess	2008-07-02 00:57:58.000000000 -0500
+@@ -0,0 +1,3 @@
++# nothing in this directory is retrievable unless overridden by an .htaccess
++# in a subdirectory
++deny from all
