@@ -10,8 +10,8 @@ The GCD django app must be in PYTHONPATH for this to work.
 """
 
 import sys
+from django.db import connection
 from apps.gcd.models import *
-
 
 # TODO: When we move up to Python 2.6 (or even 2.5) these related name access
 # functions can all be replaced by the "x if foo else y" construct in a lambda.
@@ -89,19 +89,68 @@ STORY_TYPES = ('story',
                'filler',
                'character profile')
 
+DELTA = 10000
+
+def _next_range(old_end, count):
+    """
+    This manages pushing the query window along for the large queries that
+    need to be done in chunks to keep from using too much memory.
+    """
+    if old_end == count:
+        return None, None
+
+    end = old_end + DELTA
+    if count < end:
+        end = count
+    return old_end, end
+
 def _fix_value(value):
     """
-    Values that are null should produce two adjacent field separators with no
-    characters between them (or a field separator followed by a line separator).
-    Values that are empty strings should appear as such (quoted).
+    NULL and empty string values should not be present in the output at all,
+    so ensure that both are flagged as None.  Supply consistent quotes for
+    everything else.
     """
-    if value is None:
-        value = u''
-    else:
-        value = u'"' + value + u'"'
-    return value
+    if value is None or value == u'':
+        return None
+    return u'"' + value + u'"'
+
+def _dump_table(dumpfile, objects, count, fields, get_id):
+    """
+    Dump records from a table a chunk at a time, selecting particular fields.
+    Fields with a NULL or empty string value are omitted.
+    """
+    start = 0
+    end = start + DELTA
+    had_error = False
+    while start is not None:
+        print "Dumping object rows %d through %d (out of %d)" % (start, end, count)
+        try:
+            for object in objects[start:end].iterator():
+                for name, func in fields.items():
+                    value = unicode(func(object)).replace(u'"', u'""')
+                    value = _fix_value(value)
+                    if value is not None:
+                        record = u'"%d"\t"%s"\t%s\n' % (get_id(object), name, value)
+                        dumpfile.write(record.encode('utf-8'))
+        except IndexError:
+            # Somehow our count was wrong and we ran off the end.  That's OK
+            # because it just means we tried to select extra rows that aren't there.
+            # Unless we're seeing it again, in which case our code is in error and
+            # we'll probably be stuck in a loop if we don't let this go.
+            if had_error:
+                raise
+            had_error = True
+
+        start, end = _next_range(end, count)
 
 def main():
+    """
+    Dump public data in chunks, manually establishing a transaction to ensure
+    a consistent view.  The BEGIN statement must be issued manually because
+    django transation objects will only initiate a transaction when writes
+    are involved.
+    """
+
     if len(sys.argv) <= 1:
         print "Usage:  name-value.py <output-file>"
         sys.exit(-1)
@@ -113,26 +162,31 @@ def main():
         print "Error opening output file '%s': %s" % (filename, e.strerror)
         sys.exit(-1)
 
-    related = ('series',
-               'series__publisher',
-               'series__imprint',
-               'brand',
-               'indicia_publisher')
-    for issue in Issue.objects.order_by().select_related(*related).iterator():
-        for name, func in ISSUE_FIELDS.items():
-            value = unicode(func(issue)).replace(u'"', u'""')
-            value = _fix_value(value)
-            record = u'"%d"\t"%s"\t%s\n' % (issue.id, name, value)
-            dumpfile.write(record.encode('utf-8'))
+    cursor = connection.cursor()
+    cursor.execute('BEGIN')
 
-    stories = Story.objects.filter(type__name__in=STORY_TYPES)
-    for story in stories.select_related('type').order_by().iterator():
-        for name, func in STORY_FIELDS.items():
-            value = unicode(func(story)).replace(u'"', u'""')
-            value = _fix_value(value)
-            record = u'"%d"\t"%s"\t%s\n' % (story.issue_id, name, value)
-            dumpfile.write(record.encode('utf-8'))
+    try:
+        # Note: count() is relatively expensive with InnoDB, so don't call it more
+        # than we absolutely have to.  Since this is being done within a
+        # transaction, the count should never change.
+        count = Issue.objects.count()
+        issues = Issue.objects.order_by().select_related('series',
+                                                         'series__publisher',
+                                                         'series__imprint',
+                                                         'brand',
+                                                         'indicia_publisher')
+        _dump_table(dumpfile, issues, count, ISSUE_FIELDS, lambda i: i.id)
 
+        count = Story.objects.count()
+        stories = Story.objects.filter(type__name__in=STORY_TYPES) \
+                               .order_by() \
+                               .select_related('type')
+        _dump_table(dumpfile, stories, count, STORY_FIELDS, lambda s: s.issue_id)
+
+    finally:
+        # We shouldn't have anything to commit or roll back, so just to be safe,
+        # use a rollback to end the transation.
+        cursor.execute('ROLLBACK')
 
 if __name__ == '__main__':
     main()
