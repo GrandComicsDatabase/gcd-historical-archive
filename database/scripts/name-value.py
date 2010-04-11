@@ -57,7 +57,11 @@ ISSUE_FIELDS = {'series name': lambda i: i.series.name or u'',
                 'publisher name': lambda i: i.series.publisher.name,
                 'imprint name': _imprint_name,
                 'brand name': _brand_name,
-                'indicia publisher name': _indicia_publisher_name}
+                'indicia publisher name': _indicia_publisher_name,
+                'format': lambda i: i.series.format,
+                'language code': lambda i: i.series.language.code,
+                'series country code': lambda i: i.series.country.code,
+                'publisher country code': lambda i: i.series.publisher.country.code}
 
     
 # Map moderately human-friendly field names to functions producing the data from
@@ -170,11 +174,16 @@ def main():
         # than we absolutely have to.  Since this is being done within a
         # transaction, the count should never change.
         count = Issue.objects.count()
-        issues = Issue.objects.order_by().select_related('series',
-                                                         'series__publisher',
-                                                         'series__imprint',
-                                                         'brand',
-                                                         'indicia_publisher')
+        issues = Issue.objects.order_by().select_related(
+          'series',
+          'series__publisher',
+          'series__imprint',
+          'brand',
+          'indicia_publisher',
+          'series__language',
+          'series__country',
+          'series__publisher__country')
+
         _dump_table(dumpfile, issues, count, ISSUE_FIELDS, lambda i: i.id)
 
         count = Story.objects.count()
