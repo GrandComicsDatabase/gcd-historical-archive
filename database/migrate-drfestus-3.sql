@@ -1,4 +1,4 @@
---- apps/gcd/migration/covers *has* to run before this change
+-- apps/gcd/migration/covers *has* to run before this change
 
 ALTER TABLE gcd_cover
      DROP FOREIGN KEY gcd_cover_ibfk_2, 
