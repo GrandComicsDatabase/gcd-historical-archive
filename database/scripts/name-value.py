@@ -16,11 +16,6 @@ from apps.gcd.models import *
 # TODO: When we move up to Python 2.6 (or even 2.5) these related name access
 # functions can all be replaced by the "x if foo else y" construct in a lambda.
 
-def _imprint_name(issue):
-    if issue.series.imprint:
-        return issue.series.imprint.name
-    return u''
-
 def _brand_name(issue):
     if issue.brand:
         return issue.brand.name
@@ -55,7 +50,6 @@ ISSUE_FIELDS = {'series name': lambda i: i.series.name or u'',
                 'publication date': lambda i: i.publication_date or u'',
                 'key date': lambda i: i.key_date or u'',
                 'publisher name': lambda i: i.series.publisher.name,
-                'imprint name': _imprint_name,
                 'brand name': _brand_name,
                 'indicia publisher name': _indicia_publisher_name,
                 'format': lambda i: i.series.format,
@@ -70,11 +64,8 @@ STORY_FIELDS = {'title': lambda s: s.title,
                 'title by gcd': lambda s: s.title_inferred,
                 'feature': lambda s: s.feature,
                 'script': lambda s: s.script,
-                'no script': lambda s: s.no_script,
                 'pencils': lambda s: s.pencils,
-                'no pencils': lambda s: s.no_pencils,
                 'inks': lambda s: s.inks,
-                'no inks': lambda s: s.no_inks,
                 'genre': lambda s: s.genre,
                 'type': lambda s: s.type.name}
 
@@ -173,23 +164,24 @@ def main():
         # Note: count() is relatively expensive with InnoDB, so don't call it more
         # than we absolutely have to.  Since this is being done within a
         # transaction, the count should never change.
-        count = Issue.objects.count()
-        issues = Issue.objects.order_by().select_related(
+        issues = Issue.objects.filter(series__country__code='us') \
+                              .order_by().select_related(
           'series',
           'series__publisher',
-          'series__imprint',
           'brand',
           'indicia_publisher',
           'series__language',
           'series__country',
           'series__publisher__country')
+        count = issues.count()
 
         _dump_table(dumpfile, issues, count, ISSUE_FIELDS, lambda i: i.id)
 
-        count = Story.objects.count()
-        stories = Story.objects.filter(type__name__in=STORY_TYPES) \
+        stories = Story.objects.filter(issue__series__country__code='us',
+                                       type__name__in=STORY_TYPES) \
                                .order_by() \
                                .select_related('type')
+        count = stories.count()
         _dump_table(dumpfile, stories, count, STORY_FIELDS, lambda s: s.issue_id)
 
     finally:
