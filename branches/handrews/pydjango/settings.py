@@ -62,6 +62,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'apps.gcd',
     'apps.oi',
+    'apps.voting',
 )
 
 # Used to provide a seed in secret-key hashing algorithms.

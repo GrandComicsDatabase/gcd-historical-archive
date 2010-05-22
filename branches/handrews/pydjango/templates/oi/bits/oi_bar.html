@@ -13,5 +13,6 @@
 {% if perms.gcd.can_mentor %}
   <a href="{% url mentoring %}">Mentoring</a> |
 {% endif %}
+  <a href="{% url voting_dashboard %}">Voting</a> |
   <a href="{% url view_profile user_id=user.id %}">Profile</a> |
 </div>
