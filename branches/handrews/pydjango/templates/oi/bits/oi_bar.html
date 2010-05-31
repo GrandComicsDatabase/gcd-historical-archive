@@ -14,5 +14,7 @@
   <a href="{% url mentoring %}">Mentoring</a> |
 {% endif %}
   <a href="{% url voting_dashboard %}">Voting</a> |
+{% if not user.is_anonymous %}
   <a href="{% url view_profile user_id=user.id %}">Profile</a> |
+{% endif %}
 </div>
