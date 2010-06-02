@@ -2,24 +2,33 @@ Requirements:
 
 Java:
 http://java.sun.com/javase/downloads/index.jsp
-You will need Java 1.6.x (SE) installed. If you are running Ubunutu, you can follow these pages on how to install Java:
-
-https://help.ubuntu.com/community/Java
-https://help.ubuntu.com/community/JavaInstallation 
-
-Ant:
-http://ant.apache.org/
-You will also need Ant, the Java build tool, installed as well. If you are running Ubunutu, you can just run 'apt-get install ant'. If not, please follow the installation instructions at http://ant.apache.org/manual/install.html
+You will need Java 1.6.x (SE) installed. 
 
 MySQL and The GCD Database
-You will need to have MySQL running with a image of the GCD database. The one that's been used with the prototype can be found here:
+You will need to have MySQL running with a image of the GCD database. The 2010-03-06 dump was is used by the prototype:
 http://dev.comics.org/data/ 
 
-Solr:
-http://lucene.apache.org/solr/
-You will need a distribution of Solr. It comes with an embedded Java web server (Jetty) and that's all you will need to run 
+[gcd-solr] will be the directory that the zip file has been unpacked in
 
-1. Check out the prototype from GCD's Subversion repository:
-svn co [url]
+1. Configure the database settings. Located in [gcd-solr]/example/solr/conf/data-config.xml
+  - You will most likely need to change the following attributes in <dataSource>
+    - The ip/host, port number, and database name in the 'url' attribute.
+      (currently set to localhost:3306/gcd)
+    - The user name in the 'user' attribute. Solr doesn't write anything to the database but
+      it's always a good idea to have a read only account just for it to use.
+    - The password in the 'password' attribute.
 
-2. Copy solr distro into dist directory
+2. Navigate to [gcd-solr]/example and execute the following command:
+   java -jar start.jar
+   
+3. You should start to see log messages on the console. If Solr starts up successfully, you should see the
+   following messages:
+   INFO: SolrUpdateServlet.init() done
+   ####-##-## ##:##:##.###::INFO:  Started SocketConnector @ 0.0.0.0:8983
+
+4. Go to your browser and open http://localhost:8983 and follow the instructions on the home page
+
+While you're using the browser, Solr will continue to log to the console as well as a log file in:
+[gcd-solr]/example/logs
+
+5. To stop the server, send a break to it (ctrl+c)

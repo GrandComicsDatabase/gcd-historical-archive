@@ -1,38 +1,99 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- ====================================================================== 
-         	
-     ====================================================================== -->
-<project name="prototype" default="readme">
+<project name="prototype" default="readme" basedir=".">
+
+  <property file="${basedir}/build.properties" />
+  <property name="build.dir" value="${basedir}/build" />
+  <property name="dist.dir" value="${basedir}/dist" />
+  <property name="lib.dir" value="${basedir}/lib" />
+  <property name="conf.dir" value="${basedir}/conf" />
+  <property name="solr.dir" value="${basedir}/build/gcd-solr-prototype-${prototype.version}" />
+  <property name="dist.name" value="gcd-solr-prototype-${prototype.version}.zip" />
 
   <target name="readme">
     <echo>
-    Run 'ant install' to prepare the Solr distribution to run with the GCD database
+    * Run 'ant configure' to configure the database settings
+    * Run 'ant dist' to create GDC Solr prototype distro
     </echo>
-
   </target>
 
-  <target name="install">
-    <!-- make the build dir, fail if exists -->
-    <!-- find the solr distro, fail if not found -->
+  <target name="clean">
+    <delete dir="${build.dir}"  />
+    <delete dir="${dist.dir}"  />
+  </target>
+
+  <target name="configure">
     <!-- generate the build.properties file -->
-    <!-- ask for db hostname or ip (default to localhost/127.0.0.1) -->
-    <!-- ask for db username  -->
-    <!-- ask for db password -->
-    <!-- ask for db name -->
+    <input message="Please enter the host name or ip address for mysql" defaultvalue="localhost" addproperty="input.mysql.host" />
+    <input message="Please enter the port number for mysql" defaultvalue="3306" addproperty="input.mysql.port" />
+    <input message="Please enter the username for mysql" addproperty="input.mysql.user" />
+    <input message="Please enter the password for mysql" addproperty="input.mysql.password" />
+    <input message="Please enter the gcd database name for mysql" defaultvalue="gcd" addproperty="input.mysql.database" />
+
     <!-- write to build.properties file -->
+    <propertyfile file="${basedir}/build-user.properties">
+      <entry key="mysql.host" value="${input.mysql.host}" />
+      <entry key="mysql.port" value="${input.mysql.port}" />
+      <entry key="mysql.user" value="${input.mysql.user}" />
+      <entry key="mysql.password" value="${input.mysql.password}" />
+      <entry key="mysql.database" value="${input.mysql.database}" />
+    </propertyfile>
+  </target>
+
+  <target name="dist" depends="clean">
+    <!-- load the build user properties -->
+    <property file="${basedir}/build-user.properties" />
+
+    <!-- make the build dir -->
+    <mkdir dir="${build.dir}" />
 
     <!-- unpack solr distro in 'build' dir -->
+    <unzip dest="${build.dir}" src="${lib.dir}/${solr.distro}" />
+    <move file="${build.dir}/${solr.unpacked}" tofile="${solr.dir}" />
     <!-- prune distro of uncessary files -->
+    <delete verbose="false" includeemptydirs="true">
+      <fileset dir="${solr.dir}">
+        <include name="README.txt" />
+        <include name="CHANGES.txt" />
+        <include name="NOTICE.txt" />
+        <include name="LICENSE.txt" />
+        <include name="build.xml" />
+        <include name="common-build.xml" />
+      </fileset>
+
+      <fileset dir="${solr.dir}/client" includes="**" />
+      <fileset dir="${solr.dir}/dist" includes="**" />
+      <fileset dir="${solr.dir}/docs" includes="**" />
+      <fileset dir="${solr.dir}/src" includes="**" />
+
+      <fileset dir="${solr.dir}/example/example-DIH" includes="**" />
+      <fileset dir="${solr.dir}/example/exampledocs" includes="**" />
+      <fileset dir="${solr.dir}/example/multicore" includes="**" />
+      <fileset dir="${solr.dir}/example/etc"  />
+
+      <fileset dir="${solr.dir}/example">
+        <include name="README.txt" />
+        <include name="solr/README.txt" />
+        <include name="solr/conf/elevate.xml" />
+        <include name="solr/conf/admin-extra.html" />
+        <include name="solr/conf/protwords.txt" />
+        <include name="solr/conf/spellings.txt" />
+        <include name="solr/conf/synonyms.txt" />
+      </fileset>
+    </delete>
+
     <!-- copy and token replace the solr config files for GCD -->
+    <copy filtering="true" todir="${solr.dir}/example">
+      <filterset filtersfile="${basedir}/build-user.properties" />
+      <fileset dir="${conf.dir}" />
+    </copy>
     <!-- copy the jar for mysql -->
+    <copy file="${lib.dir}/${mysql.jar}" tofile="${solr.dir}/example/lib/mysql.jar" />
+    
+    <mkdir dir="${dist.dir}"/>
+    <zip basedir="${solr.dir}" destfile="${dist.dir}/${dist.name}"  ></zip>
+    
   </target>
 
-  <target name="run">
-    <!-- fork the 'java -jar start.jar call' -->
-  </target>
-  
-  <target name="clean">
-    <!-- delete the build dir -->
-  </target>
+
 
 </project>
