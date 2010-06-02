@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+         	
+     ====================================================================== -->
+<project name="prototype" default="readme">
+
+  <target name="readme">
+    <echo>
+    Run 'ant install' to prepare the Solr distribution to run with the GCD database
+    </echo>
+
+  </target>
+
+  <target name="install">
+    <!-- make the build dir, fail if exists -->
+    <!-- find the solr distro, fail if not found -->
+    <!-- generate the build.properties file -->
+    <!-- ask for db hostname or ip (default to localhost/127.0.0.1) -->
+    <!-- ask for db username  -->
+    <!-- ask for db password -->
+    <!-- ask for db name -->
+    <!-- write to build.properties file -->
+
+    <!-- unpack solr distro in 'build' dir -->
+    <!-- prune distro of uncessary files -->
+    <!-- copy and token replace the solr config files for GCD -->
+    <!-- copy the jar for mysql -->
+  </target>
+
+  <target name="run">
+    <!-- fork the 'java -jar start.jar call' -->
+  </target>
+  
+  <target name="clean">
+    <!-- delete the build dir -->
+  </target>
+
+</project>
