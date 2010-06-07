@@ -1,0 +1,2 @@
+ALTER TABLE gcd_issue ADD `indicia_pub_not_printed` bool DEFAULT false AFTER indicia_publisher_id;
+ALTER TABLE oi_issue_revision ADD `indicia_pub_not_printed` bool DEFAULT false AFTER indicia_publisher_id;
