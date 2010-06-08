@@ -1,0 +1,122 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-08-19 18:26+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: apps/gcd/templatetags/credits.py:59
+msgid "Job Number:"
+msgstr ""
+
+#: apps/gcd/templatetags/credits.py:68
+msgid "search and link"
+msgstr ""
+
+#: apps/gcd/templatetags/migration/reprints.py:457
+#: apps/gcd/templatetags/migration/reprints.py:541
+msgid "Reprints"
+msgstr ""
+
+#: templates/gcd/covers_to_replace.html:19
+msgid "Covers marked for replacement"
+msgstr ""
+
+#: templates/gcd/daily_covers.html:19
+msgid "Covers for "
+msgstr ""
+
+#: templates/gcd/daily_covers.html:22
+msgid "day before"
+msgstr ""
+
+#: templates/gcd/daily_covers.html:24
+msgid "day after"
+msgstr ""
+
+#: templates/gcd/daily_covers.html:31
+msgid " covers posted"
+msgstr ""
+
+#: templates/gcd/issue.html:52
+msgid "Price"
+msgstr ""
+
+#: templates/gcd/issue.html:54
+msgid "Pages"
+msgstr ""
+
+#: templates/gcd/issue.html:112
+msgid "Issues in this series have been indexed by:"
+msgstr ""
+
+#: templates/gcd/one_issue_series.html:5
+msgid "Publication Notes"
+msgstr ""
+
+#: templates/gcd/one_issue_series.html:10
+msgid "Tracking"
+msgstr ""
+
+#: templates/gcd/one_issue_series.html:15
+msgid "Title Notes"
+msgstr ""
+
+#: templates/gcd/pagination_bar.html:7 templates/gcd/pagination_bar.html:9
+#: templates/gcd/pagination_bar.html:12
+msgid "Previous"
+msgstr ""
+
+#: templates/gcd/pagination_bar.html:29 templates/gcd/pagination_bar.html:31
+#: templates/gcd/pagination_bar.html:34
+msgid "Next"
+msgstr ""
+
+#: templates/gcd/series.html:74
+msgid "Indexed by:"
+msgstr ""
+
+#: templates/gcd/series_issue_header.html:39
+msgid "Previous Issue"
+msgstr ""
+
+#: templates/gcd/series_issue_header.html:45
+msgid "Next Issue"
+msgstr ""
+
+#: templates/gcd/single_story.html:23 templates/gcd/single_story.html.py:48
+#, python-format
+msgid ""
+"\n"
+"              page%(suffix)s\n"
+"            "
+msgstr ""
+
+#~ msgid "Script"
+#~ msgstr "Scenario"
+
+#~ msgid "Pencils"
+#~ msgstr "Potloodtekenaar"
+
+#~ msgid "Inks"
+#~ msgstr "Inkter"
+
+#~ msgid "Colors"
+#~ msgstr "Inkleuring"
+
+#~ msgid "Letters"
+#~ msgstr "Lettering"
+
+#~ msgid "Editor"
+#~ msgstr "Redacteur"
