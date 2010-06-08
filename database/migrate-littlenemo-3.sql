@@ -1,0 +1,1 @@
+ALTER TABLE gcd_story ADD `deleted` bool NOT NULL DEFAULT false;
