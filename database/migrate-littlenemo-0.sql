@@ -7,11 +7,12 @@ INSERT INTO voting_mailing_list (address) VALUES
     ('gcd-editor@googlegroups.com'),
     ('gcd-tech@googlegroups.com');
 
-INSERT INTO voting_agenda (name, uses_tokens, allows_abstentions, permission_id)
+INSERT INTO voting_agenda
+    (name, uses_tokens, allows_abstentions, quorum, secret_ballot, permission_id)
   VALUES
-    ('Board of Directors', 0, 1,
+    ('Board of Directors', 0, 1, NULL, 0
      (SELECT id FROM auth_permission WHERE codename='on_board')),
-    ('Fields and Formatting Rules', 1, 0,
+    ('Fields and Formatting Rules', 1, 0, 9, 0
      (SELECT id FROM auth_permission WHERE codename='can_vote'));
 
 SET @board_agenda=(SELECT id FROM voting_agenda WHERE name='Board of Directors');
