@@ -10,9 +10,9 @@ INSERT INTO voting_mailing_list (address) VALUES
 INSERT INTO voting_agenda
     (name, uses_tokens, allows_abstentions, quorum, secret_ballot, permission_id)
   VALUES
-    ('Board of Directors', 0, 1, NULL, 0
+    ('Board of Directors', 0, 1, NULL, 0,
      (SELECT id FROM auth_permission WHERE codename='on_board')),
-    ('Fields and Formatting Rules', 1, 0, 9, 0
+    ('Fields and Formatting Rules', 1, 0, 9, 0,
      (SELECT id FROM auth_permission WHERE codename='can_vote'));
 
 SET @board_agenda=(SELECT id FROM voting_agenda WHERE name='Board of Directors');
@@ -25,13 +25,15 @@ SET @policy=(SELECT id FROM voting_mailing_list WHERE address LIKE '%policy%');
 SET @editor=(SELECT id FROM voting_mailing_list WHERE address LIKE '%editor%');
 
 INSERT INTO voting_agenda_mailing_list
-  (agenda_id, mailing_list_id, on_vote_open, on_vote_close, reminder, display_token)
+  (agenda_id, mailing_list_id,
+   on_agenda_item_add, on_agenda_item_open, on_vote_open, on_vote_close,
+   reminder, display_token)
   VALUES
-    (@board_agenda, @board, 1, 1, 1, 0),
-    (@board_agenda, @main, 1, 1, 0, 0),
-    (@rules_agenda, @policy, 1, 1, 1, 1),
-    (@rules_agenda, @main, 0, 1, 0, 0),
-    (@rules_agenda, @editor, 0, 1, 0, 0);
+    (@board_agenda, @board, 0, 0, 1, 1, 1, 0),
+    (@board_agenda, @main, 0, 0, 0, 1, 0, 0),
+    (@rules_agenda, @policy, 1, 1, 1, 1, 1, 1),
+    (@rules_agenda, @main, 0, 1, 0, 1, 0, 0),
+    (@rules_agenda, @editor, 0, 1, 0, 1, 0, 0);
 
 
 INSERT INTO voting_vote_type (name, max_votes, max_winners) VALUES
