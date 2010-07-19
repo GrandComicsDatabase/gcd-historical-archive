@@ -1,0 +1,38 @@
+{% extends "oi/base_view.html" %}
+
+{% load credits %}
+
+{% block title %}
+{{ changeset }}
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}/css/gcd/{{ style|default:'default' }}.css"/>
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}/css/oi/{{ style|default:'default' }}.css"/>
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}/css/oi/{{ style|default:'default' }}/edit.css"/>
+{% endblock %}
+
+{% block view_body %}
+<h1> {{ revision }} </h1>
+
+<div class="edit">
+
+<form action="{% url process_revision model_name=revision.source_name,id=revision.id %}" method="POST">
+  <table class="editing">
+  {{ form.as_table }}
+  </table>
+  {% with changeset.comments as comments %}
+  {% include 'oi/bits/comments.html' %}
+  {% endwith %}
+
+<input type="submit" name="save" value="Save and continue editing"></input>
+<input type="submit" name="save_return" value="Save and return to changeset"></input>
+<input type="submit" name="cancel_return"
+       value="Return to changeset without saving"></input>
+</form>
+</div>
+{% endblock %}
+

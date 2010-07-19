@@ -1,0 +1,25 @@
+{% load accounts %}
+
+{% if user|can_view_profile_details:profile_user %}
+<ul>
+  <li> Maximum individual changes (a.k.a. reservations) you can make at once:
+    <span class="data_value">{{ profile_user.indexer.max_reservations }}</span>
+  <li> Maximum ongoing series reservations you can hold at once:
+    <span class="data_value">{{ profile_user.indexer.max_ongoing }}</span>
+  <li> Changes awaiting approval count towards your maximums?
+    <span class="data_value">
+      {% if profile_user.indexer.is_new %}Yes{% else %}No{% endif %}
+    </span>
+  <li> Mentor:
+    {% if profile_user.indexer.mentor %}
+    <span class="data_value"><a href="{% url view_profile user_id=profile_user.indexer.mentor.id %}">
+      {{ profile_user.indexer.mentor.indexer }}</a></span>
+    {% ifequal user profile_user %}
+    (<a href="mailto:{{ profile_user.indexer.mentor.email }}">{{ profile_user.indexer.mentor.email }}</a>)
+    {% endifequal %}
+    {% else %}
+    <span class="data_value">None</span>
+    {% endif %}
+</ul>
+{% endif %}
+

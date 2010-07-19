@@ -1,0 +1,57 @@
+
+#token {
+    margin-bottom: 1em;
+}
+
+.option {
+    margin-bottom: 1em;
+}
+
+.option_text {
+    margin-left: 2em;
+}
+
+#vote {
+    margin-bottom: 1em;
+}
+
+ul.compact,
+dd ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+dd {
+    margin-bottom: 1em;
+}
+
+tr.result {
+    font-weight: bolder;
+}
+
+dl.compact {
+    float: left;
+    margin-top: 0em;
+    margin-bottom: 1em;
+}
+
+dl.compact dt {
+    float: left;
+    clear: left;
+}
+
+dl.compact dd {
+    float: left;
+    margin-left: 1em;
+    margin-bottom: 0;
+}
+
+table {
+    clear: both;
+}
+
+tr.invalid {
+    background-color: tomato;
+}
+
