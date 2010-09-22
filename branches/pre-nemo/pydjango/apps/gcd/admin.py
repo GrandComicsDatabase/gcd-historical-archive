@@ -21,9 +21,6 @@ class IndexerAdmin(admin.ModelAdmin):
         ('Profile', {
             'fields': ('country', 'languages', 'interests', 'deceased'),
         }),
-        ('Preferences', {
-            'fields': ('notify_on_approve',),
-        }),
     )
     filter_horizontal = ('languages',)
 
