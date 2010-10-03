@@ -1,4 +1,6 @@
-ALTER TABLE gcd_issue ADD is_indexed BOOL NOT NULL DEFAULT 0;
+ALTER TABLE gcd_issue
+    ADD COLUMN is_indexed BOOL NOT NULL DEFAULT 0,
+    ADD INDEX (is_indexed);
 CREATE TEMPORARY TABLE indexed_issues AS
        SELECT issue_id, SUM(page_count) AS indexed_page_count
               FROM gcd_story GROUP BY issue_id;
