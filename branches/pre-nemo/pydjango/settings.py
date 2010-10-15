@@ -103,10 +103,12 @@ TIME_ZONE = 'UTC'
 
 DEFAULT_FROM_EMAIL = 'GCD Contact <gcd-contact@googlegroups.com>'
 EMAIL_NEW_ACCOUNTS_FROM = 'GCD New Accounts <new.accounts@comics.org>'
-EMAIL_VOTING_FROM = 'GCD Voting <voting@comics.org>'
 EMAIL_EDITORS = 'gcd-editor@googlegroups.com'
 EMAIL_CONTACT = 'gcd-contact@googlegroups.com'
 EMAIL_INDEXING = 'GCD Online Indexing <no-reply@comics.org>'
+
+EMAIL_VOTING_FROM = 'GCD Voting <voting@comics.org>'
+EMAIL_VOTING_ADMIN = EMAIL_CONTACT
 
 # Number of days for which a registraton confirmation token is valid.
 REGISTRATION_EXPIRATION_DELTA = 2
