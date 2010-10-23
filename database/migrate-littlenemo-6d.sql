@@ -1,47 +1,89 @@
 -- copy table so we don't modify the final dump directly
-create table log_stories select * from GCDOnline.LogStories;
--- drop columns won't need for porting
-alter table log_stories drop column actiontype;
+CREATE TABLE log_stories (
+    PRIMARY KEY (id)
+) ENGINE=MyISAM SELECT * FROM GCDOnline.LogStories;
+
+-- drop columns won't need for porting, add type_id with correct new type.
+ALTER TABLE log_stories DROP COLUMN actiontype,
+                        ADD COLUMN type_id int(11) default NULL;
+
+SET @backcovers=(SELECT id FROM gcd_story_type
+    WHERE name = '(backcovers) *do not use* / *please fix*');
+SET @activity=(SELECT id FROM gcd_story_type WHERE name = 'activity');
+SET @advertisement=(SELECT id FROM gcd_story_type WHERE name = 'advertisement');
+SET @biography=(SELECT id FROM gcd_story_type
+    WHERE name = 'biography (nonfictional)');
+SET @cartoon=(SELECT id FROM gcd_story_type WHERE name = 'cartoon');
+SET @character=(SELECT id FROM gcd_story_type WHERE name = 'character profile');
+SET @cover=(SELECT id FROM gcd_story_type WHERE name = 'cover');
+SET @cover_reprint=(SELECT id FROM gcd_story_type
+    WHERE name = 'cover reprint (on interior page)');
+SET @credits=(SELECT id FROM gcd_story_type WHERE name = 'credits');
+SET @filler=(SELECT id FROM gcd_story_type WHERE name = 'filler');
+SET @foreword=(SELECT id FROM gcd_story_type
+    WHERE name = 'foreword, introduction, preface, afterword');
+SET @illustration=(SELECT id FROM gcd_story_type WHERE name = 'illustration');
+SET @insert=(SELECT id FROM gcd_story_type WHERE name = 'insert or dust jacket');
+SET @letters=(SELECT id FROM gcd_story_type WHERE name = 'letters page');
+SET @photo=(SELECT id FROM gcd_story_type WHERE name = 'photo story');
+SET @promo=(SELECT id FROM gcd_story_type
+    WHERE name = 'promo (ad from the publisher)');
+SET @public=(SELECT id FROM gcd_story_type
+    WHERE name = 'public service announcement');
+SET @recap=(SELECT id FROM gcd_story_type WHERE name = 'recap');
+SET @statement=(SELECT id FROM gcd_story_type
+    WHERE name = 'statement of ownership');
+SET @story=(SELECT id FROM gcd_story_type WHERE name = 'story');
+SET @text_article=(SELECT id FROM gcd_story_type WHERE name = 'text article');
+SET @text_story=(SELECT id FROM gcd_story_type WHERE name = 'text story');
+SET @unknown=(SELECT id FROM gcd_story_type WHERE name = '(unknown)');
 
 -- set type codes to type id if known or to unknown otherwise
-insert into gcd_story_type (id, name, sort_code) values (23, "(unknown)", 23);
-update log_stories set type = 1 where type  = "activity";
-update log_stories set type = 2 where type in ("advertisement", "ad");
-update log_stories set type = 3 where type in ("backcovers", "backcover", "back cover");
-update log_stories set type = 4 where type in ("biography", "bio");
-update log_stories set type = 5 where type in ("cartoon", "cartoons");
-update log_stories set type = 6 where type in ("cover", "front cover");
-update log_stories set type = 7 where type in ("cover reprint", "cover reprints");
-update log_stories set type = 8 where type = "credits";
-update log_stories set type = 9 where type = "filler";
-update log_stories set type = 10 where type in ("foreword", "foreward", "intro", "introduction");
-update log_stories set type = 11 where type in ("insert", "dust jacket");
-update log_stories set type = 12 where type in ("letter", "letter page", "letters page", "letters");
-update log_stories set type = 13 where type = "photo story";
-update log_stories set type = 14 where type in ("pinup", "illustration", "illustrations", "pin-up", "pin up");
-update log_stories set type = 15 where type = "profile";
-update log_stories set type = 16 where type in ("promo", "house ad", "house ads");
-update log_stories set type = 17 where type in ("psa", "public service");
-update log_stories set type = 18 where type = "recap";
-update log_stories set type = 19 where type = "story";
-update log_stories set type = 20 where type = "text article";
-update log_stories set type = 21 where type = "text story";
-update log_stories set type = 22 where type = "statement of ownership";
-update log_stories set type = 23 where type not in (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22);
-update log_stories set type = 23 where type is null;
-
+INSERT INTO gcd_story_type (id, name, sort_code) VALUES (23, "(unknown)", 23);
+UPDATE log_stories SET type_id=@activity WHERE type  = "activity";
+UPDATE log_stories SET type_id=@advertisement WHERE type IN ("advertisement", "ad");
+UPDATE log_stories SET type_id=@backcovers
+    WHERE type_id IN ("backcovers", "backcover", "back cover");
+UPDATE log_stories SET type_id=@biography WHERE type IN ("biography", "bio");
+UPDATE log_stories SET type_id=@cartoon WHERE type IN ("cartoon", "cartoons");
+UPDATE log_stories SET type_id=@cover WHERE type IN ("cover", "front cover");
+UPDATE log_stories SET type_id=@cover_reprint
+    WHERE type_id IN ("cover reprint", "cover reprints");
+UPDATE log_stories SET type_id=@credits WHERE type = "credits";
+UPDATE log_stories SET type_id=@filler WHERE type = "filler";
+UPDATE log_stories SET type_id=@foreword
+    WHERE type_id IN ("foreword", "foreward", "intro", "introduction");
+UPDATE log_stories SET type_id=@insert WHERE type IN ("insert", "dust jacket");
+UPDATE log_stories SET type_id=@letters
+    WHERE type_id IN ("letter", "letter page", "letters page", "letters");
+UPDATE log_stories SET type_id=@photo WHERE type = "photo story";
+UPDATE log_stories SET type_id=@illustration
+    WHERE type_id IN ("pinup", "illustration", "illustrations", "pin-up", "pin up");
+UPDATE log_stories SET type_id=@profile WHERE type = "profile";
+UPDATE log_stories SET type_id=@promo
+    WHERE type_id IN ("promo", "house ad", "house ads");
+UPDATE log_stories SET type_id=@public WHERE type IN ("psa", "public service");
+UPDATE log_stories SET type_id=@recap WHERE type = "recap";
+UPDATE log_stories SET type_id=@story WHERE type = "story";
+UPDATE log_stories SET type_id=@text_article WHERE type = "text article";
+UPDATE log_stories SET type_id=@text_story WHERE type = "text story";
+UPDATE log_stories SET type_id=@statement WHERE type = "statement of ownership";
+UPDATE log_stories SET type_id=@unknown WHERE type_id IS NULL;
 
 -- set Ray's 2nd login to his first login
-update log_stories set userid = 49 where userid = 299;
+UPDATE log_stories set userid = 49 WHERE userid = 299;
 -- set to Anonymous User
-update log_stories set userid = 249 where userid is null;
+UPDATE log_stories set userid = 249 WHERE userid is null;
 -- don't port stories we don't know about
-delete from log_stories where storyid is null;
-delete from log_stories where storyid not in (select id from gcd_story);
-delete from log_stories where issueid not in (select id from gcd_issue);
+DELETE FROM log_stories WHERE storyid IS null;
+DELETE ls FROM log_stories ls LEFT OUTER JOIN gcd_story gs ON ls.storyid=gs.id
+    WHERE gs.id IS NULL;
+DELETE ls FROM log_stories ls LEFT OUTER JOIN gcd_issue gi ON ls.issueid=gs.id
+    WHERE gi.id IS NULL;
 
 -- create second table with duplicates removed
-create table log_stories2 ( `id` bigint(11) unsigned NOT NULL DEFAULT '0',
+CREATE TABLE log_stories2 (
+  `id` bigint(11) unsigned NOT NULL DEFAULT '0',
   `char_app` varchar(255) CHARACTER SET latin1 DEFAULT NULL,
   `colors` varchar(255) CHARACTER SET latin1 DEFAULT NULL,
   `editing` varchar(255) CHARACTER SET latin1 DEFAULT NULL,
@@ -61,16 +103,25 @@ create table log_stories2 ( `id` bigint(11) unsigned NOT NULL DEFAULT '0',
   `storyid` bigint(11) DEFAULT NULL,
   `synopsis` text CHARACTER SET latin1,
   `title` varchar(255) CHARACTER SET latin1 DEFAULT NULL,
-  `type` varchar(255) CHARACTER SET latin1 DEFAULT NULL,
+  `type_id` int(11) NOT NULL,
   `userid` int(11) DEFAULT NULL,
-  `jobno` varchar(25) CHARACTER SET latin1 DEFAULT NULL );
+  `jobno` varchar(25) CHARACTER SET latin1 DEFAULT NULL
+) ENGINE=MyISAM;
 
-insert into log_stories2 select min(id) as id, char_app, colors, editing, feature, genre, inks, issueid, letters, modified, modtime, notes, pencils, pg_cnt, reprints, script, seq_no, storyid, synopsis, title, type, userid, jobno
- from log_stories group by char_app, colors, editing, feature, genre, inks, issueid, letters, notes, pencils, pg_cnt, reprints, script, seq_no, storyid, synopsis, title, type, jobno;
+INSERT INTO log_stories2
+    SELECT MIN(id) AS id, char_app, colors, editing, feature, genre, inks,
+           issueid, letters, modified, modtime, notes, pencils, pg_cnt, reprints,
+           script, seq_no, storyid, synopsis, title, type, userid, jobno
+    FROM log_stories
+    GROUP BY char_app, colors, editing, feature, genre, inks,
+             issueid, letters, notes, pencils, pg_cnt, reprints,
+             script, seq_no, storyid, synopsis, title, type, jobno;
+
+ALTER TABLE log_stories2 CONVERT TO CHARACTER SET utf8;
 
 -- 768106 records reduced to 689091 (10% less)
 
--- use 2009-11-01 00:00:00 as placeholder (max date in table is 2009-10-01, first new site date is 2009-12-07)
-update log_stories2 set modified = "2009-11-01" where modified is null;
+-- use 2009-11-01 00:00:00 as placeholder
+-- (max date in table is 2009-10-01, first new site date is 2009-12-07)
+UPDATE log_stories2 set modified = "2009-11-01" WHERE modified is null;
 
--- now run apps/gcd/migration/history_stories and then littlenemo-7.sql
