@@ -1,0 +1,1 @@
+ALTER TABLE gcd_cover ADD `reserved` bool NOT NULL DEFAULT false, ADD INDEX (reserved);
