@@ -28,7 +28,7 @@ UPDATE oi_changeset c INNER JOIN oi_series_revision r ON c.id=r.changeset_id
 UPDATE oi_changeset c
     INNER JOIN oi_issue_revision r ON r.changeset_id=c.id
     LEFT OUTER JOIN gcd_issue i ON r.issue_id=i.id
-    SET c.change_type=IF(i.id IS NULL OR r.created <= i.created, 5, 6);
+    SET c.change_type=IF(i.id IS NULL OR r.created < i.created, 5, 6);
 
 -- 7 is "COVER",
 UPDATE oi_changeset c INNER JOIN oi_cover_revision r ON c.id=r.changeset_id
