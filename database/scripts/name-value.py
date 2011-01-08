@@ -26,11 +26,6 @@ def _indicia_publisher_name(issue):
         return issue.indicia_publisher.name
     return u''
 
-def _volume(issue):
-    if issue.volume is None:
-        return u''
-    return u'%d' % issue.volume
-
 def _page_count(issue):
     if issue.page_count is None:
         return u''
@@ -41,7 +36,7 @@ def _page_count(issue):
 # an issue record.
 ISSUE_FIELDS = {'series name': lambda i: i.series.name or u'',
                 'issue number': lambda i: i.number,
-                'volume': _volume,
+                'volume': lambda i: i.volume,
                 'no volume': lambda i: i.no_volume,
                 'display number': lambda i: i.display_number,
                 'price': lambda i: i.price or u'',
@@ -164,7 +159,7 @@ def main():
         # Note: count() is relatively expensive with InnoDB, so don't call it more
         # than we absolutely have to.  Since this is being done within a
         # transaction, the count should never change.
-        issues = Issue.objects.filter(series__country__code='us') \
+        issues = Issue.objects.filter(series__country__code='us', deleted=False) \
                               .order_by().select_related(
           'series',
           'series__publisher',
