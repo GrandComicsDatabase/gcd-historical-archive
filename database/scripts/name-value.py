@@ -10,7 +10,8 @@ The GCD django app must be in PYTHONPATH for this to work.
 """
 
 import sys
-from django.db import connection
+import logging
+from django.db import connection, models
 from apps.gcd.models import *
 
 # TODO: When we move up to Python 2.6 (or even 2.5) these related name access
@@ -81,18 +82,21 @@ STORY_TYPES = ('story',
 
 DELTA = 10000
 
-def _next_range(old_end, count):
+def _next_range(old_end, max):
     """
     This manages pushing the query window along for the large queries that
     need to be done in chunks to keep from using too much memory.
     """
-    if old_end == count:
+    if old_end == max:
         return None, None
 
     end = old_end + DELTA
-    if count < end:
-        end = count
-    return old_end, end
+    if max < end:
+        end = max
+
+    # The django range operator (SQL BETWEEN) is inclusive, don't double up
+    # on the old end value.
+    return old_end + 1, end
 
 def _fix_value(value):
     """
@@ -104,7 +108,7 @@ def _fix_value(value):
         return None
     return u'"' + value + u'"'
 
-def _dump_table(dumpfile, objects, count, fields, get_id):
+def _dump_table(dumpfile, objects, max, fields, get_id):
     """
     Dump records from a table a chunk at a time, selecting particular fields.
     Fields with a NULL or empty string value are omitted.
@@ -113,9 +117,10 @@ def _dump_table(dumpfile, objects, count, fields, get_id):
     end = start + DELTA
     had_error = False
     while start is not None:
-        print "Dumping object rows %d through %d (out of %d)" % (start, end, count)
+        logging.info("Dumping object rows %d through %d (out of %d)" %
+                     (start, end, max))
         try:
-            for object in objects[start:end].iterator():
+            for object in objects.filter(id__range=(start, end)).iterator():
                 for name, func in fields.items():
                     value = unicode(func(object)).replace(u'"', u'""')
                     value = _fix_value(value)
@@ -131,7 +136,7 @@ def _dump_table(dumpfile, objects, count, fields, get_id):
                 raise
             had_error = True
 
-        start, end = _next_range(end, count)
+        start, end = _next_range(end, max)
 
 def main():
     """
@@ -141,15 +146,19 @@ def main():
     are involved.
     """
 
+    logging.basicConfig(level=logging.NOTSET,
+                        stream=sys.stdout,
+                        format='%(asctime)s %(levelname)s: %(message)s')
+
     if len(sys.argv) <= 1:
-        print "Usage:  name-value.py <output-file>"
+        logging.error("Usage:  name-value.py <output-file>")
         sys.exit(-1)
 
     filename = sys.argv[1]
     try:
         dumpfile = open(filename, 'w')
     except (IOError, OSError), e:
-        print "Error opening output file '%s': %s" % (filename, e.strerror)
+        logging.error("Error opening output file '%s': %s" % (filename, e.strerror))
         sys.exit(-1)
 
     cursor = connection.cursor()
@@ -168,16 +177,17 @@ def main():
           'series__language',
           'series__country',
           'series__publisher__country')
-        count = issues.count()
+        max = issues.aggregate(models.Max('id'))['id__max']
 
-        _dump_table(dumpfile, issues, count, ISSUE_FIELDS, lambda i: i.id)
+        _dump_table(dumpfile, issues, max, ISSUE_FIELDS, lambda i: i.id)
 
         stories = Story.objects.filter(issue__series__country__code='us',
-                                       type__name__in=STORY_TYPES) \
+                                       type__name__in=STORY_TYPES,
+                                       deleted=False) \
                                .order_by() \
                                .select_related('type')
-        count = stories.count()
-        _dump_table(dumpfile, stories, count, STORY_FIELDS, lambda s: s.issue_id)
+        max = stories.aggregate(models.Max('id'))['id__max']
+        _dump_table(dumpfile, stories, max, STORY_FIELDS, lambda s: s.issue_id)
 
     finally:
         # We shouldn't have anything to commit or roll back, so just to be safe,
