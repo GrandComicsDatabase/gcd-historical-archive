@@ -1,0 +1,172 @@
+{% extends "gcd/base_view.html" %}
+
+{% load i18n %}
+{% load display %}
+{% load credits %}
+
+{% block title %}
+  GCD :: Issue :: {{ issue.series.name }} #{{ issue.display_number }}
+{% endblock %}
+
+{% block css %}
+  <link rel="stylesheet" type="text/css"
+        href="{{ MEDIA_URL }}css/gcd/default.css"/>
+  <link rel="stylesheet" type="text/css"
+        href="{{ MEDIA_URL }}css/gcd/default/issue.css"/>
+  <link rel="stylesheet" type="text/css"
+        href="{{ MEDIA_URL }}css/gcd/default/single_story.css"/>
+{% endblock %}
+
+{% block view_body %}
+
+{% with issue.series as series %}
+{% with issue.display_number as issue_number %}
+  {% include "gcd/bits/series_issue_header.html" %}
+{% endwith %}
+{% endwith %}
+
+<div class="control_body">
+  <div id="control_container">
+    <div id="control_center">
+{% include "gcd/bits/issue_data.html" %}
+{% if issue.notes %}
+      <div class="issue_notes">
+        <div class="issue_notes_border">
+          <h3 class="notes_header"> Issue Notes </h3>
+            <p>{{ issue.notes|linebreaksbr }}
+        </div>
+      </div>
+{% endif %} <!-- issue.notes -->
+      <hr class="divider">
+      <div class="cover">
+        <div class="coverContainer">
+          <div class="coverContent">
+            <div id="cover_data">
+{% with cover_story as story %}
+{% with 1 as is_cover %}
+  {% include "gcd/details/single_story.html" %}
+{% endwith %}
+{% endwith %}
+            </div>
+          </div>
+          <div class="coverImage">
+{% if issue.has_covers %}
+            <a href="{{ issue.get_absolute_url }}cover/4">{{ image_tag }}</a>
+{% else %}
+  {% if preview %}
+    {% if issue.issue %}
+            <a href="{% url upload_cover issue_id=issue.issue.id %}">{{ image_tag }}</a>
+    {% else %}
+            {{ image_tag }}
+    {% endif %}
+  {% else %}
+            <a href="{% url upload_cover issue_id=issue.id %}">{{ image_tag }}</a>
+  {% endif %}
+{% endif %}
+            <div class="issue_cover_links">
+{% if issue.has_covers %}
+              View: <a href="{{ issue.get_absolute_url }}cover/2">Medium</a>
+              <a href="{{ issue.get_absolute_url }}cover/4">Large</a>
+              <br>
+  {% if not preview %}
+              <a href="{% url edit_covers issue_id=issue.id %}">Add/replace cover{{ issue.active_covers.count|pluralize }}</a>
+              <br>
+  {% endif %}              
+{% endif %}
+{% if issue.series.has_gallery %}
+              <a href="{{ issue.series.get_absolute_url }}covers">Cover gallery</a>
+{% endif %}
+            </div>
+          </div> 
+        </div> <!-- coverContainer -->
+      </div> <!-- cover -->
+      <div id="story_data">
+{% for story in stories %}
+        <hr class="divider">
+  {% include "gcd/details/single_story.html" %}
+{% endfor %}
+        <hr class="divider">
+      </div>
+    </div> <!-- control_center -->
+
+    <div id="control_rail">
+      <div class="edit_box">
+        <div class="edit_header">Editing
+{% if request.user.is_authenticated and not preview %}
+          <div class="right">
+            <a class="link_info_left" href="{% url export_issue issue.id %}"><span>download issue data</span>
+            <img src="{{ MEDIA_URL }}img/gcd/icons/gnome-document-save_16.png" alt="download issue data" style="border:0;">
+            </a>
+          </div>
+{% endif %}
+        </div>
+{% if not preview %}
+  {% with issue as object %}
+  {% with 'Issue' as object_name %}
+  {% with 'issue' as object_class %}
+    {% include "gcd/bits/status_banner.html" %}
+  {% endwith %}
+  {% endwith %}
+  {% endwith %}
+{% endif %}
+      </div>
+
+{% if not preview or issue.source %}
+      <div class="change_history">
+  {% if preview %}
+        <a href="{% url change_history model_name='issue' id=issue.source.id %}">Change History</a>
+  {% else %}
+        <a href="{% url change_history model_name='issue' id=issue.id %}">Change History</a>
+  {% endif %}
+      </div>
+{% endif %}
+
+      <div id="story_toc">
+        <a name="toc"></a>
+        <h2 id="toc_header">Table of Contents</h2>
+        <ol>
+{% for story in stories %}
+          <li class="{% cycle 'odd' 'even' %}">
+          {{ forloop.counter }}.
+          <span class="toc_story_title">
+          <a href="#{{ story.id }}">{{ story|show_title }}</a></span><br/>
+  {% if story.feature %}
+          <span class="toc_story_feature">{{ story.feature}}</span>
+  {% endif %}
+{% endfor %}
+        </ol>
+      </div> <!-- story_toc, a.k.a "right" -->
+
+{% if issue.series.index_credit_set.all.select_related or oi_indexers %}
+      <div id="index_credits">
+  {% if oi_indexers %}
+        <div id="indexers_header">{% trans "This issue was most recently modified by:" %}</div>
+        <ul>
+    {% for credit in oi_indexers %}
+          <li> {{ credit }}
+    {% endfor %}
+        </ul>
+  {% endif %}
+  {% if issue.series.index_credit_set.all.select_related %}
+        <div id="indexers_header">{% trans "Issues in this series have been indexed by:" %}</div>
+        <ul>
+    {% for credit in issue.series.index_credit_set.all.select_related %}
+          <li> {{ credit.indexer }}
+    {% endfor %}
+        </ul>
+  {% endif %}
+      </div> <!-- index_credits -->
+{% endif %}
+    </div> <!-- control_rail -->
+  </div> <!-- control_container -->
+</div> <!-- control_body -->
+
+{% with 1 as paginate_only %}
+{% with issue.series as series %}
+{% with issue.display_number as issue_number %}
+  {% include "gcd/bits/series_issue_header.html" %}
+{% endwith %}
+{% endwith %}
+{% endwith %}
+
+{% endblock %}

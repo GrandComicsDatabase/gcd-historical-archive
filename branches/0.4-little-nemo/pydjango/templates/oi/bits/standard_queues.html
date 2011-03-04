@@ -1,0 +1,60 @@
+{% load display %}
+
+{% for section in data %}
+  {% with section.changesets.count as section_count %}
+    {% if section_count %}
+<h2>
+  {{ section.object_name }}
+  ({{ section_count }} change{{ section_count|pluralize }})
+</h2>
+<table>
+  <tr>
+      {% if perms.gcd.can_approve and queue_name != 'editing' %}
+    <th> </th>
+      {% endif %}
+    <th> Name {{ queue_name }}</th>
+      {% if queue_name != 'editing' %}
+    <th> Indexer</th>
+      {% endif %}
+      {% if queue_name != 'reviews' %}
+    <th> Approver</th>
+      {% endif %}
+    <th> State </th>
+    <th> Last Activity </th>
+    <th> Actions </th>
+  </tr>
+      {% for changeset in section.changesets %}
+  <tr>
+        {% if perms.gcd.can_approve and queue_name != 'editing' %}
+    <td>
+      {{ changeset.magnitude }}
+    </td>
+        {% endif %}
+    <td>
+        {% if link_target == 'preview' or changeset.state == states.PENDING or changeset.state == states.REVIEWING %}
+      <a href="{% url compare id=changeset.id %}{% if user.indexer.collapse_compare_view %}?collapse=1{% endif %}">{{ changeset.queue_name }}</a>
+        {% else %}
+      <a href="{% url edit id=changeset.id %}">{{ changeset.queue_name }}</a>
+        {% endif %}
+      <span class="{{ changeset.changeset_action }}">{{ changeset.queue_descriptor }}</span>
+    </td>
+        {% if queue_name != 'editing' %}
+    <td> {{ changeset.indexer.indexer|absolute_url|default:"None" }} </td>
+        {% endif %}
+        {% if queue_name != 'reviews' %}
+    <td> {{ changeset.approver.indexer|absolute_url|default:"None" }} </td>
+        {% endif %}
+    <td> {{ changeset.display_state }} </td>
+    <td> {{ changeset.modified }} </td>
+    <td> {% with changeset.id as action_id %}{% include actions %}{% endwith %} </td>
+  </tr>
+      {% endfor %}
+</table>
+    {% endif %}
+  {% endwith %}
+{% empty %}
+<p>
+All queues are empty.
+</p>
+{% endfor %}
+

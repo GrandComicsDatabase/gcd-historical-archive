@@ -1,0 +1,32 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+{% load compress %}
+<html>
+<head>
+  <title>{% block title %}{% endblock %}</title>
+  <link rel="shortcut icon" href="{{ MEDIA_URL }}/img/favicon.ico">
+
+{% comment %}
+Having trouble with block / ifnotequal interactions.  Need to investigate.
+For now, just a simple single block for all CSS, despite redundancy.
+{% endcomment %}
+{% compress css %}
+{% block css %}{% endblock %}
+{% endcompress %}
+</head>
+
+<body>
+<div id="sizing_base" {% if preview %} class="preview" {% endif %}>
+{% if BETA %}
+  {% include "gcd/bits/beta_banner.html" %}
+{% endif %}
+{% if preview %}
+  {% include "gcd/bits/preview_banner.html" %}
+{% endif %}
+{% block body %}{% endblock %}
+
+{% block fine_print %}
+  {% include "gcd/fine_print.html" %}
+{% endblock %}
+</div>
+</body>
+</html>

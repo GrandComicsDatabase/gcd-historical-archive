@@ -1,0 +1,43 @@
+{% extends "oi/base_view.html" %}
+
+{% block title %}
+Changing {{ object_name }}
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/gcd/default.css"/>
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/oi/default.css"/>
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/oi/default/edit.css"/>
+{% endblock %}
+
+{% block view_body %}
+<h1>Changing Issues</h1>
+{% include "gcd/bits/search_terms.html" %}
+<div class="left">
+{{ nr_items }} issues match the search criteria.
+{% if nr_items != nr_items_unreserved %}
+  <span class="instructions important">
+    <br>Only {{ nr_items_unreserved }} of these issues are currently unreserved and will be part of this bulk change.
+  </span>
+{% endif %}
+  <p>Note that only fields which are currently the same for all issues can be changed.</p>
+</div>
+<div class="left">
+  <div class="edit">
+    <form action="{{ object_url }}" method="POST">
+      <table class="editing">
+{{ form.as_table }}
+      </table>
+<input type="submit" name="add" value="{{ action_label}} {{ object_name }}">
+{% ifequal object_name "Story" %}
+  <input type="submit" name="cancel_return" value="Cancel">
+{% else %}
+  <input type="submit" name="cancel" value="Cancel">
+{% endifequal %}
+    </form>
+  </div>
+</div>
+{% endblock %}

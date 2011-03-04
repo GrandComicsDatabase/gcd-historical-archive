@@ -1,0 +1,28 @@
+{% extends "gcd/base.html" %}
+
+{% block title %}
+  GCD :: {{ heading }}
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/gcd/default.css"/>
+{% endblock %}
+
+{% block body %}
+
+{% include "gcd/bits/search_bar.html" %}
+
+{% include "gcd/search/list_header.html" %}
+
+{% block list_contents %}{% endblock %}
+
+{% if used_search_terms %}
+{% include "gcd/bits/search_terms.html" %}
+{% endif %}
+
+{% include "gcd/bits/search_bar.html" %}
+
+{% include "gcd/search/list_header.html" %}
+
+{% endblock %}

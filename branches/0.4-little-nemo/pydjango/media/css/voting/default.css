@@ -1,0 +1,62 @@
+
+#token {
+    margin-bottom: 1em;
+}
+
+.option {
+    margin-bottom: 1em;
+}
+
+.option_text {
+    margin-left: 2em;
+}
+
+#vote {
+    margin-bottom: 1em;
+}
+
+ul.compact,
+dd ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+dd {
+    margin-bottom: 1em;
+}
+
+tr.result {
+    font-weight: bolder;
+}
+
+dl.compact {
+    float: left;
+    margin-top: 0em;
+    width: 100%;
+}
+
+dl.compact dt {
+    clear: left;
+    float: left;
+    padding-right: 0.5em;
+}
+
+dl.compact dd {
+    float: none;
+    margin: 0;
+    padding: 0;
+}
+
+table {
+    clear: both;
+}
+
+tr.invalid {
+    background-color: tomato;
+}
+
+h2, h3, h4 {
+    clear: both;
+}
+

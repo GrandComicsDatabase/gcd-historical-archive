@@ -1,0 +1,22 @@
+{% load i18n %}
+
+<div>
+<h1 class="item_id search_id">
+<div class="left">
+  {{ heading }}: {{ search_item }}
+</div>
+</h1>
+
+<div class="item_id">
+  <div class="left" class="item_data">
+  Displaying {{ page.start_index }} to {{ page.end_index }} of {{ paginator.count }} {{ item_name }}{{ paginator.count|pluralize:plural_suffix }}
+  matching your {% if used_search_terms %}<a href="#search_terms">search<a/>{% else %}search{% endif %}{% if search_term %} for '{{ search_term }}'{% endif %}. 
+  </div>
+  {% with query_string as extra_string %}
+  {% include "gcd/bits/pagination_bar.html" %}
+  {% endwith %}
+</div>
+</div>
+<div id="search_reminder">
+Refine your search using the <a href="{% url apps.gcd.views.search.advanced_search %}?{{ query_string }}">advanced search</a>.
+</div>

@@ -1,0 +1,27 @@
+{% extends "oi/base_view.html" %}
+
+{% block title %}
+GCD :: Changes Pending Review
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/gcd/default.css"/>
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/oi/default.css"/>
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/oi/default/queues.css"/>
+{% endblock %}
+
+{% block view_body %}
+<div class="queues">
+<h1> Changes Pending Review </h1>
+
+{% with 'oi/bits/pending_actions.html' as actions %}
+{% with 'preview' as link_target %}
+  {% include 'oi/bits/standard_queues.html' %}
+{% endwith %}
+{% endwith %}
+</div>
+{% endblock %}
+
