@@ -28,7 +28,8 @@ ALTER TABLE oi_issue_revision
         AFTER indicia_frequency,
     ADD COLUMN no_isbn tinyint(1) NOT NULL default 0 AFTER isbn,
     ADD COLUMN barcode varchar(38) NOT NULL default '',
-    ADD COLUMN no_barcode tinyint(1) NOT NULL default 0;
+    ADD COLUMN no_barcode tinyint(1) NOT NULL default 0,
+    ADD COLUMN on_sale_date date default NULL;
 
 -- Add series level flag fields.  These might not get used, but can
 -- easily be dropped in that case.  Having them here gives us ease of
