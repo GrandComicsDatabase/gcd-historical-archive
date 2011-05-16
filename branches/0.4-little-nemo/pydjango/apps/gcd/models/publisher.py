@@ -49,6 +49,9 @@ class Publisher(BasePublisher):
     parent = models.ForeignKey('self', null=True,
                                related_name='imprint_set')
 
+    def active_imprints(self):
+        return self.imprint_set.exclude(deleted=True)
+
     def active_brands(self):
         return self.brand_set.exclude(deleted=True)
 
@@ -76,7 +79,7 @@ class Publisher(BasePublisher):
         return self.name
 
     def has_imprints(self):
-        return self.imprint_set.count() > 0
+        return self.active_imprints().count() > 0
 
     def is_imprint(self):
         return self.parent_id is not None and self.parent_id != 0
@@ -107,18 +110,6 @@ class Publisher(BasePublisher):
                 return '%s: %s' % (self.parent.name, self.name)
             return '*GCD ORPHAN IMPRINT: %s' % (self.name)
         return self.name
-
-    # TODO: Should be able to remove this.  Verify we're not using it anywhere.
-    def computed_issue_count(self):
-        # issue_count is not accurate, but computing is slow.
-        return self.issue_count or 0
-
-        # This is more accurate, but too slow right now.
-        # Would be better to properly maintain issue_count.
-        # num_issues = 0
-        # for series in self.series_set.all():
-        #     num_issues += series.issue_set.count()
-        # return num_issues
 
 class IndiciaPublisher(BasePublisher):
     class Meta:
