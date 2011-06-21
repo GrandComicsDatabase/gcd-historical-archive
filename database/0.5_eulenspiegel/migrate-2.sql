@@ -6,7 +6,7 @@ ALTER TABLE gcd_issue
 
 ALTER TABLE oi_issue_revision
     ADD COLUMN title varchar(255) NOT NULL default '',
-    ADD COLUMN no_title tinyint(1) NOT NULL default 1;
+    ADD COLUMN no_title tinyint(1) NOT NULL default 0;
 
 -- Add series level flag fields, series year uncertain, sort_name
 ALTER TABLE gcd_series
