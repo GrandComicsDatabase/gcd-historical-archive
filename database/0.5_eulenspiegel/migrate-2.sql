@@ -1,13 +1,4 @@
 -- Add issue title field.
-ALTER TABLE gcd_issue
-    ADD COLUMN title varchar(255) NOT NULL default '',
-    ADD COLUMN no_title tinyint(1) NOT NULL default 0,
-    ADD KEY (title);
-
-ALTER TABLE oi_issue_revision
-    ADD COLUMN title varchar(255) NOT NULL default '',
-    ADD COLUMN no_title tinyint(1) NOT NULL default 0;
-
 -- Add series level flag fields, series year uncertain, sort_name
 ALTER TABLE gcd_series
     ADD COLUMN sort_name varchar(255) NOT NULL after name,
