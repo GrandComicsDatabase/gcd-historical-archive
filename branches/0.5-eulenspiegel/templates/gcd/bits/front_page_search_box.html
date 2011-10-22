@@ -1,0 +1,20 @@
+{% load i18n %}
+<div id="search_box">
+  <form action="{% url apps.gcd.views.search.search %}" method="get">
+    <div class="first_line">
+        {% trans 'Search' %} {% include "gcd/bits/search_for.html" %}
+        <input type="text" name="query" id="query" size="15" autofocus>
+        <script type="text/javascript">
+        if (!("autofocus" in document.createElement("input"))) {
+            document.getElementById("query").focus();
+        }
+        </script>
+    </div>
+    <div class="second_line">
+        {% trans 'Sort by' %}
+        {% include "gcd/bits/search_order.html" %}
+        <input type="submit" name="submit" id="submit" value="{% trans 'Search' %}">
+        |&nbsp;<span id="advanced_link"><a href="{% url apps.gcd.views.search.advanced_search %}">{% trans 'Advanced&nbsp;Search' %}</a></span>
+    </div>
+  </form> 
+</div>

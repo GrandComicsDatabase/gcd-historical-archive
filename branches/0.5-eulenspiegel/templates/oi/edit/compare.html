@@ -1,0 +1,99 @@
+{% extends "oi/base_view.html" %}
+
+{% load display %}
+{% load mathfilter %}
+
+{% block title %}
+GCD :: Compare :: {{ changeset_type|title }} :: {{ revision }}
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/gcd/default.css">
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/oi/default.css">
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/oi/default/edit.css">
+{% endblock %}
+
+{% block view_body %}
+<h1>
+{{ changeset|header_link }}
+</h1>
+<p>
+Highlighted fields represent <span class="added_highlight">added</span>,
+<span class="comparison_highlight">changed</span>, and
+<span class="deleted_highlight">deleted</span> data.
+{% if changeset.state != states.APPROVED and not revision.deleted %}
+<a class="new_window" href="{% url preview_revision model_name=model_name,id=revision.id %}" target=_blank>Preview changes</a>
+{% endif %}
+{% if changeset_type == 'issue' %}
+  {% if changeset.storyrevisions.count and not revision.deleted %}
+    {% if request.GET.collapse %}
+    <a href="{% url compare id=changeset.id %}">Expand compare view</a>.
+    {% else %}
+    <a href="{% url compare id=changeset.id %}?collapse=1">Collapse compare view</a>.
+    {% endif %}
+  {% endif %}
+  {% include 'oi/bits/compare_issue.html' %}
+  {% if changeset.change_type == CTYPES.variant_add or changeset.change_type == CTYPES.two_issues %}
+    {% if changeset.change_type == CTYPES.variant_add and revision.ordered_story_revisions.0.source %}
+<h2>
+The above sequence was moved from the following issue.
+</h2>
+    {% endif %}
+<div>
+    {% for cover in changeset.coverrevisions.all %}
+<h3>Cover is moved from {{ cover.issue }}.</h3>
+      <a title="click cover for large view" href="{{ cover.cover.get_base_url}}/w400/{{ cover.cover.id }}.jpg">{{ cover.cover|cover_image_tag:'1, moved_cover' }}</a>
+    {% endfor %}
+</div>
+<hr>
+    {% with changeset.issuerevisions.all.1 as revision %}
+    {% with revision.previews as prev_rev %}
+    {% with revision.posterior as post_rev %}
+    {% with revision.field_list as field_list %}
+<h2>
+      {{ revision }}
+</h2>
+        {% if changeset.state != states.APPROVED and not revision.deleted %}
+<a class="new_window" href="{% url preview_revision model_name=model_name,id=revision.id %}" target=_blank>Preview changes</a>
+        {% endif %}
+      {{ revision.compare_changes|default:'' }}
+      {% include 'oi/bits/compare_issue.html' %}
+    {% endwith %}
+    {% endwith %}
+    {% endwith %}
+    {% endwith %}
+  <!-- end of variant_add -->
+  {% endif %}
+{% else %}
+  {% if changeset_type = 'series' %}
+    {% if revision.previous and revision.publisher != revision.previous.publisher %}
+    <div class="edit">
+    <h2> Series moved from <span class="comparison_highlight">{{ revision.previous.publisher }}</span> to <span class="comparison_highlight">{{ revision.publisher }}</span> </h2>
+
+The <span class="comparison_highlight">{{ revision.series.issue_count|sub_int:revision.series.brand_info_counts.unknown }} set</span> brands and <span class="comparison_highlight">{{ revision.series.issue_count|sub_int:revision.series.indicia_publisher_info_counts.unknown }} set</span> indicia publishers of the {{ revision.series.issue_count }} issues of this series will be <span class="comparison_highlight">reset</span>.
+    </div>
+    {% endif %}
+  {% endif %}
+</p>
+  {% include 'oi/bits/compare.html' %}
+{% endif %}
+
+<h3> Comments </h3>
+
+{% with changeset.comments as comments %}
+{% include 'oi/bits/comments.html' %}
+{% endwith %}
+
+{% if user == changeset.indexer and changeset.state = states.OPEN %}
+<p>
+  <a href="{% url edit id=changeset.id %}">Edit changes</a>
+</p>
+{% endif %}
+
+{% include 'oi/bits/compare_actions.html' %}
+
+{% endblock %}
+

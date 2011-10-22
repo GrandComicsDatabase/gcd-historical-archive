@@ -1,0 +1,36 @@
+{% load i18n %}
+
+<div>
+<h1 class="item_id search_id">
+<div class="left">
+  {{ heading }}: {{ search_item }}
+</div>
+<div class="search_id_nav">
+<a name="{{ position }}"></a>
+<a title="go to the {{ link_direction }}" href="#{{ link_direction }}">
+<img src="{{ MEDIA_URL }}/img/gcd/icons/{{ ICON_SET }}/19x19/actions/go-{{ link_direction }}.png">
+</a>
+</div>
+</h1>
+
+<div class="item_id">
+  <div class="left" class="item_data">
+  Displaying {{ page.start_index }} to {{ page.end_index }} of {{ paginator.count }} {{ item_name }}{{ paginator.count|pluralize:plural_suffix }}
+  matching your {% if used_search_terms %}<a href="#search_terms">search<a/>{% else %}search{% endif %}{% if search_term %} for '{{ search_term }}'{% endif %}. 
+  </div>
+  {% with query_string as extra_string %}
+  {% include "gcd/bits/pagination_bar.html" %}
+  {% endwith %}
+</div>
+</div>
+{% if position = 'top' %}
+<div id="search_reminder">
+Refine your search using the <a href="{% url apps.gcd.views.search.advanced_search %}?{{ query_string }}">advanced search</a>.
+{% if change_order %}
+Change <a href="{{ change_order}}">sort order</a>.
+  {% if item_name = 'series' %}
+Series search results also show series for which an issue title matches.
+  {% endif %}
+{% endif %}
+</div>
+{% endif %}

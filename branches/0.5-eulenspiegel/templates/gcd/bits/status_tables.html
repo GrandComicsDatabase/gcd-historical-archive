@@ -1,0 +1,29 @@
+{% load gcdtable %}
+
+<table border="1" class="status" id="key">
+  <tr>
+    <td class="status_approved"> Indexed </td>
+    <td class="status_pending"> Pending Approval </td>
+    <td class="status_editing"> Reserved </td>
+    <td class="status_available"> Skeleton Data Only </td>
+  </tr>
+</table>
+<p class="spacer"/>
+<table border="1" class="status">
+  <tr>
+  {% for issue in issues %}
+    <td class="status_{{ issue.index_status_name }}">
+      <a href="{{ issue.get_absolute_url }}">{{ issue.display_number }}</a> </td>
+    {% if forloop.counter|divisibleby:table_width %}
+  </tr>
+      {% if not forloop.last %}
+  <tr>
+      {% endif %}
+    {% else %}
+      {% if forloop.last %}
+        {{ forloop.counter|finishrow:table_width }}
+  </tr>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+</table>

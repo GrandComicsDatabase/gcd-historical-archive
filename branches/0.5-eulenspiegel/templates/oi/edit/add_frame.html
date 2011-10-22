@@ -1,0 +1,47 @@
+{% extends "oi/base_view.html" %}
+
+{% block title %}
+Adding {{ object_name }}
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/gcd/default.css"/>
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/oi/default.css"/>
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/oi/default/edit.css"/>
+{% endblock %}
+
+{% block view_body %}
+<script type="text/javascript">
+function disableEnterKey(e) {
+   var key;
+   if(window.event)
+      key = window.event.keyCode;     //IE
+    else
+      key = e.which;     //firefox
+   if(key == 13) return false;
+    else return true;
+}
+</script>
+
+<h1>Adding {{ object_name }}</h1>
+
+<div class="edit">
+<form action="{{ object_url }}" method="POST">
+  <table class="editing">
+  {{ form.as_table }}
+  </table>
+{% if alternative_action %}
+  <input type="submit" name="{{ alternative_action }}" value="{{ alternative_label }}"></input>
+{% endif %}
+  <input type="submit" name="add" value="{{ action_label}} {{ object_name }}"></input>
+{% ifequal object_name "Story" %}
+  <input type="submit" name="cancel_return" value="Cancel"></input>
+{% else %}
+  <input type="submit" name="cancel" value="Cancel"></input>
+{% endifequal %}
+</form>
+</div>
+{% endblock %}

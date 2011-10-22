@@ -1,0 +1,214 @@
+{% extends "oi/base_view.html" %}
+
+{% load credits %}
+{% load display %}
+
+{% block title %}
+Reviewing :: {{ revision }}
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/gcd/default.css"/>
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/oi/default.css"/>
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/oi/default/edit.css"/>
+<link rel="stylesheet" type="text/css"
+      href="{{ MEDIA_URL }}css/oi/default/cover.css"/>
+{% endblock %}
+
+{% block view_body %}
+<h1>
+{{ changeset|header_link }}
+</h1>
+
+{% if revision.is_replacement %}
+<table id="covers">
+<tr>
+<td class="cover_grid{% if old_cover.marked %} marked{% endif %}">
+  <h2>cover to be replaced</h2>
+  <div class="cover_large">
+    <a href="{{ old_cover.issue.get_absolute_url }}">{{ old_cover_tag }}</a>
+  {% if old_cover_width %}
+  <div>The full cover file has a width of {{ old_cover_width }} pixels.</div>
+  {% endif %}
+  {% if old_cover.is_wraparound %}
+  </div>
+  <div>The selected front part of the above full cover:</div>
+  <div class="cover_medium">
+    <a href="{{ old_cover.issue.get_absolute_url }}">{{ old_cover_front_tag }}</a>
+  {% endif %}
+    <div>
+      Cover <a href="{% url compare id=old_cover.changeset.id %}">
+      uploaded on {{ old_cover.created }}</a> by <br>
+      {{ old_cover|show_cover_contributor }}.
+    </div>
+  </div>
+</td>
+
+<td class="cover_grid{% if revision.marked %} marked{% endif %}">
+<h2> uploaded replacement cover </h2>
+{% else %}
+  {% if revision.deleted %}
+<h2> cover deletion </h2>
+  {% else %}
+<h2> cover uploaded
+    {% if additional %}
+      as an <span class="comparison_highlight">additional</span> cover (dust jacket, flip cover)
+    {% else %}
+      {% if changeset.issuerevisions.count %}
+        for a new <span class="comparison_highlight">variant issue</span>
+        with variant name: {{ changeset.issuerevisions.all.0.variant_name }}
+      {% endif %}
+    {% endif %}
+</h2>
+  {% endif %}
+{% endif %}
+<div class="cover_large">
+  <a href="{{ revision.issue.get_absolute_url }}">{{ cover_tag }}</a>
+{% if cover_width %}
+  <div>The full cover file has a width of {{ cover_width }} pixels.</div>
+  {% if perms.gcd.can_approve and revision.created > settings.NEW_SITE_COVER_CREATION_DATE and not settings.BETA %}
+<a href="{{ revision.approved_file }}">full uploaded cover</a>
+  {% endif %}
+{% endif %}
+{% if revision.is_wraparound %}
+</div>
+<div class="cover_medium">
+  <div>The selected front part of the above full cover:</div>
+  <a href="{{ revison.issue.get_absolute_url }}">{{ cover_front_tag }}</a>
+{% endif %}
+
+  <div>
+{% if revision.deleted %}
+    <div>
+      Cover <a href="{% url compare id=old_cover.changeset.id %}">
+      uploaded on {{ old_cover.created }}</a> by <br>
+      {{ old_cover|show_cover_contributor }}.
+    </div>
+{% endif %}
+Cover {% if revision.deleted %}deleted{% else %}uploaded{% endif %} on {{ revision.created }} by <br>
+{{ revision|show_cover_contributor }}.
+{% if revision.marked %}
+    <p><span class="comparison_highlight">cover is marked for replacement</span></p>
+  {% ifequal changeset.state states.REVIEWING %}
+    {% ifequal user changeset.approver %}
+    <form action="{% url unmark_cover_revision revision_id=revision.id %}" method="POST">
+      <input type="submit" value="Remove mark for replacement">
+    </form>
+    {% endifequal %}
+  {% endifequal %}
+{% else %}
+  {% ifequal changeset.state states.REVIEWING %}
+    {% ifequal user changeset.approver %}
+    <form action="{% url mark_cover_revision revision_id=revision.id %}" method="POST">
+      <input type="submit" value="Mark for replacement">
+    </form>
+    {% endifequal %}
+  {% endifequal %}
+{% endif %}
+{% if changeset.issuerevisions.count %}
+  <p>
+  {% if changeset.storyrevisions.count %}
+      The variant cover has artwork <span class="comparison_highlight">different</span> from the base issue, a story sequence with '?' for the credits will be created.
+  {% else %}
+    The variant cover has the same artwork as the base issue, no separate story sequence needed.
+  {% endif %}
+  </p>
+  {% if changeset.state = states.REVIEWING %}
+    {% if user = changeset.approver %}
+      <form action="{% url flip_artwork_flag revision_id=revision.id %}" method="POST">
+        <input type="submit" name="flip_artwork_flag" value="Flip the variant artwork flag" />
+      </form>
+    {% endif %}
+  {% endif %}
+{% endif %}
+    <br>
+  </div>
+</div>
+
+{% if revision.is_replacement %}
+</td>
+</tr>
+</table>
+{% endif %}
+
+{% if current_covers %}
+  {% if revision.is_replacement %}
+<h2> other current cover{{ current_covers|length|pluralize }} </h2>
+  {% else %}
+<h2> current cover{{ current_covers|length|pluralize }} </h2>
+  {% endif %}
+<table id="covers">
+  <tr>
+  {% for cover, tag in current_covers %}
+    <td class="cover_grid{% if cover.marked %} marked{% endif %}">
+      <a href="{{ cover.issue.get_absolute_url }}">{{ tag }}</a>
+      <br>
+       <span class="cover_links">Zoom:
+<a class="new_window" href="{{ cover.issue.get_absolute_url }}cover/4" target="_blank">Large</a> (opens in new window)</span> <br>
+   </td>
+    {% if forloop.counter|divisibleby:table_width %}
+  </tr>
+  <tr>
+    {% endif %}
+  {% endfor %}
+  </tr>
+</table>
+{% endif %}
+
+{% if pending_covers %}
+<h2> pending cover{{ pending_covers|length|pluralize }} </h2>
+<table id="covers">
+  <tr>
+  {% for cover, tag in pending_covers %}
+    <td class="cover_grid{% if cover.marked %} marked{% endif %}">
+      <a href="{% url compare id=cover.changeset.id %}">{{ tag }}</a>
+      <br>
+      <div class="cover_caption">
+        uploaded on {{ cover.created }}<br>
+        by {{ cover.changeset.indexer.indexer }}<br>
+      </div>
+    </td>
+    {% if forloop.counter|divisibleby:table_width %}
+  </tr>
+  <tr>
+    {% endif %}
+  {% endfor %}
+  </tr>
+</table>
+{% endif %}
+
+{% if pending_variant_adds %}
+<div>
+<h2> pending variant add{{ pending_variant_adds|length|pluralize }} </h2>
+  <ul>
+  {% for variant in pending_variant_adds %}
+    <li><a href="{% url compare id=variant.id %}">{{ variant }}</a>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% if variants_without_covers %}
+<div>
+<h2> Existing variant{{ variants_without_covers|length|pluralize }} with covers </h2>
+  <ul>
+  {% for variant in variants_without_covers %}
+    <li><a href="{% url show_issue issue_id=variant.id %}">{{ variant }}</a>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% with changeset.comments as comments %}
+{% include 'oi/bits/comments.html' %}
+{% endwith %}
+
+{% with 1 as is_cover %}
+{% include 'oi/bits/compare_actions.html' %}
+{% endwith %}
+
+{% endblock %}
+
