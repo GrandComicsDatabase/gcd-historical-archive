@@ -19,4 +19,4 @@ INSERT INTO migration_story_status (story_id)
 
 UPDATE migration_story_status i INNER JOIN gcd_story h ON h.id = i.story_id
     SET i.reprint_original_notes=h.reprint_notes;
-
+UPDATE migration_story_status set reprint_confirmed=1 where reprint_original_notes='';
