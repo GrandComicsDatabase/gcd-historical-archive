@@ -9,6 +9,7 @@ CREATE TABLE migration_story_status (
     reprint_confirmed tinyint(1) default NULL,
     reprint_original_notes longtext,
     PRIMARY KEY (id),
+    KEY story_id ('story_id'),
     KEY key_reprint_needs_inspection (`reprint_needs_inspection`),
     KEY key_reprint_confirmed (`reprint_confirmed`),
     KEY key_reprint_notes (`reprint_original_notes`(255))
