@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS voting_expected_voter (
+DROP TABLE IF EXISTS voting_expected_voter;
+
+CREATE TABLE voting_expected_voter (
     id int(11) NOT NULL auto_increment,
     voter_id int(11) NOT NULL,
     agenda_id int(11) NOT NULL,
