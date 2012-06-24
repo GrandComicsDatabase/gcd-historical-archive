@@ -17,11 +17,18 @@ my $DATA_DIR = '';
 
 my $DATE = strftime('%Y-%m-%d', localtime);
 
+# Tables that don't contain deleted data
 my $PUBLIC_SUPPORT_TABLES =
-  'gcd_country gcd_language gcd_story_type gcd_classification';
+  'gcd_country gcd_language gcd_story_type gcd_classification ' .
+  'gcd_issue_reprint gcd_reprint gcd_reprint_from_issue ' .
+  'gcd_reprint_to_issue';
+
+# Tables with deleted data which will be filtered out in the dump
+# using $PUBLIC_DATA_WHERE
 my $PUBLIC_DATA_TABLES =
   'gcd_publisher gcd_brand gcd_indicia_publisher gcd_series ' .
   'gcd_issue gcd_story';
+
 my $PUBLIC_DATA_WHERE = 'deleted=0';
 
 #
