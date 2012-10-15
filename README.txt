@@ -1,4 +1,3 @@
-The pydjango directory is the main active project- see its README for details.
-See http://docs.comics.org/ under the Technical section for information about
-the entire tree.
+The gcd-django repository https://github.com/GrandComicsDatabase/gcd-django is the main active project.
 
+This is the historical archive of code development for the GCD.
