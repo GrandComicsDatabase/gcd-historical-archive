@@ -19,7 +19,7 @@ my $DATE = strftime('%Y-%m-%d', localtime);
 
 # Tables that don't contain deleted data
 my $PUBLIC_SUPPORT_TABLES =
-  'gcd_country gcd_language gcd_story_type gcd_classification ' .
+  'gcd_country gcd_language gcd_story_type ' .
   'gcd_issue_reprint gcd_reprint gcd_reprint_from_issue ' .
   'gcd_reprint_to_issue';
 
