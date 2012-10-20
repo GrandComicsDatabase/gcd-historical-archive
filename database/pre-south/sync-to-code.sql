@@ -132,6 +132,9 @@ ALTER TABLE migration_story_status
     ADD UNIQUE KEY (story_id),
     ADD FOREIGN KEY (story_id) REFERENCES gcd_story (id);
 
+ALTER TABLE gcd_reservation
+    MODIFY created datetime NOT NULL;
+
 -- Drop some tables that I apparently put in at some point without
 -- matching code.  Would love to see this stuff done, but not this way.
 -- I think this was from one of the original prototype migration scripts.
@@ -140,8 +143,69 @@ DROP TABLE gcd_series_relationship;
 
 -- Do we still need these tables in production?  Or are they archived somewhere?
 -- I think they were there for history migration, but have already been migrated.
--- DROP TABLE log_publisher;
--- DROP TABLE log_series;
+-- Actually, given the naming convention, they might also have been leftover
+-- from really early migration scripts.
+DROP TABLE log_publisher;
+DROP TABLE log_series;
+DROP TABLE old_publisher;
+DROP TABLE old_series;
 
+-- Technically not necessary given the foreign key, but syncdb creates it.
+ALTER TABLE oi_changeset_along_with
+    ADD KEY (changeset_id);
+ALTER TABLE oi_changeset_on_behalf_of
+    ADD KEY (changeset_id);
 
--- oi_changeset: tinyint(2) is an optimization Django doesn't get.
+ALTER TABLE oi_changeset_comment
+    ADD KEY (revision_id);
+
+ALTER TABLE oi_cover_revision
+    ADD FOREIGN KEY (changeset_id) REFERENCES oi_changeset (id),
+    ADD FOREIGN KEY (cover_id) REFERENCES gcd_cover (id),
+    ADD FOREIGN KEY (issue_id) REFERENCES gcd_issue (id);
+
+ALTER TABLE oi_image_revision ENGINE=InnoDB,
+    CONVERT TO CHARACTER SET utf8,
+    ADD KEY (deleted),
+    ADD FOREIGN KEY (changeset_id) REFERENCES oi_changeset (id),
+    ADD FOREIGN KEY (content_type_id) REFERENCES django_content_type (id),
+    ADD FOREIGN KEY (image_id) REFERENCES gcd_image (id),
+    ADD FOREIGN KEY (type_id) REFERENCES gcd_image_type (id);
+
+ALTER TABLE oi_issue_revision
+    MODIFY indicia_pub_not_printed tinyint(1) NOT NULL,
+    MODIFY no_brand tinyint(1) NOT NULL,
+    ADD KEY (year_on_sale),
+    ADD KEY (month_on_sale),
+    ADD KEY (day_on_sale);
+
+ALTER TABLE oi_ongoing_reservation_along_with
+    ADD KEY (ongoingreservation_id);
+ALTER TABLE oi_ongoing_reservation_on_behalf_of
+    ADD KEY (ongoingreservation_id);
+
+ALTER TABLE oi_reprint_revision
+    ADD KEY (deleted),
+    ADD FOREIGN KEY (changeset_id) REFERENCES oi_changeset (id);
+
+ALTER TABLE taggit_tag ENGINE=InnoDB,
+    CONVERT TO CHARACTER SET utf8;
+
+ALTER TABLE taggit_taggeditem ENGINE=InnoDB,
+    CONVERT TO CHARACTER SET utf8,
+    ADD FOREIGN KEY (content_type_id) REFERENCES django_content_type (id),
+    ADD FOREIGN KEY (tag_id) REFERENCES taggit_tag (id);
+
+ALTER TABLE voting_agenda_item_subscribers
+    ADD KEY (agendaitem_id);
+ALTER TABLE voting_agenda_subscribers
+    ADD KEY (agenda_id);
+
+ALTER TABLE voting_expected_voter
+    CONVERT TO CHARACTER SET utf8;
+
+ALTER TABLE voting_topic_agenda_items
+    ADD KEY (topic_id);
+ALTER TABLE voting_topic_subscribers
+    ADD KEY (topic_id);
+
