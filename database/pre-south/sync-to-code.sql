@@ -1,14 +1,18 @@
--- Fix inexplicable disappearance of auth and admin foreign keys.
-ALTER TABLE auth_group_permissions
-    ADD KEY (`group_id`),
-    ADD FOREIGN KEY (`group_id`) REFERENCES `auth_group` (`id`),
-    ADD FOREIGN KEY (`permission_id`) REFERENCES `auth_permission` (`id`);
+-- -- Fix inexplicable disappearance of auth and admin foreign keys.
+-- ALTER TABLE auth_group_permissions
+--     ADD KEY (`group_id`),
+--     ADD FOREIGN KEY (`group_id`) REFERENCES `auth_group` (`id`),
+--     ADD FOREIGN KEY (`permission_id`) REFERENCES `auth_permission` (`id`);
+-- 
+-- ALTER TABLE auth_message
+--     ADD FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`);
+-- 
+-- ALTER TABLE auth_permission
+--     ADD FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`);
 
-ALTER TABLE auth_message
-    ADD FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`);
-
-ALTER TABLE auth_permission
-    ADD FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`);
+DELETE auth_user_groups.* FROM auth_user_groups LEFT OUTER JOIN auth_user 
+    ON auth_user_groups.user_id = auth_user.id
+    WHERE auth_user.id IS NULL;
 
 ALTER TABLE auth_user_groups
     ADD KEY (`user_id`),
