@@ -1,14 +1,14 @@
--- -- Fix inexplicable disappearance of auth and admin foreign keys.
--- ALTER TABLE auth_group_permissions
---     ADD KEY (`group_id`),
---     ADD FOREIGN KEY (`group_id`) REFERENCES `auth_group` (`id`),
---     ADD FOREIGN KEY (`permission_id`) REFERENCES `auth_permission` (`id`);
--- 
--- ALTER TABLE auth_message
---     ADD FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`);
--- 
--- ALTER TABLE auth_permission
---     ADD FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`);
+-- Fix inexplicable disappearance of auth and admin foreign keys.
+ALTER TABLE auth_group_permissions
+    ADD KEY (`group_id`),
+    ADD FOREIGN KEY (`group_id`) REFERENCES `auth_group` (`id`),
+    ADD FOREIGN KEY (`permission_id`) REFERENCES `auth_permission` (`id`);
+
+ALTER TABLE auth_message
+    ADD FOREIGN KEY (`user_id`) REFERENCES `auth_user` (`id`);
+
+ALTER TABLE auth_permission
+    ADD FOREIGN KEY (`content_type_id`) REFERENCES `django_content_type` (`id`);
 
 DELETE auth_user_groups.* FROM auth_user_groups LEFT OUTER JOIN auth_user 
     ON auth_user_groups.user_id = auth_user.id
@@ -47,8 +47,7 @@ ALTER TABLE gcd_series
 DROP TABLE gcd_classification;
 
 -- Do all of the engine conversions so the restored foreign keys work on both ends.
-ALTER TABLE gcd_error ENGINE=InnoDB,
-    CONVERT TO CHARACTER SET utf8;
+ALTER TABLE gcd_error ENGINE=InnoDB;
 ALTER TABLE gcd_image ENGINE=InnoDB,
     CONVERT TO CHARACTER SET utf8;
 ALTER TABLE gcd_image_type ENGINE=InnoDB,
@@ -82,8 +81,7 @@ ALTER TABLE gcd_country
 
 ALTER TABLE gcd_cover
     MODIFY created datetime NOT NULL,
-    MODIFY modified datetime NOT NULL,
-    CONVERT TO CHARACTER SET utf8;
+    MODIFY modified datetime NOT NULL;
 
 ALTER TABLE gcd_indexer
     ADD KEY (`notify_on_approve`),
