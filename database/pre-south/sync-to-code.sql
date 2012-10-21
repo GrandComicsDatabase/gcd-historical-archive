@@ -134,6 +134,17 @@ ALTER TABLE migration_story_status
     ADD UNIQUE KEY (story_id),
     ADD FOREIGN KEY (story_id) REFERENCES gcd_story (id);
 
+UPDATE gcd_migration_story_status
+    SET reprint_needs_inspection=0
+    WHERE reprint_needs_inspection IS NULL;
+UPDATE gcd_migration_story_status
+    SET reprint_confirmed=0
+    WHERE reprint_confirmed IS NULL;
+
+ALTER TABLE gcd_migration_story_status
+    MODIFY reprint_needs_inspection tinyint(1) NOT NULL,
+    MODIFY reprint_confirmed tinyint(1) NOT NULL;
+
 ALTER TABLE gcd_reservation
     MODIFY created datetime NOT NULL;
 
