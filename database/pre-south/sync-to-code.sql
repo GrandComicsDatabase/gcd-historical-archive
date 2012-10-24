@@ -87,8 +87,8 @@ ALTER TABLE gcd_indexer
     ADD KEY (`notify_on_approve`),
     ADD KEY (`collapse_compare_view`),
     ADD KEY (`show_wiki_links`),
-    DROP KEY user_id,
-    ADD UNIQUE KEY (`user_id`);
+    ADD UNIQUE KEY (`user_id`),
+    DROP KEY user_id;
 
 ALTER TABLE gcd_indexer_languages
     ADD UNIQUE KEY (`indexer_id`, `language_id`);
